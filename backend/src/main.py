@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from app.core.config import settings
+from src.config import settings
 
 # Initialize FastAPI application
 app = FastAPI(
@@ -9,5 +9,5 @@ app = FastAPI(
 
 # Root status check endpoint
 @app.get("/")
-def read_root():
+async def read_root():
     return {"message": f"Welcome to {settings.PROJECT_NAME} API!"}

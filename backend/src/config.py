@@ -1,6 +1,4 @@
 from pydantic_settings import BaseSettings, SettingsConfigDict
-from pydantic import AnyHttpUrl
-from typing import List
 
 class Settings(BaseSettings):
     # Specify the configuration model config to read .env file
