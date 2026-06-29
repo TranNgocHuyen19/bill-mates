@@ -48,72 +48,61 @@
 }
 
 :root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.457 0.24 277.023);
-  --primary-foreground: oklch(0.962 0.018 272.314);
-  --secondary: oklch(0.967 0.001 286.375);
-  --secondary-foreground: oklch(0.21 0.006 285.885);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.785 0.115 274.713);
-  --chart-2: oklch(0.585 0.233 277.117);
-  --chart-3: oklch(0.511 0.262 276.966);
-  --chart-4: oklch(0.457 0.24 277.023);
-  --chart-5: oklch(0.398 0.195 277.366);
-  --radius: 0.625rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.511 0.262 276.966);
-  --sidebar-primary-foreground: oklch(0.962 0.018 272.314);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  --background: #fbf8ff;
+  --foreground: #1a1b22;
+  --card: #ffffff;
+  --card-foreground: #1a1b22;
+  --popover: #ffffff;
+  --popover-foreground: #1a1b22;
+  --primary: #24389c;
+  --primary-foreground: #ffffff;
+  --primary-container: #3f51b5;
+  --on-primary-container: #cacfff;
+  --secondary: #006c49;
+  --secondary-foreground: #ffffff;
+  --secondary-container: #6cf8bb;
+  --on-secondary-container: #00714d;
+  --tertiary: #831921;
+  --tertiary-container: #a33236;
+  --muted: #f4f2fc;
+  --muted-foreground: #454652;
+  --accent: #efedf6;
+  --accent-foreground: #1a1b22;
+  --destructive: #ba1a1a;
+  --destructive-foreground: #ffffff;
+  --border: #c5c5d4;
+  --input: #c5c5d4;
+  --ring: #24389c;
+  --radius: 0.75rem; /* 12px for inputs & buttons as per rounded-md */
+  --radius-lg: 1.0rem; /* 16px for cards as per rounded-lg */
 }
 
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.398 0.195 277.366);
-  --primary-foreground: oklch(0.962 0.018 272.314);
-  --secondary: oklch(0.274 0.006 286.033);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.785 0.115 274.713);
-  --chart-2: oklch(0.585 0.233 277.117);
-  --chart-3: oklch(0.511 0.262 276.966);
-  --chart-4: oklch(0.457 0.24 277.023);
-  --chart-5: oklch(0.398 0.195 277.366);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.585 0.233 277.117);
-  --sidebar-primary-foreground: oklch(0.962 0.018 272.314);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+  --background: #1a1b22;
+  --foreground: #fbf8ff;
+  --card: #2f3037;
+  --card-foreground: #fbf8ff;
+  --popover: #2f3037;
+  --popover-foreground: #fbf8ff;
+  --primary: #bac3ff;
+  --primary-foreground: #00105c;
+  --primary-container: #293ca0;
+  --on-primary-container: #dee0ff;
+  --secondary: #4edea3;
+  --secondary-foreground: #002113;
+  --secondary-container: #005236;
+  --on-secondary-container: #6ffbbe;
+  --tertiary: #ffb3b0;
+  --tertiary-container: #881d24;
+  --muted: #2f3037;
+  --muted-foreground: #c5c5d4;
+  --accent: #454652;
+  --accent-foreground: #fbf8ff;
+  --destructive: #ffdad6;
+  --destructive-foreground: #93000a;
+  --border: #454652;
+  --input: #454652;
+  --ring: #bac3ff;
 }
 
 @layer base {

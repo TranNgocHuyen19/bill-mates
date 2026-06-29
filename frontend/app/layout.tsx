@@ -1,10 +1,15 @@
-import { Geist_Mono, Roboto } from 'next/font/google'
+import { Geist_Mono, Be_Vietnam_Pro } from 'next/font/google'
 
 import './globals.css'
 import { ThemeProvider } from '@/components/theme-provider'
+import { QueryProvider } from '@/components/query-provider'
 import { cn } from '@/lib/utils'
 
-const roboto = Roboto({ subsets: ['latin'], variable: '--font-sans' })
+const beVietnamPro = Be_Vietnam_Pro({
+  subsets: ['vietnamese', 'latin'],
+  weight: ['400', '500', '600', '700'],
+  variable: '--font-sans'
+})
 
 const fontMono = Geist_Mono({
   subsets: ['latin'],
@@ -20,10 +25,12 @@ export default function RootLayout({
     <html
       lang='en'
       suppressHydrationWarning
-      className={cn('antialiased', fontMono.variable, 'font-sans', roboto.variable)}
+      className={cn('antialiased', fontMono.variable, 'font-sans', beVietnamPro.variable)}
     >
       <body>
-        <ThemeProvider>{children}</ThemeProvider>
+        <QueryProvider>
+          <ThemeProvider>{children}</ThemeProvider>
+        </QueryProvider>
       </body>
     </html>
   )
