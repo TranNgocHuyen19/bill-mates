@@ -1,5 +1,6 @@
 import { Geist_Mono, Be_Vietnam_Pro } from 'next/font/google'
 
+import { Toaster } from 'sonner'
 import './globals.css'
 import { ThemeProvider } from '@/components/theme-provider'
 import { QueryProvider } from '@/components/query-provider'
@@ -16,6 +17,8 @@ const fontMono = Geist_Mono({
   variable: '--font-mono'
 })
 
+import { BottomNav } from '@/components/bottom-nav'
+
 export default function RootLayout({
   children
 }: Readonly<{
@@ -27,9 +30,13 @@ export default function RootLayout({
       suppressHydrationWarning
       className={cn('antialiased', fontMono.variable, 'font-sans', beVietnamPro.variable)}
     >
-      <body>
+      <body className="pb-16 md:pb-0">
         <QueryProvider>
-          <ThemeProvider>{children}</ThemeProvider>
+          <ThemeProvider>
+            {children}
+            <BottomNav />
+            <Toaster richColors position="top-right" />
+          </ThemeProvider>
         </QueryProvider>
       </body>
     </html>

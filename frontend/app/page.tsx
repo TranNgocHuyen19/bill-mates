@@ -15,6 +15,8 @@ import {
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { Navbar } from '@/components/navbar'
+import { PATHS } from '@/constants'
 
 export const metadata = {
   title: 'BillMates - Chia tiền thông minh, giữ gìn hòa khí',
@@ -24,32 +26,9 @@ export const metadata = {
 export default function WelcomePage() {
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col font-sans transition-colors duration-300">
-      {/* 1. Header/Navbar */}
-      <header className="border-b border-border bg-card/50 backdrop-blur-md sticky top-0 z-50 transition-colors">
-        <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="size-9 bg-primary/10 border border-primary/20 rounded-xl flex items-center justify-center">
-              <Wallet className="size-5 text-primary" />
-            </div>
-            <span className="font-bold text-xl tracking-tight text-primary">BillMates</span>
-          </div>
+      {/* 1. Dynamic Header Navbar with Auth state */}
+      <Navbar />
 
-          <nav className="hidden md:flex items-center gap-6 text-sm font-semibold text-muted-foreground">
-            <a href="#features" className="hover:text-foreground transition-colors">Tính năng</a>
-            <a href="#how-it-works" className="hover:text-foreground transition-colors">Cách hoạt động</a>
-            <a href="#faq" className="hover:text-foreground transition-colors">Câu hỏi thường gặp</a>
-          </nav>
-
-          <div className="flex items-center gap-2">
-            <Button variant="ghost" size="sm" asChild>
-              <Link href="/login">Đăng nhập</Link>
-            </Button>
-            <Button size="sm" asChild>
-              <Link href="/register">Đăng ký</Link>
-            </Button>
-          </div>
-        </div>
-      </header>
 
       {/* 2. Hero Section */}
       <section className="relative py-16 md:py-24 overflow-hidden border-b border-border bg-gradient-to-b from-primary/5 to-transparent">
@@ -72,7 +51,7 @@ export default function WelcomePage() {
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4">
               <Button size="lg" className="h-12 px-6 text-sm font-semibold w-full sm:w-auto" asChild>
-                <Link href="/register">
+                <Link href={PATHS.AUTH.REGISTER}>
                   Bắt đầu miễn phí <ArrowRight className="size-4 ml-1" />
                 </Link>
               </Button>
@@ -87,16 +66,16 @@ export default function WelcomePage() {
           </div>
 
           {/* Hero Right Column: Interactive Stitch Style Mockup */}
-          <div className="relative w-full max-w-lg mx-auto lg:max-w-none">
+          <Link href={PATHS.ROOM_DETAIL('101')} className="relative w-full max-w-lg mx-auto lg:max-w-none block group cursor-pointer">
             {/* Background card grid */}
-            <div className="absolute inset-0 bg-primary/5 rounded-3xl -rotate-2 transform scale-102 -z-10" />
+            <div className="absolute inset-0 bg-primary/5 rounded-3xl -rotate-2 transform scale-102 -z-10 group-hover:rotate-0 transition-transform" />
 
-            <div className="bg-card border border-border rounded-2xl shadow-xl p-6 space-y-6">
+            <div className="bg-card border border-border rounded-2xl shadow-xl p-6 space-y-6 group-hover:border-primary/50 transition-colors">
               {/* Mock Dashboard Header */}
               <div className="flex justify-between items-center pb-4 border-b border-border">
                 <div>
-                  <h3 className="font-bold text-base">Phòng 402 - Căn Hộ Homies</h3>
-                  <p className="text-xs text-muted-foreground">3 thành viên • Đang hoạt động</p>
+                  <h3 className="font-bold text-base group-hover:text-primary transition-colors">Phòng 101 - Căn Hộ Homies</h3>
+                  <p className="text-xs text-muted-foreground">4 thành viên • Xem chi tiết ➔</p>
                 </div>
                 <Button size="icon-sm" variant="outline" className="rounded-full">
                   <Plus className="size-4" />
@@ -154,7 +133,7 @@ export default function WelcomePage() {
                 </div>
               </div>
             </div>
-          </div>
+          </Link>
         </div>
       </section>
 

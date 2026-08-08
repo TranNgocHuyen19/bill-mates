@@ -8,6 +8,7 @@ import { Mail, Lock, Eye, EyeOff, Loader2 } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { PATHS } from '@/constants'
 import { LoginSchema, LoginInput } from '../schemas'
 import { useLoginMutation } from '../queries'
 
@@ -64,7 +65,7 @@ export function LoginForm() {
             <div className="flex items-center justify-between w-full">
               <span>Mật khẩu</span>
               <Link
-                href="/forgot-password"
+                href={PATHS.AUTH.FORGOT_PASSWORD}
                 className="text-xs font-semibold text-primary hover:underline"
                 tabIndex={-1}
               >
@@ -137,7 +138,7 @@ export function LoginForm() {
       {/* Footer */}
       <div className="text-center text-sm text-muted-foreground mt-4">
         Chưa có tài khoản?{' '}
-        <Link href="/register" className="font-semibold text-primary hover:underline">
+        <Link href={PATHS.AUTH.REGISTER} className="font-semibold text-primary hover:underline">
           Đăng ký ngay
         </Link>
       </div>

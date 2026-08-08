@@ -1,31 +1,97 @@
-import http from '@/services/api'
-import { API_ENDPOINTS } from '@/services/endpoints'
+import { createClient } from '@/lib/supabase/client'
 import { LoginInput, RegisterInput, ForgotPasswordInput, ResetPasswordInput } from '../schemas'
+
+import { PATHS } from '@/constants'
 
 export interface AuthResponse {
   data: {
     accessToken: string
-    // Add other properties if returned by the backend
+    user: {
+      id: string
+      email?: string
+      name?: string
+    }
   }
 }
 
 export const loginApi = async (data: LoginInput): Promise<AuthResponse> => {
-  const response = await http.post<AuthResponse>(API_ENDPOINTS.AUTH.LOGIN, data)
-  return response.data
+  const supabase = createClient()
+  const { data: authData, error } = await supabase.auth.signInWithPassword({
+    email: data.email,
+    password: data.password
+  })
+
+  if (error) {
+    throw new Error(error.message)
+  }
+
+  if (!authData.session) {
+    throw new Error('Vui lòng kiểm tra email của bạn để xác nhận tài khoản trước khi đăng nhập.')
+  }
+
+  return {
+    data: {
+      accessToken: authData.session.access_token,
+      user: {
+        id: authData.user.id,
+        email: authData.user.email,
+        name: authData.user.user_metadata?.name || authData.user.user_metadata?.full_name
+      }
+    }
+  }
 }
 
 export const registerApi = async (data: RegisterInput): Promise<unknown> => {
-  const response = await http.post(API_ENDPOINTS.AUTH.REGISTER, data)
-  return response.data
+  const supabase = createClient()
+  const { data: authData, error } = await supabase.auth.signUp({
+    email: data.email,
+    password: data.password,
+    options: {
+      data: {
+        name: data.name,
+        full_name: data.name
+      }
+    }
+  })
+
+  if (error) {
+    throw new Error(error.message)
+  }
+
+  return authData
 }
 
 export const forgotPasswordApi = async (data: ForgotPasswordInput): Promise<unknown> => {
-  // Simple simulation if endpoint doesn't exist, or actual request
-  const response = await http.post('auth/forgot-password', data)
-  return response.data
+  const supabase = createClient()
+  const { data: authData, error } = await supabase.auth.resetPasswordForEmail(data.email, {
+    redirectTo: `${typeof window !== 'undefined' ? window.location.origin : ''}${PATHS.AUTH.RESET_PASSWORD}`
+  })
+
+  if (error) {
+    throw new Error(error.message)
+  }
+
+  return authData
 }
 
 export const resetPasswordApi = async (data: ResetPasswordInput): Promise<unknown> => {
-  const response = await http.post('auth/reset-password', data)
-  return response.data
+  const supabase = createClient()
+  const { data: authData, error } = await supabase.auth.updateUser({
+    password: data.password
+  })
+
+  if (error) {
+    throw new Error(error.message)
+  }
+
+  return authData
 }
+
+export const logoutApi = async (): Promise<void> => {
+  const supabase = createClient()
+  const { error } = await supabase.auth.signOut()
+  if (error) {
+    throw new Error(error.message)
+  }
+}
+

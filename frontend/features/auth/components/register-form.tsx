@@ -8,6 +8,7 @@ import { User, Mail, Lock, Eye, EyeOff, Loader2 } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { PATHS } from '@/constants'
 import { RegisterSchema, RegisterInput } from '../schemas'
 import { useRegisterMutation } from '../queries'
 
@@ -136,7 +137,7 @@ export function RegisterForm() {
       {/* Footer */}
       <div className="text-center text-sm text-muted-foreground mt-4">
         Đã có tài khoản?{' '}
-        <Link href="/login" className="font-semibold text-primary hover:underline">
+        <Link href={PATHS.AUTH.LOGIN} className="font-semibold text-primary hover:underline">
           Đăng nhập ngay
         </Link>
       </div>

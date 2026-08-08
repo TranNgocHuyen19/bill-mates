@@ -1,9 +1,12 @@
+'use client'
+
 import { useMutation } from '@tanstack/react-query'
 import { useRouter } from 'next/navigation'
-import { loginApi, registerApi, forgotPasswordApi, resetPasswordApi } from '../api'
-import { setAccessToken } from '@/services/api'
+import { loginApi, registerApi, forgotPasswordApi, resetPasswordApi, logoutApi } from '../api'
+import { setAccessToken, clearAccessToken } from '@/services/api'
 import { showSuccessToast, showErrorToast } from '@/lib/toast'
 import { getErrorMessage } from '@/lib/error-handler'
+import { PATHS } from '@/constants'
 
 export const useLoginMutation = () => {
   const router = useRouter()
@@ -15,11 +18,10 @@ export const useLoginMutation = () => {
         setAccessToken(token)
       }
       showSuccessToast('Đăng nhập thành công!')
-      router.push('/')
+      router.push(PATHS.HOME)
       router.refresh()
     },
     onError: (error: unknown) => {
-      // Axios interceptor will show simple toast for >=400, but we can override or show error toast
       showErrorToast(getErrorMessage(error) || 'Đăng nhập thất bại. Vui lòng thử lại.')
     }
   })
@@ -30,8 +32,8 @@ export const useRegisterMutation = () => {
   return useMutation({
     mutationFn: registerApi,
     onSuccess: () => {
-      showSuccessToast('Đăng ký tài khoản thành công!')
-      router.push('/login')
+      showSuccessToast('Đăng ký tài khoản thành công! Vui lòng đăng nhập.')
+      router.push(PATHS.AUTH.LOGIN)
     },
     onError: (error: unknown) => {
       showErrorToast(getErrorMessage(error) || 'Đăng ký thất bại. Vui lòng thử lại.')
@@ -45,17 +47,10 @@ export const useForgotPasswordMutation = () => {
     mutationFn: forgotPasswordApi,
     onSuccess: () => {
       showSuccessToast('Liên kết đặt lại mật khẩu đã được gửi đến email của bạn!')
-      router.push('/login')
+      router.push(PATHS.AUTH.LOGIN)
     },
     onError: (error: unknown) => {
-      // For forgot password, we can simulate success for demo if api doesn't exist
-      const err = error as { message?: string; response?: { status?: number } }
-      if (err.message === 'Network Error' || err.response?.status === 404) {
-        showSuccessToast('Liên kết đặt lại mật khẩu đã được gửi (Chế độ mô phỏng)')
-        router.push('/login')
-      } else {
-        showErrorToast(getErrorMessage(error) || 'Gửi yêu cầu thất bại. Vui lòng thử lại.')
-      }
+      showErrorToast(getErrorMessage(error) || 'Gửi yêu cầu thất bại. Vui lòng thử lại.')
     }
   })
 }
@@ -66,16 +61,29 @@ export const useResetPasswordMutation = () => {
     mutationFn: resetPasswordApi,
     onSuccess: () => {
       showSuccessToast('Đặt lại mật khẩu thành công!')
-      router.push('/login')
+      router.push(PATHS.AUTH.LOGIN)
     },
     onError: (error: unknown) => {
-      const err = error as { message?: string; response?: { status?: number } }
-      if (err.message === 'Network Error' || err.response?.status === 404) {
-        showSuccessToast('Đặt lại mật khẩu thành công (Chế độ mô phỏng)')
-        router.push('/login')
-      } else {
-        showErrorToast(getErrorMessage(error) || 'Đặt lại mật khẩu thất bại. Vui lòng thử lại.')
-      }
+      showErrorToast(getErrorMessage(error) || 'Đặt lại mật khẩu thất bại. Vui lòng thử lại.')
     }
   })
 }
+
+export const useLogoutMutation = () => {
+  const router = useRouter()
+  return useMutation({
+    mutationFn: logoutApi,
+    onSuccess: () => {
+      clearAccessToken()
+      showSuccessToast('Đã đăng xuất thành công!')
+      router.push(PATHS.AUTH.LOGIN)
+      router.refresh()
+    },
+    onError: (error: unknown) => {
+      clearAccessToken()
+      showErrorToast(getErrorMessage(error) || 'Đăng xuất thất bại.')
+      router.push(PATHS.AUTH.LOGIN)
+    }
+  })
+}
+

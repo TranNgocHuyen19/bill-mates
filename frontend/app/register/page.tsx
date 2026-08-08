@@ -1,14 +1,7 @@
-import { RegisterForm, AuthLayout } from '@/features/auth'
+import { redirect } from 'next/navigation'
+import { PATHS } from '@/constants'
 
-export const metadata = {
-  title: 'Đăng ký tài khoản - BillMates',
-  description: 'Tạo tài khoản BillMates mới để quản lý chi tiêu nhóm'
+export default function LegacyRegisterPage() {
+  redirect(PATHS.AUTH.REGISTER)
 }
 
-export default function RegisterPage() {
-  return (
-    <AuthLayout>
-      <RegisterForm />
-    </AuthLayout>
-  )
-}
