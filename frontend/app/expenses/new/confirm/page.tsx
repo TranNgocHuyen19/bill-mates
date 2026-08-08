@@ -1,6 +1,6 @@
 'use client'
 
-import * as React from 'react'
+import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { ArrowLeft, CheckCircle2 } from 'lucide-react'
@@ -12,21 +12,27 @@ import { PATHS } from '@/constants'
 
 export default function NewExpenseStep3ConfirmPage() {
   const router = useRouter()
-  const [isSubmitting, setIsSubmitting] = React.useState(false)
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false)
 
-  const [title, setTitle] = React.useState('Hóa đơn mới')
-  const [amountNum, setAmountNum] = React.useState(0)
-  const [splitType, setSplitType] = React.useState('equal')
+  const [title, setTitle] = useState<string>('Hóa đơn mới')
+  const [amountNum, setAmountNum] = useState<number>(0)
+  const [splitType, setSplitType] = useState<string>('equal')
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (typeof window !== 'undefined') {
       const savedTitle = sessionStorage.getItem('draft_expense_title')
       const savedAmount = sessionStorage.getItem('draft_expense_amount')
       const savedType = sessionStorage.getItem('draft_expense_split_type')
 
-      if (savedTitle) setTitle(savedTitle)
-      if (savedAmount) setAmountNum(parseInt(savedAmount, 10) || 0)
-      if (savedType) setSplitType(savedType)
+      if (savedTitle) {
+        setTitle(savedTitle)
+      }
+      if (savedAmount) {
+        setAmountNum(parseInt(savedAmount, 10) || 0)
+      }
+      if (savedType) {
+        setSplitType(savedType)
+      }
     }
   }, [])
 
