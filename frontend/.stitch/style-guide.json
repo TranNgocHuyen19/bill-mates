@@ -1,0 +1,68 @@
+{
+  "name": "Harmonious Collective",
+  "source": "Stitch project 9397733818561817404",
+  "principles": [
+    "Mobile-first single-column layouts with 16px side margins",
+    "Centered content up to 768px for focused desktop tasks",
+    "Minimum 44px touch targets",
+    "White cards over a soft lavender surface with subtle borders and shadows",
+    "Emerald communicates credit or success; coral communicates debt or danger"
+  ],
+  "colors": {
+    "background": "#fbf8ff",
+    "surface": "#fbf8ff",
+    "surfaceContainerLowest": "#ffffff",
+    "surfaceContainerLow": "#f4f2fc",
+    "surfaceContainer": "#efedf6",
+    "surfaceContainerHigh": "#e9e7f0",
+    "surfaceContainerHighest": "#e3e1ea",
+    "onSurface": "#1a1b22",
+    "onSurfaceVariant": "#454652",
+    "outline": "#757684",
+    "outlineVariant": "#c5c5d4",
+    "primary": "#24389c",
+    "primaryContainer": "#3f51b5",
+    "onPrimary": "#ffffff",
+    "secondary": "#006c49",
+    "secondaryContainer": "#6cf8bb",
+    "tertiary": "#831921",
+    "tertiaryContainer": "#a33236",
+    "error": "#ba1a1a",
+    "errorContainer": "#ffdad6"
+  },
+  "typography": {
+    "family": "Be Vietnam Pro",
+    "displayLarge": { "size": "32px", "lineHeight": "40px", "weight": 700 },
+    "displayMobile": { "size": "26px", "lineHeight": "32px", "weight": 700 },
+    "displayMedium": { "size": "24px", "lineHeight": "32px", "weight": 700 },
+    "headlineSmall": { "size": "20px", "lineHeight": "28px", "weight": 600 },
+    "bodyLarge": { "size": "16px", "lineHeight": "24px", "weight": 400 },
+    "bodyMedium": { "size": "14px", "lineHeight": "20px", "weight": 400 },
+    "labelLarge": { "size": "14px", "lineHeight": "20px", "weight": 600 },
+    "labelSmall": { "size": "12px", "lineHeight": "16px", "weight": 500 },
+    "numericExtraLarge": { "size": "28px", "lineHeight": "34px", "weight": 700 }
+  },
+  "spacing": {
+    "base": "4px",
+    "xs": "8px",
+    "sm": "12px",
+    "md": "16px",
+    "lg": "24px",
+    "xl": "32px",
+    "mobileMargin": "16px",
+    "desktopMargin": "48px",
+    "gutter": "16px"
+  },
+  "radius": {
+    "small": "4px",
+    "default": "8px",
+    "input": "12px",
+    "card": "16px",
+    "sheet": "24px",
+    "full": "9999px"
+  },
+  "elevation": {
+    "card": "0 2px 8px rgba(0, 0, 0, 0.04)",
+    "floating": "0 4px 12px rgba(0, 0, 0, 0.08)"
+  }
+}

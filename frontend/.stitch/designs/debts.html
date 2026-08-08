@@ -1,0 +1,289 @@
+<!DOCTYPE html><html class="light" lang="vi"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0, viewport-fit=cover" name="viewport">
+<title>Bill Mates - Công nợ</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "primary-fixed-dim": "#bac3ff",
+                    "on-tertiary-fixed": "#410006",
+                    "tertiary-container": "#a33236",
+                    "secondary-fixed-dim": "#4edea3",
+                    "inverse-on-surface": "#f2eff9",
+                    "on-primary-fixed-variant": "#293ca0",
+                    "error-container": "#ffdad6",
+                    "on-secondary": "#ffffff",
+                    "tertiary": "#831921",
+                    "outline-variant": "#c5c5d4",
+                    "surface-dim": "#dbd9e2",
+                    "on-background": "#1a1b22",
+                    "on-primary-fixed": "#00105c",
+                    "error": "#ba1a1a",
+                    "on-secondary-container": "#00714d",
+                    "secondary-container": "#6cf8bb",
+                    "surface-container-low": "#f4f2fc",
+                    "on-tertiary-container": "#ffc4c2",
+                    "tertiary-fixed": "#ffdad8",
+                    "on-primary": "#ffffff",
+                    "surface-container-high": "#e9e7f0",
+                    "secondary": "#006c49",
+                    "primary-container": "#3f51b5",
+                    "primary": "#24389c",
+                    "on-secondary-fixed-variant": "#005236",
+                    "on-surface": "#1a1b22",
+                    "surface-container-highest": "#e3e1ea",
+                    "on-error-container": "#93000a",
+                    "on-tertiary": "#ffffff",
+                    "surface-bright": "#fbf8ff",
+                    "surface-container-lowest": "#ffffff",
+                    "surface": "#fbf8ff",
+                    "inverse-surface": "#2f3037",
+                    "inverse-primary": "#bac3ff",
+                    "surface-variant": "#e3e1ea",
+                    "on-secondary-fixed": "#002113",
+                    "on-tertiary-fixed-variant": "#881d24",
+                    "tertiary-fixed-dim": "#ffb3b0",
+                    "primary-fixed": "#dee0ff",
+                    "background": "#fbf8ff",
+                    "on-surface-variant": "#454652",
+                    "outline": "#757684",
+                    "on-error": "#ffffff",
+                    "secondary-fixed": "#6ffbbe",
+                    "surface-container": "#efedf6",
+                    "on-primary-container": "#cacfff",
+                    "surface-tint": "#4355b9"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "gutter": "16px",
+                    "sm": "12px",
+                    "xs": "8px",
+                    "xl": "32px",
+                    "base": "4px",
+                    "margin-desktop": "48px",
+                    "md": "16px",
+                    "margin-mobile": "16px",
+                    "lg": "24px"
+            },
+            "fontFamily": {
+                    "numeric-xl": ["Be Vietnam Pro"],
+                    "label-sm": ["Be Vietnam Pro"],
+                    "label-lg": ["Be Vietnam Pro"],
+                    "display-md": ["Be Vietnam Pro"],
+                    "display-lg": ["Be Vietnam Pro"],
+                    "body-lg": ["Be Vietnam Pro"],
+                    "body-md": ["Be Vietnam Pro"],
+                    "display-lg-mobile": ["Be Vietnam Pro"],
+                    "headline-sm": ["Be Vietnam Pro"]
+            },
+            "fontSize": {
+                    "numeric-xl": ["28px", {"lineHeight": "34px", "fontWeight": "700"}],
+                    "label-sm": ["12px", {"lineHeight": "16px", "fontWeight": "500"}],
+                    "label-lg": ["14px", {"lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "600"}],
+                    "display-md": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "700"}],
+                    "display-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                    "display-lg-mobile": ["26px", {"lineHeight": "32px", "fontWeight": "700"}],
+                    "headline-sm": ["20px", {"lineHeight": "28px", "fontWeight": "600"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body { font-family: 'Be Vietnam Pro', sans-serif; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        .active-tab-indicator {
+            position: absolute;
+            bottom: 0;
+            height: 3px;
+            width: 100%;
+            background-color: var(--primary);
+            border-radius: 3px 3px 0 0;
+        }
+        .safe-area-bottom {
+            padding-bottom: env(safe-area-inset-bottom);
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(229, 231, 235, 0.5);
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface min-h-screen flex flex-col">
+<!-- Top AppBar -->
+<header class="bg-surface dark:bg-surface-dim sticky top-0 z-40 flex justify-between items-center w-full px-margin-mobile py-sm">
+<div class="flex items-center gap-xs">
+<span class="material-symbols-outlined text-primary" data-icon="group">group</span>
+<h1 class="font-display-md text-display-md text-primary dark:text-primary-fixed-dim">Bill Mates</h1>
+</div>
+<div class="w-10 h-10 rounded-full overflow-hidden border-2 border-primary-container">
+<img class="w-full h-full object-cover" data-alt="A professional studio portrait of a young Vietnamese user with a friendly expression. The background is a soft, blurred corporate office setting with warm sunlight filtering through windows. The lighting is bright and modern, using a palette of soft whites and deep indigos to match a high-end financial app's aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDvvIHpvl2TypCSPWXq0W1xgh8JtpwZ_COq88S95dZlThZz6efGKCmsPzGjNJLr1TlFZgrQDwKgE3mMF3HPQYWJ_hRcRUDEYLHBRpYkV11zXTENdTeIOyYDw_NTdPw6mTm7VmxXxkjLEHz0W53baBQwAfz6lhVjtvz4fqpYiLDDkt1dwBfcIda3S37GaAKPMqyMA3StAjZyEEWwQDRjOGKgpvWjyekwJWuFIlOdOrAU47avFMHjnVGBwCFVoQtPirG7cGOrQ8f86Ro">
+</div>
+</header>
+<main class="flex-1 px-margin-mobile pb-32">
+<!-- Balance Summary Section -->
+<section class="mt-lg">
+<div class="bg-primary-container text-on-primary-container p-lg rounded-xl shadow-lg relative overflow-hidden">
+<!-- Abstract Decoration -->
+<div class="absolute -right-8 -top-8 w-32 h-32 bg-on-primary opacity-10 rounded-full"></div>
+<p class="font-label-lg text-label-lg opacity-90">Số dư của bạn</p>
+<div class="flex items-baseline gap-xs mt-base">
+<h2 class="font-numeric-xl text-numeric-xl">+245.000 ₫</h2>
+</div>
+<div class="mt-md inline-flex items-center gap-xs bg-on-primary/10 px-sm py-xs rounded-full">
+<span class="material-symbols-outlined text-[18px]" data-icon="trending_up">trending_up</span>
+<span class="font-label-sm text-label-sm">Bạn cần nhận</span>
+</div>
+</div>
+</section>
+<!-- Tabs Navigation -->
+<nav class="mt-xl flex border-b border-outline-variant">
+<button class="flex-1 py-md text-center relative group">
+<span class="font-label-lg text-label-lg text-primary">Tổng quan</span>
+<div class="absolute bottom-0 left-0 w-full h-[3px] bg-primary rounded-t-full"></div>
+</button>
+<button class="flex-1 py-md text-center text-on-surface-variant group hover:bg-surface-container transition-colors">
+<span class="font-label-lg text-label-lg">Chi tiết</span>
+</button>
+</nav>
+<!-- Payment Suggestions -->
+<section class="mt-lg">
+<div class="bg-secondary-container/30 border border-secondary/20 p-md rounded-xl flex items-center gap-md">
+<div class="bg-secondary text-on-secondary w-10 h-10 rounded-full flex items-center justify-center">
+<span class="material-symbols-outlined" data-icon="lightbulb" style="font-variation-settings: 'FILL' 1;">lightbulb</span>
+</div>
+<div class="flex-1">
+<p class="font-label-sm text-label-sm text-on-secondary-container opacity-80 uppercase tracking-wider">Gợi ý thanh toán</p>
+<p class="font-body-lg text-body-lg text-on-secondary-container font-semibold">Bình trả An 90.000 ₫</p>
+</div>
+<button class="text-secondary font-label-lg text-label-lg active:scale-95 transition-transform">Sửa</button>
+</div>
+</section>
+<!-- Member List -->
+<section class="mt-xl space-y-md">
+<h3 class="font-label-lg text-label-lg text-on-surface-variant px-base">Thành viên trong nhóm</h3>
+<!-- Member: Huyền -->
+<div class="bg-surface border border-outline-variant/30 p-md rounded-xl flex items-center gap-md shadow-sm hover:shadow-md transition-shadow">
+<div class="w-12 h-12 rounded-full overflow-hidden bg-surface-container flex-shrink-0">
+<img class="w-full h-full object-cover" data-alt="A close-up portrait of a young woman named Huyền, looking friendly and approachable. She has a minimalist, modern style. The lighting is soft and even, set against a clean, light grey studio background. The overall aesthetic is clean, professional, and trustworthy, fitting for a financial management application." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBNau8fOx5ngGfWOi72izjB4SaMlIGOq0pcT8xNm6DhrDp0tpqtlmVsSamv4Mhh4cLm8wbGnJ7lQ_IljdCk6hFHh8yEBK91j9QCI5jEZbHBgfTqhaoFtxkYf-rTq91s70AOKgvo6wrqIVzC5I8fpk8IkwzaO42_hjU3IzS9K0_PMhg9XEQU1vQI4R1RwC4t0PxatSPy0y2uWNNrg4FYaDnQOpEqOxb-OQatI0yYoQlAq8EpAgDIUjEH9xZX5wxz-gDCoSWGiI_P_uw">
+</div>
+<div class="flex-1">
+<p class="font-label-lg text-label-lg text-on-surface">Huyền</p>
+<p class="font-body-md text-body-md text-tertiary">Cần trả 55.000 ₫</p>
+</div>
+<div class="w-1 h-8 bg-tertiary rounded-full"></div>
+</div>
+<!-- Member: Bình -->
+<div class="bg-surface border border-outline-variant/30 p-md rounded-xl flex items-center gap-md shadow-sm hover:shadow-md transition-shadow">
+<div class="w-12 h-12 rounded-full overflow-hidden bg-surface-container flex-shrink-0">
+<img class="w-full h-full object-cover" data-alt="A portrait of a young man named Bình, with a kind and reliable expression. He wears a simple white t-shirt. The background is a minimalist, brightly lit apartment space with modern furniture. The lighting is natural and bright, maintaining a high-key light mode aesthetic consistent with a contemporary fintech UI." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAORaEEir-Hg25_24zh91xWstbLCZ0o3EN0ku2XhfhhAAZC7ctkcCF0OqiEMO5kEH67laHulvbEh8uP01c2vM-ZAa6f96Jrf_0qZxxGQvzadEREJz0BpgCvdLUYX5WOk_mcW1dLnwSVlDNPizMzmimwWZrrCaFOeWSs63-KCIyZOma8-02DGxjfqcxCM8fBb1iDOzp_XEqHVJfoIohC3QpGb0qgkmSQDO5Tk-7pUZQlEKsC2Mxz4Y4E6nE8Zhi4HfsLJJFNr8yGvBk">
+</div>
+<div class="flex-1">
+<p class="font-label-lg text-label-lg text-on-surface">Bình</p>
+<p class="font-body-md text-body-md text-tertiary">Cần trả 90.000 ₫</p>
+</div>
+<div class="w-1 h-8 bg-tertiary rounded-full"></div>
+</div>
+<!-- Member: An (You) -->
+<div class="bg-surface-container-low border border-primary/20 p-md rounded-xl flex items-center gap-md shadow-sm">
+<div class="w-12 h-12 rounded-full overflow-hidden bg-primary-container/20 flex-shrink-0 relative">
+<img class="w-full h-full object-cover" data-alt="A profile photo of a young professional named An. He has a warm smile and is wearing a dark indigo polo shirt. The background is a clean white wall with a hint of a green indoor plant. The lighting is crisp and modern, emphasizing a sense of clarity and organization within the Bill Mates app design system." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAkIWtdbEbi4RkGr0_MU3y9TepG9XqAMD4nsBskZb2CcNGNNbPObPnoe8rpHaDozJzAGKhIRWtfnEtQ7nwLITsqYNYN898EcAK606XmfXBiJzVbOj-nE4JUoc0Wa1Wxv-OxcpVcuF-9FOhUH8uQ1TJxQVUZ0QTCEHV2-4NZuyr8qHWW3lLVKuquTIONbM5fGynxTXVPQaDUFiiLfmY2VeIyiU729Sh3q_ACYEOvkpyQIyMfcKHtRJMcCu4DyA_ue5XvSM_bZokYE4o">
+<div class="absolute bottom-0 right-0 w-4 h-4 bg-primary border-2 border-white rounded-full"></div>
+</div>
+<div class="flex-1">
+<div class="flex items-center gap-xs">
+<p class="font-label-lg text-label-lg text-on-surface font-bold">An (Bạn)</p>
+</div>
+<p class="font-body-md text-body-md text-secondary">Cần nhận 145.000 ₫</p>
+</div>
+<div class="w-1 h-8 bg-secondary rounded-full"></div>
+</div>
+</section>
+<!-- Settlement CTA (Task-Focused suppression check: This is a main screen, so we keep secondary actions) -->
+<div class="mt-xl flex justify-center">
+<button class="flex items-center gap-xs text-primary font-label-lg text-label-lg py-sm px-lg hover:bg-primary/5 rounded-full transition-colors">
+<span class="material-symbols-outlined" data-icon="history">history</span>
+                Xem lịch sử thanh toán
+            </button>
+</div>
+</main>
+<!-- Bottom Navigation Bar -->
+<!-- Active on "Công nợ" (account_balance_wallet) as per logic -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-xs pb-safe h-20 bg-surface dark:bg-surface-dim shadow-[0_-4px_12px_rgba(0,0,0,0.08)] rounded-t-xl">
+<button class="flex flex-col items-center justify-center text-on-surface-variant dark:text-outline hover:bg-surface-container-low transition-all">
+<span class="material-symbols-outlined" data-icon="grid_view">grid_view</span>
+<span class="font-label-sm text-label-sm mt-1">Tổng quan</span>
+</button>
+<button class="flex flex-col items-center justify-center text-on-surface-variant dark:text-outline hover:bg-surface-container-low transition-all">
+<span class="material-symbols-outlined" data-icon="receipt_long">receipt_long</span>
+<span class="font-label-sm text-label-sm mt-1">Khoản chi</span>
+</button>
+<!-- Center Add Button (Floating Style) -->
+<button class="flex flex-col items-center justify-center -mt-8">
+<div class="w-14 h-14 bg-primary rounded-full shadow-lg flex items-center justify-center text-on-primary active:scale-90 transition-transform">
+<span class="material-symbols-outlined text-[32px]" data-icon="add" style="font-variation-settings: 'wght' 600;">add</span>
+</div>
+<span class="font-label-sm text-label-sm mt-2 text-on-surface-variant">Thêm</span>
+</button>
+<button class="flex flex-col items-center justify-center text-primary dark:text-primary-fixed-dim font-label-lg active:scale-95 transition-all">
+<span class="material-symbols-outlined" data-icon="account_balance_wallet" style="font-variation-settings: 'FILL' 1;">account_balance_wallet</span>
+<span class="font-label-sm text-label-sm mt-1">Công nợ</span>
+</button>
+<button class="flex flex-col items-center justify-center text-on-surface-variant dark:text-outline hover:bg-surface-container-low transition-all">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+<span class="font-label-sm text-label-sm mt-1">Cá nhân</span>
+</button>
+</nav>
+<script>
+        // Simple Micro-interaction for active state scaling
+        document.querySelectorAll('button').forEach(btn => {
+            btn.addEventListener('mousedown', () => {
+                btn.classList.add('scale-95');
+            });
+            btn.addEventListener('mouseup', () => {
+                btn.classList.remove('scale-95');
+            });
+            btn.addEventListener('mouseleave', () => {
+                btn.classList.remove('scale-95');
+            });
+        });
+
+        // Tab switching logic (Visual only)
+        const tabs = document.querySelectorAll('nav[class*="mt-xl"] button');
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                tabs.forEach(t => {
+                    t.querySelector('span').classList.remove('text-primary');
+                    t.querySelector('span').classList.add('text-on-surface-variant');
+                    const indicator = t.querySelector('div');
+                    if (indicator) indicator.remove();
+                });
+                
+                tab.querySelector('span').classList.remove('text-on-surface-variant');
+                tab.querySelector('span').classList.add('text-primary');
+                
+                const newIndicator = document.createElement('div');
+                newIndicator.className = 'absolute bottom-0 left-0 w-full h-[3px] bg-primary rounded-t-full';
+                tab.appendChild(newIndicator);
+            });
+        });
+    </script>
+</body></html>

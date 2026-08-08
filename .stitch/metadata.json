@@ -1,0 +1,138 @@
+{
+  "projectId": "9397733818561817404",
+  "title": "Bill Mates App Design",
+  "deviceType": "MOBILE",
+  "projectUpdatedAt": "2026-08-08T15:49:12.304180Z",
+  "lastSyncTime": "2026-08-08T16:37:46.6847903Z",
+  "designSystem": "assets/ed6653f2ff34455c83c640d175c7fee1",
+  "screens": {
+    "welcome": {
+      "id": "bd08fbd80ed7460c8e109c1fd9068467",
+      "title": "Màn hình chào - Bill Mates",
+      "source": "projects/9397733818561817404/screens/bd08fbd80ed7460c8e109c1fd9068467",
+      "width": 390,
+      "height": 1108,
+      "canvas": { "x": 1478, "y": 0 }
+    },
+    "about": {
+      "id": "eca164cb410247f19078ca0107202fa2",
+      "title": "Giới thiệu ứng dụng",
+      "source": "projects/9397733818561817404/screens/eca164cb410247f19078ca0107202fa2",
+      "width": 390,
+      "height": 796,
+      "canvas": { "x": 1024, "y": 0 }
+    },
+    "login": {
+      "id": "6613b371b40345d8805e03621dea44e0",
+      "title": "Đăng nhập",
+      "source": "projects/9397733818561817404/screens/6613b371b40345d8805e03621dea44e0",
+      "width": 390,
+      "height": 884,
+      "canvas": { "x": 2386, "y": 0 }
+    },
+    "register": {
+      "id": "0ffbcfa888174c829405dc70ad7dffa8",
+      "title": "Đăng ký tài khoản",
+      "source": "projects/9397733818561817404/screens/0ffbcfa888174c829405dc70ad7dffa8",
+      "width": 390,
+      "height": 986,
+      "canvas": { "x": 1932, "y": 0 }
+    },
+    "rooms": {
+      "id": "52a7797231de4357b5bf0f58ebd79df3",
+      "title": "Chọn phòng",
+      "source": "projects/9397733818561817404/screens/52a7797231de4357b5bf0f58ebd79df3",
+      "width": 390,
+      "height": 988,
+      "canvas": { "x": 1000, "y": 1174 }
+    },
+    "room-dashboard": {
+      "id": "02194af8ae6643239d83f41b732ac16b",
+      "title": "Tổng quan - Phòng trọ 101",
+      "source": "projects/9397733818561817404/screens/02194af8ae6643239d83f41b732ac16b",
+      "width": 390,
+      "height": 1087,
+      "canvas": { "x": 1465, "y": 1174 }
+    },
+    "expense-step1": {
+      "id": "31ed56f49aa94b97ba57a374fdd7ef1c",
+      "title": "Thêm khoản chi - Bước 1 (3 bước)",
+      "source": "projects/9397733818561817404/screens/31ed56f49aa94b97ba57a374fdd7ef1c",
+      "width": 390,
+      "height": 954,
+      "canvas": { "x": 997, "y": 2468 }
+    },
+    "split-step2": {
+      "id": "76d97a4922af4a0ead9737ab488355bd",
+      "title": "Món và người chia - Bước 2/3 (Fix)",
+      "source": "projects/9397733818561817404/screens/76d97a4922af4a0ead9737ab488355bd",
+      "width": 390,
+      "height": 1313,
+      "canvas": { "x": 1924, "y": 2459 }
+    },
+    "expense-full-bill": {
+      "id": "e9c9b2cdc5f94b64bdb1aa24b7a6076f",
+      "title": "Món và người chia - Chia toàn bộ hóa đơn",
+      "source": "projects/9397733818561817404/screens/e9c9b2cdc5f94b64bdb1aa24b7a6076f",
+      "width": 390,
+      "height": 1146,
+      "canvas": { "x": 1451, "y": 2474 }
+    },
+    "split-custom-sheet": {
+      "id": "3c9762dd2ff2418ca634de9be6455b03",
+      "title": "Bottom sheet - Tùy chỉnh chia món",
+      "source": "projects/9397733818561817404/screens/3c9762dd2ff2418ca634de9be6455b03",
+      "width": 390,
+      "height": 884,
+      "canvas": { "x": 2378, "y": 2459 }
+    },
+    "add-item-sheet": {
+      "id": "4482686ce23b4598afe809d1b1b8fbc0",
+      "title": "Bottom sheet - Thêm món (Fixed)",
+      "source": "projects/9397733818561817404/screens/4482686ce23b4598afe809d1b1b8fbc0",
+      "width": 390,
+      "height": 884,
+      "canvas": { "x": 2827, "y": 2459 }
+    },
+    "split-step3": {
+      "id": "ea968eabb42349e7b88c452e42857425",
+      "title": "Chia tiền - Bước 3",
+      "source": "projects/9397733818561817404/screens/ea968eabb42349e7b88c452e42857425",
+      "width": 390,
+      "height": 884,
+      "canvas": { "x": 4202, "y": 0 }
+    },
+    "expense-confirm": {
+      "id": "c1b7a73e679147d49f29dd2742af0088",
+      "title": "Kiểm tra và xác nhận - Bước 3/3",
+      "source": "projects/9397733818561817404/screens/c1b7a73e679147d49f29dd2742af0088",
+      "width": 390,
+      "height": 1250,
+      "canvas": { "x": 3273, "y": 2459 }
+    },
+    "debts": {
+      "id": "f6eb9d45ce744a35a6f1ce769837645a",
+      "title": "Công nợ - Bill Mates",
+      "source": "projects/9397733818561817404/screens/f6eb9d45ce744a35a6f1ce769837645a",
+      "width": 390,
+      "height": 985,
+      "canvas": { "x": 998, "y": 3922 }
+    },
+    "settlement": {
+      "id": "6888f4542fa04a5081b74817cfd9ed3c",
+      "title": "Thanh toán công nợ",
+      "source": "projects/9397733818561817404/screens/6888f4542fa04a5081b74817cfd9ed3c",
+      "width": 390,
+      "height": 1567,
+      "canvas": { "x": 1440, "y": 3903 }
+    },
+    "profile": {
+      "id": "38b24a7deaa5448794775a7d59de8674",
+      "title": "Cá nhân & Cài đặt",
+      "source": "projects/9397733818561817404/screens/38b24a7deaa5448794775a7d59de8674",
+      "width": 390,
+      "height": 1056,
+      "canvas": { "x": 1030, "y": 5622 }
+    }
+  }
+}

@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+
+<html class="light" lang="vi"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Bill Mates - Món và người chia</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                "tertiary-fixed-dim": "#ffb3b0",
+                "surface-container": "#efedf6",
+                "primary-container": "#3f51b5",
+                "on-background": "#1a1b22",
+                "on-secondary-container": "#00714d",
+                "on-primary-fixed-variant": "#293ca0",
+                "surface-bright": "#fbf8ff",
+                "on-tertiary": "#ffffff",
+                "primary-fixed-dim": "#bac3ff",
+                "secondary-fixed-dim": "#4edea3",
+                "tertiary-fixed": "#ffdad8",
+                "on-tertiary-fixed-variant": "#881d24",
+                "outline-variant": "#c5c5d4",
+                "secondary-container": "#6cf8bb",
+                "inverse-surface": "#2f3037",
+                "surface-container-high": "#e9e7f0",
+                "on-error": "#ffffff",
+                "surface": "#fbf8ff",
+                "on-surface": "#1a1b22",
+                "surface-container-highest": "#e3e1ea",
+                "primary-fixed": "#dee0ff",
+                "surface-container-low": "#f4f2fc",
+                "outline": "#757684",
+                "on-tertiary-container": "#ffc4c2",
+                "tertiary-container": "#a33236",
+                "error": "#ba1a1a",
+                "surface-tint": "#4355b9",
+                "error-container": "#ffdad6",
+                "surface-dim": "#dbd9e2",
+                "on-error-container": "#93000a",
+                "inverse-primary": "#bac3ff",
+                "background": "#fbf8ff",
+                "surface-container-lowest": "#ffffff",
+                "tertiary": "#831921",
+                "on-primary-container": "#cacfff",
+                "surface-variant": "#e3e1ea",
+                "on-surface-variant": "#454652",
+                "secondary": "#006c49",
+                "on-secondary-fixed": "#002113",
+                "on-primary": "#ffffff",
+                "on-tertiary-fixed": "#410006",
+                "inverse-on-surface": "#f2eff9",
+                "secondary-fixed": "#6ffbbe",
+                "primary": "#24389c",
+                "on-secondary-fixed-variant": "#005236",
+                "on-secondary": "#ffffff",
+                "on-primary-fixed": "#00105c"
+            },
+            "borderRadius": {
+                "DEFAULT": "0.25rem",
+                "lg": "0.5rem",
+                "xl": "0.75rem",
+                "full": "9999px"
+            },
+            "spacing": {
+                "margin-mobile": "16px",
+                "xs": "8px",
+                "lg": "24px",
+                "xl": "32px",
+                "md": "16px",
+                "margin-desktop": "48px",
+                "gutter": "16px",
+                "base": "4px",
+                "sm": "12px"
+            },
+            "fontFamily": {
+                "label-lg": ["Be Vietnam Pro"],
+                "body-md": ["Be Vietnam Pro"],
+                "label-sm": ["Be Vietnam Pro"],
+                "display-lg": ["Be Vietnam Pro"],
+                "numeric-xl": ["Be Vietnam Pro"],
+                "body-lg": ["Be Vietnam Pro"],
+                "display-md": ["Be Vietnam Pro"],
+                "display-lg-mobile": ["Be Vietnam Pro"],
+                "headline-sm": ["Be Vietnam Pro"]
+            },
+            "fontSize": {
+                "label-lg": ["14px", {"lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "600"}],
+                "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                "label-sm": ["12px", {"lineHeight": "16px", "fontWeight": "500"}],
+                "display-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                "numeric-xl": ["28px", {"lineHeight": "34px", "fontWeight": "700"}],
+                "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                "display-md": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "700"}],
+                "display-lg-mobile": ["26px", {"lineHeight": "32px", "fontWeight": "700"}],
+                "headline-sm": ["20px", {"lineHeight": "28px", "fontWeight": "600"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body {
+            font-family: 'Be Vietnam Pro', sans-serif;
+            background-color: #fbf8ff;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            display: inline-block;
+            vertical-align: middle;
+            line-height: 1;
+        }
+        .active-segment {
+            box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+        }
+        .step-completed {
+            background-color: #3f51b5;
+        }
+        .step-active {
+            border: 2px solid #3f51b5;
+            background-color: white;
+        }
+        .step-inactive {
+            background-color: #e3e1ea;
+        }
+        .custom-card-shadow {
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="min-h-screen pb-24 max-w-[390px] mx-auto overflow-x-hidden">
+<!-- Top AppBar -->
+<header class="sticky top-0 z-50 bg-surface px-margin-mobile py-sm flex items-center justify-between">
+<div class="flex items-center gap-sm">
+<button class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-surface-container-high transition-colors active:scale-95">
+<span class="material-symbols-outlined text-on-surface">arrow_back</span>
+</button>
+<div>
+<h1 class="font-headline-sm text-headline-sm text-on-surface">Món và người chia</h1>
+<p class="font-label-sm text-label-sm text-on-surface-variant">Bước 2/3</p>
+</div>
+</div>
+<div class="w-10 h-10 rounded-full bg-primary-container flex items-center justify-center text-on-primary-container font-label-lg overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="A professional headshot of a friendly young Vietnamese woman with short dark hair, smiling warmly. She is wearing a simple white linen shirt against a soft pastel lavender background. The lighting is bright and airy, reflecting a clean and modern corporate aesthetic consistent with a financial app's approachable identity." src="https://lh3.googleusercontent.com/aida-public/AB6AXuB91uxvrEM3Dt47v5aNc3zlinYPO3zLhbae2nlhSQ7EVFuACkCYPMZEhV7l2jj2G9ehq9CFkaJmVPBjCUZOkwfQVsCws0dyHcT2ZUfs28vQTSWP3pnUk4RwPGpnQKL6znx6tPLkijikjbYJGTf5iyhirAe5qG5kqlaqVlPclmEmq6EQfGYUoOLIQeP3uwkGhdJUCf7aBdVnEYVcyUA7COHQm8_CoJ7ZtiI6okU4lsm3-IEJhBZn_JfBY8oiNTEypl30j9FWtXgFzHw"/>
+</div>
+</header>
+<!-- Progress Indicator -->
+<div class="px-margin-mobile py-sm flex items-center justify-between">
+<div class="flex items-center gap-xs flex-1">
+<div class="w-8 h-8 rounded-full flex items-center justify-center step-completed">
+<span class="material-symbols-outlined text-white text-[18px]" style="font-variation-settings: 'wght' 700;">check</span>
+</div>
+<div class="h-[2px] flex-1 bg-primary"></div>
+</div>
+<div class="flex items-center gap-xs flex-1 px-xs">
+<div class="w-8 h-8 rounded-full flex items-center justify-center step-active">
+<span class="text-primary font-label-lg">2</span>
+</div>
+<div class="h-[2px] flex-1 bg-outline-variant"></div>
+</div>
+<div class="flex items-center gap-xs">
+<div class="w-8 h-8 rounded-full flex items-center justify-center step-inactive">
+<span class="text-on-surface-variant font-label-lg">3</span>
+</div>
+</div>
+</div>
+<!-- Summary Card -->
+<section class="px-margin-mobile mt-xs">
+<div class="bg-white rounded-xl border border-outline-variant p-md custom-card-shadow">
+<div class="space-y-xs">
+<div class="flex justify-between items-center">
+<span class="font-body-md text-body-md text-on-surface-variant">Tổng hóa đơn</span>
+<span class="font-label-lg text-label-lg text-on-surface">200.000 ₫</span>
+</div>
+<div class="flex justify-between items-center">
+<span class="font-body-md text-body-md text-on-surface-variant">Tổng các món</span>
+<span class="font-label-lg text-label-lg text-on-surface">200.000 ₫</span>
+</div>
+<div class="flex justify-between items-center pt-xs border-t border-dashed border-outline-variant">
+<span class="font-label-lg text-label-lg text-on-surface">Đã phân bổ</span>
+<span class="font-label-lg text-label-lg text-secondary">200.000 ₫</span>
+</div>
+</div>
+<div class="mt-md flex items-center gap-xs py-xs px-sm bg-secondary-container/20 rounded-lg">
+<span class="material-symbols-outlined text-secondary text-[20px]">check_circle</span>
+<p class="font-label-sm text-label-sm text-on-secondary-container">Đã phân bổ đủ toàn bộ hóa đơn.</p>
+</div>
+</div>
+</section>
+<!-- Split Mode Selection -->
+<section class="px-margin-mobile mt-lg">
+<div class="bg-surface-container-low p-base rounded-xl flex gap-base border border-outline-variant/30">
+<button class="flex-1 py-sm px-xs text-center rounded-lg font-label-sm text-label-sm text-on-surface-variant transition-all">
+                Chia toàn bộ hóa đơn
+            </button>
+<button class="flex-1 py-sm px-xs text-center rounded-lg font-label-lg text-label-lg bg-white text-primary active-segment transition-all">
+                Chia theo từng món
+            </button>
+</div>
+</section>
+<!-- Global Default Control -->
+<section class="px-margin-mobile mt-md">
+<div class="flex items-center justify-between p-sm bg-white border border-outline-variant rounded-xl">
+<label class="flex items-center gap-sm cursor-pointer">
+<input checked="" class="w-5 h-5 rounded text-primary focus:ring-primary border-outline transition-all cursor-pointer" type="checkbox"/>
+<span class="font-body-md text-body-md text-on-surface">Mặc định chia đều cho tất cả</span>
+</label>
+<button class="text-primary font-label-sm text-label-sm hover:underline active:scale-95 transition-transform">Áp dụng</button>
+</div>
+</section>
+<!-- Item List -->
+<section class="px-margin-mobile mt-lg space-y-md">
+<h3 class="font-label-lg text-label-lg text-on-surface-variant px-base">DANH SÁCH MÓN</h3>
+<!-- Item 1 -->
+<div class="bg-white rounded-xl border border-outline-variant overflow-hidden custom-card-shadow border-l-4 border-l-secondary">
+<div class="p-md">
+<div class="flex justify-between items-start mb-sm">
+<div>
+<div class="flex items-center gap-xs mb-base">
+<span class="font-label-lg text-label-lg text-on-surface">Gà rán</span>
+<span class="bg-surface-container-high px-xs py-[2px] rounded text-[10px] font-bold text-on-surface-variant uppercase">Đồ ăn</span>
+</div>
+<p class="font-body-md text-body-md text-on-surface-variant">1 x 120.000 ₫</p>
+</div>
+<div class="flex items-center gap-xs">
+<button class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-surface-container text-outline transition-colors"><span class="material-symbols-outlined text-[20px]">content_copy</span></button>
+<button class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-error-container/20 text-error transition-colors"><span class="material-symbols-outlined text-[20px]">delete</span></button>
+</div>
+</div>
+<div class="bg-surface-container-lowest p-sm rounded-lg border border-outline-variant/30 mb-sm">
+<p class="font-label-sm text-label-sm text-on-surface-variant">Chia đều cho <span class="text-on-surface font-semibold">3 người</span> (Huyền, An, Bình)</p>
+<p class="font-label-lg text-label-lg text-primary mt-base">Mỗi người: 40.000 ₫</p>
+</div>
+<button class="w-full py-xs font-label-sm text-label-sm text-primary border border-primary/30 rounded-lg hover:bg-primary-container/5 transition-colors active:scale-[0.98]">Tùy chỉnh</button>
+</div>
+</div>
+<!-- Item 2 (Custom Split) -->
+<div class="bg-white rounded-xl border border-outline-variant overflow-hidden custom-card-shadow border-l-4 border-l-primary">
+<div class="p-md">
+<div class="flex justify-between items-start mb-sm">
+<div>
+<div class="flex items-center gap-xs mb-base">
+<span class="font-label-lg text-label-lg text-on-surface">Coca-Cola</span>
+<span class="bg-secondary-container/20 px-xs py-[2px] rounded text-[10px] font-bold text-on-secondary-container uppercase">Đồ uống</span>
+</div>
+<p class="font-body-md text-body-md text-on-surface-variant">1 x 30.000 ₫</p>
+</div>
+<div class="flex items-center gap-xs">
+<button class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-surface-container text-outline transition-colors"><span class="material-symbols-outlined text-[20px]">content_copy</span></button>
+<button class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-error-container/20 text-error transition-colors"><span class="material-symbols-outlined text-[20px]">delete</span></button>
+</div>
+</div>
+<div class="bg-primary-container/5 p-sm rounded-lg border border-primary/10 mb-sm">
+<p class="font-label-sm text-label-sm text-on-surface-variant">Chia đều cho <span class="text-on-surface font-semibold">Huyền và An</span></p>
+<p class="font-label-lg text-label-lg text-primary mt-base">Mỗi người: 15.000 ₫</p>
+</div>
+<button class="w-full py-xs font-label-sm text-label-sm text-primary border border-primary/30 rounded-lg hover:bg-primary-container/5 transition-colors">Tùy chỉnh</button>
+</div>
+</div>
+<!-- Item 3 -->
+<div class="bg-white rounded-xl border border-outline-variant overflow-hidden custom-card-shadow border-l-4 border-l-secondary">
+<div class="p-md">
+<div class="flex justify-between items-start mb-sm">
+<div>
+<div class="flex items-center gap-xs mb-base">
+<span class="font-label-lg text-label-lg text-on-surface">Khoai tây</span>
+<span class="bg-surface-container-high px-xs py-[2px] rounded text-[10px] font-bold text-on-surface-variant uppercase">Đồ ăn</span>
+</div>
+<p class="font-body-md text-body-md text-on-surface-variant">1 x 50.000 ₫</p>
+</div>
+<div class="flex items-center gap-xs">
+<button class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-surface-container text-outline transition-colors"><span class="material-symbols-outlined text-[20px]">content_copy</span></button>
+<button class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-error-container/20 text-error transition-colors"><span class="material-symbols-outlined text-[20px]">delete</span></button>
+</div>
+</div>
+<div class="bg-surface-container-lowest p-sm rounded-lg border border-outline-variant/30 mb-sm">
+<p class="font-label-sm text-label-sm text-on-surface-variant">Chia đều cho <span class="text-on-surface font-semibold">3 người</span></p>
+<p class="font-label-lg text-label-lg text-primary mt-base">Mỗi người: 16.667 ₫</p>
+</div>
+<button class="w-full py-xs font-label-sm text-label-sm text-primary border border-primary/30 rounded-lg hover:bg-primary-container/5 transition-colors">Tùy chỉnh</button>
+</div>
+</div>
+<!-- Add Item Button -->
+<button class="w-full py-md flex items-center justify-center gap-xs border-2 border-dashed border-outline-variant rounded-xl text-primary font-label-lg hover:bg-surface-container transition-colors active:scale-[0.98]">
+<span class="material-symbols-outlined">add_circle</span>
+            Thêm món
+        </button>
+</section>
+<!-- Sticky Bottom Actions -->
+<nav class="fixed bottom-0 left-0 right-0 max-w-[390px] mx-auto bg-white p-md flex gap-md shadow-[0_-4px_12px_rgba(0,0,0,0.06)] border-t border-outline-variant/20 z-50">
+<button class="flex-1 py-md px-lg rounded-xl border border-outline text-on-surface font-label-lg active:scale-95 transition-transform">
+            Quay lại
+        </button>
+<button class="flex-[1.5] py-md px-lg rounded-xl bg-primary text-white font-label-lg shadow-lg shadow-primary/20 active:scale-95 transition-transform flex items-center justify-center gap-xs">
+            Tiếp tục
+            <span class="material-symbols-outlined text-[20px]">arrow_forward</span>
+</button>
+</nav>
+<!-- Micro-interaction overlay (hidden by default) -->
+<div class="fixed bottom-24 left-1/2 -translate-x-1/2 px-lg py-sm bg-inverse-surface text-inverse-on-surface rounded-full text-label-sm opacity-0 pointer-events-none transition-all duration-300" id="toast">
+        Cập nhật thành công
+    </div>
+<script>
+        // Simple micro-interaction for primary button
+        const nextBtn = document.querySelector('button.bg-primary');
+        const toast = document.getElementById('toast');
+
+        nextBtn.addEventListener('click', () => {
+            toast.classList.remove('opacity-0');
+            toast.classList.add('opacity-100', '-translate-y-2');
+            setTimeout(() => {
+                toast.classList.add('opacity-0');
+                toast.classList.remove('opacity-100', '-translate-y-2');
+            }, 2000);
+        });
+
+        // Toggle segment logic visual feedback
+        const segments = document.querySelectorAll('.active-segment').length ? document.querySelectorAll('.active-segment')[0].parentElement.querySelectorAll('button') : [];
+        segments.forEach(btn => {
+            btn.addEventListener('click', () => {
+                segments.forEach(b => {
+                    b.classList.remove('bg-white', 'text-primary', 'active-segment', 'font-label-lg');
+                    b.classList.add('text-on-surface-variant', 'font-label-sm');
+                });
+                btn.classList.add('bg-white', 'text-primary', 'active-segment', 'font-label-lg');
+                btn.classList.remove('text-on-surface-variant', 'font-label-sm');
+            });
+        });
+    </script>
+</body></html>

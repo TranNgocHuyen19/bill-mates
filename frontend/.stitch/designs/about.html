@@ -1,0 +1,280 @@
+<!DOCTYPE html><html class="light" lang="vi"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Bill Mates - Onboarding</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "primary-fixed-dim": "#bac3ff",
+                        "on-tertiary-fixed": "#410006",
+                        "tertiary-container": "#a33236",
+                        "secondary-fixed-dim": "#4edea3",
+                        "inverse-on-surface": "#f2eff9",
+                        "on-primary-fixed-variant": "#293ca0",
+                        "error-container": "#ffdad6",
+                        "on-secondary": "#ffffff",
+                        "tertiary": "#831921",
+                        "outline-variant": "#c5c5d4",
+                        "surface-dim": "#dbd9e2",
+                        "on-background": "#1a1b22",
+                        "on-primary-fixed": "#00105c",
+                        "error": "#ba1a1a",
+                        "on-secondary-container": "#00714d",
+                        "secondary-container": "#6cf8bb",
+                        "surface-container-low": "#f4f2fc",
+                        "on-tertiary-container": "#ffc4c2",
+                        "tertiary-fixed": "#ffdad8",
+                        "on-primary": "#ffffff",
+                        "surface-container-high": "#e9e7f0",
+                        "secondary": "#006c49",
+                        "primary-container": "#3f51b5",
+                        "primary": "#24389c",
+                        "on-secondary-fixed-variant": "#005236",
+                        "on-surface": "#1a1b22",
+                        "surface-container-highest": "#e3e1ea",
+                        "on-error-container": "#93000a",
+                        "on-tertiary": "#ffffff",
+                        "surface-bright": "#fbf8ff",
+                        "surface-container-lowest": "#ffffff",
+                        "surface": "#fbf8ff",
+                        "inverse-surface": "#2f3037",
+                        "inverse-primary": "#bac3ff",
+                        "surface-variant": "#e3e1ea",
+                        "on-secondary-fixed": "#002113",
+                        "on-tertiary-fixed-variant": "#881d24",
+                        "tertiary-fixed-dim": "#ffb3b0",
+                        "primary-fixed": "#dee0ff",
+                        "background": "#fbf8ff",
+                        "on-surface-variant": "#454652",
+                        "outline": "#757684",
+                        "on-error": "#ffffff",
+                        "secondary-fixed": "#6ffbbe",
+                        "surface-container": "#efedf6",
+                        "on-primary-container": "#cacfff",
+                        "surface-tint": "#4355b9"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "2xl": "1rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "gutter": "16px",
+                        "sm": "12px",
+                        "xs": "8px",
+                        "xl": "32px",
+                        "base": "4px",
+                        "margin-desktop": "48px",
+                        "md": "16px",
+                        "margin-mobile": "16px",
+                        "lg": "24px"
+                    },
+                    "fontFamily": {
+                        "numeric-xl": ["Be Vietnam Pro"],
+                        "label-sm": ["Be Vietnam Pro"],
+                        "label-lg": ["Be Vietnam Pro"],
+                        "display-md": ["Be Vietnam Pro"],
+                        "display-lg": ["Be Vietnam Pro"],
+                        "body-lg": ["Be Vietnam Pro"],
+                        "body-md": ["Be Vietnam Pro"],
+                        "display-lg-mobile": ["Be Vietnam Pro"],
+                        "headline-sm": ["Be Vietnam Pro"]
+                    },
+                    "fontSize": {
+                        "numeric-xl": ["28px", { "lineHeight": "34px", "fontWeight": "700" }],
+                        "label-sm": ["12px", { "lineHeight": "16px", "fontWeight": "500" }],
+                        "label-lg": ["14px", { "lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "600" }],
+                        "display-md": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "700" }],
+                        "display-lg": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "body-lg": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "body-md": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+                        "display-lg-mobile": ["26px", { "lineHeight": "32px", "fontWeight": "700" }],
+                        "headline-sm": ["20px", { "lineHeight": "28px", "fontWeight": "600" }]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            display: inline-block;
+            line-height: 1;
+            text-transform: none;
+            letter-spacing: normal;
+            word-wrap: normal;
+            white-space: nowrap;
+            direction: ltr;
+        }
+        .carousel-track {
+            display: flex;
+            transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .carousel-slide {
+            flex: 0 0 100%;
+            width: 100%;
+        }
+        .dot-active {
+            width: 24px;
+            background-color: #24389c;
+        }
+    </style>
+</head>
+<body class="bg-background font-body-md text-on-surface overflow-hidden">
+<div class="relative h-screen w-full flex flex-col max-w-[430px] mx-auto overflow-hidden">
+<header class="flex justify-between items-center px-margin-mobile pt-xl z-20">
+<div class="flex items-center gap-xs">
+<span class="material-symbols-outlined text-primary" data-icon="group">group</span>
+<span class="font-display-md text-display-md text-primary tracking-tight">Bill Mates</span>
+</div>
+<button class="font-label-lg text-label-lg text-outline hover:text-primary transition-colors" onclick="skipOnboarding()">Bỏ qua</button>
+</header>
+<main class="flex-1 relative overflow-hidden mt-xl">
+<div class="carousel-track h-full" id="carouselTrack">
+<section class="carousel-slide flex flex-col items-center px-margin-mobile">
+<div class="w-full aspect-square relative flex items-center justify-center mb-xl">
+<div class="absolute inset-0 bg-primary-container/10 rounded-full scale-90 blur-3xl"></div>
+<div class="relative w-full h-full p-lg rounded-2xl flex items-center justify-center overflow-hidden">
+<img class="w-full h-full object-contain drop-shadow-xl" data-alt="A clean, minimalist 3D illustration of a paper receipt with simplified icons for groceries and coffee, floating in a soft studio lighting environment. The aesthetic is corporate modern, using a color palette of deep indigo and soft whites with emerald green accents for 'total' markers. The mood is organized and helpful, reflecting a high-quality light mode mobile application." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCWMfahiB4Anh00tk1JqxfvveKmUmilptsemRxW84zWo6fQVdE-ZBXHAZwOHr6IXvzSlMarqybPZ3SAWyiOVwu82TT5mgLfCBPeBiemd7Ky87qXiFIugynvhq45v2yfOrvH750IysMTvPm0tpdcswQKGkZC8jIQcXgqwcza-eTbruEv7ygxFc78V1ZVcvEBjkkHO-qvwRchKHeI-hbooiEGjaD9oIQoKSpckvvJNr5xpBmQXvuzlNNAW5_drT7mFWFeyVlnCekApQI">
+</div>
+</div>
+<div class="text-center px-sm">
+<h1 class="font-display-lg-mobile text-display-lg-mobile text-primary mb-md">Ghi lại mọi khoản chi</h1>
+<p class="font-body-lg text-body-lg text-on-surface-variant">Tất cả chi phí chung từ đi chợ, ăn uống đến tiền điện nước đều được lưu trữ minh bạch và tức thì.</p>
+</div>
+</section>
+<section class="carousel-slide flex flex-col items-center px-margin-mobile">
+<div class="w-full aspect-square relative flex items-center justify-center mb-xl">
+<div class="absolute inset-0 bg-secondary-container/20 rounded-full scale-90 blur-3xl"></div>
+<div class="relative w-full h-full p-lg rounded-2xl flex items-center justify-center overflow-hidden">
+<img class="w-full h-full object-contain drop-shadow-xl" data-alt="A sophisticated flat-style illustration showing a stylized meal plate being split into three distinct, colorful segments with animated dashed lines. The lighting is warm and friendly, following the corporate modern UI style guide of Bill Mates. Deep indigo and emerald green colors dominate the scene, emphasizing fairness and precision in shared finances. High-fidelity design with soft shadows." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAym5GEpyotnvsVKQmarPIlIAgcjJZ5NlfltYHeSQIlMJ9woGdQpdaoMIqRsMVb4RUIKGg-d_EVsVOkbXyRfkUe4P35KdUdE1HlPXPWr2D39UNx198pTOcHFocnyGlNy2DjCToojFmiFot-QTK0Jr7V48DGPUCBmoko0jfEylUMBn_3tmllTJLZ93X8wBc9-k5SaGihHdRLl2L9F8MtQBgGBSDOHGKzs8dLbHb1vKlPrNTr0ntm0tbXJ61wy4ZmTtFXJs7uwz0igAY">
+</div>
+</div>
+<div class="text-center px-sm">
+<h1 class="font-display-lg-mobile text-display-lg-mobile text-primary mb-md">Chia rõ từng món</h1>
+<p class="font-body-lg text-body-lg text-on-surface-variant">Không cần tính toán thủ công. Tự động chia hóa đơn theo tỷ lệ hoặc theo từng món cụ thể cho mỗi thành viên.</p>
+</div>
+</section>
+<section class="carousel-slide flex flex-col items-center px-margin-mobile">
+<div class="w-full aspect-square relative flex items-center justify-center mb-xl">
+<div class="absolute inset-0 bg-tertiary-fixed/30 rounded-full scale-90 blur-3xl"></div>
+<div class="relative w-full h-full p-lg rounded-2xl flex items-center justify-center overflow-hidden">
+<img class="w-full h-full object-contain drop-shadow-xl" data-alt="A modern data visualization dashboard illustration showing a clear balance chart with floating user avatars. The chart displays debt relations with curved arrows in coral and emerald, indicating 'owed' and 'owe' statuses. The style is clean, corporate, and trustworthy, set against a pristine light mode background with deep indigo primary elements. Soft ambient shadows provide depth." src="https://lh3.googleusercontent.com/aida-public/AB6AXuD7EK2W1HjEmu1pGo_ThXmOOzfJp6BUPPgM-A_Q66hXJhzxKejlnxPgOYbE3tc_V9Ljx0-kSCjWVnqknj5w86W-bFOlOy9THdlJ2R_xE4ovvdmY9XJ2PTTJv2HYQL-M9HbT5zid_J764cr5N31ZtUabshta5WlW6NCGd45gFftG6Mrw0hcxbnC1BhPGR_ZmqYjY27RadnXL4oM-lM74vOdhHnu70F1VnCJ5R5HZzJc8Ja9o289c9386Y9k0TvNLWNynLJPB6dYfxUU">
+</div>
+</div>
+<div class="text-center px-sm">
+<h1 class="font-display-lg-mobile text-display-lg-mobile text-primary mb-md">Biết chính xác ai đang nợ ai</h1>
+<p class="font-body-lg text-body-lg text-on-surface-variant">Hệ thống cân bằng công nợ thông minh giúp bạn biết số tiền cần thanh toán cuối cùng chỉ sau một chạm.</p>
+</div>
+</section>
+</div>
+</main>
+<footer class="p-xl bg-surface-container-lowest z-20">
+<div class="flex justify-center gap-xs mb-xl">
+<div class="h-1.5 w-1.5 rounded-full bg-outline-variant transition-all duration-300 dot-active" id="dot0"></div>
+<div class="h-1.5 w-1.5 rounded-full bg-outline-variant transition-all duration-300" id="dot1"></div>
+<div class="h-1.5 w-1.5 rounded-full bg-outline-variant transition-all duration-300" id="dot2"></div>
+</div>
+<button class="w-full h-[56px] bg-primary text-on-primary rounded-2xl font-label-lg text-label-lg shadow-lg active:scale-95 transition-all flex items-center justify-center gap-sm" id="nextBtn" onclick="nextSlide()">
+<span>Tiếp tục</span>
+<span class="material-symbols-outlined" data-icon="arrow_forward">arrow_forward</span>
+</button>
+<button class="hidden w-full h-[56px] bg-primary text-on-primary rounded-2xl font-label-lg text-label-lg shadow-lg active:scale-95 transition-all flex items-center justify-center" id="startBtn" onclick="finishOnboarding()">
+                Bắt đầu ngay
+            </button>
+</footer>
+</div>
+<script>
+        let currentSlide = 0;
+        const totalSlides = 3;
+        const track = document.getElementById('carouselTrack');
+        const dots = [document.getElementById('dot0'), document.getElementById('dot1'), document.getElementById('dot2')];
+        const nextBtn = document.getElementById('nextBtn');
+        const startBtn = document.getElementById('startBtn');
+
+        function updateCarousel() {
+            track.style.transform = `translateX(-${currentSlide * 100}%)`;
+            
+            dots.forEach((dot, index) => {
+                if (index === currentSlide) {
+                    dot.classList.add('dot-active');
+                    dot.classList.remove('w-1.5');
+                } else {
+                    dot.classList.remove('dot-active');
+                    dot.classList.add('w-1.5');
+                }
+            });
+
+            if (currentSlide === totalSlides - 1) {
+                nextBtn.classList.add('hidden');
+                startBtn.classList.remove('hidden');
+            } else {
+                nextBtn.classList.remove('hidden');
+                startBtn.classList.add('hidden');
+            }
+        }
+
+        function nextSlide() {
+            if (currentSlide < totalSlides - 1) {
+                currentSlide++;
+                updateCarousel();
+            }
+        }
+
+        function skipOnboarding() {
+            // Animation for skipping
+            document.body.style.opacity = '0';
+            document.body.style.transition = 'opacity 0.3s ease';
+            setTimeout(() => {
+                alert('Chuyển hướng đến màn hình chính...');
+            }, 300);
+        }
+
+        function finishOnboarding() {
+            // Final action
+            document.body.style.transform = 'scale(1.05)';
+            document.body.style.opacity = '0';
+            document.body.style.transition = 'all 0.4s ease';
+            setTimeout(() => {
+                alert('Chào mừng bạn đến với Bill Mates!');
+            }, 400);
+        }
+
+        // Touch handling
+        let startX = 0;
+        let isDragging = false;
+
+        track.addEventListener('touchstart', (e) => {
+            startX = e.touches[0].clientX;
+            isDragging = true;
+        });
+
+        track.addEventListener('touchmove', (e) => {
+            if (!isDragging) return;
+            const diff = startX - e.touches[0].clientX;
+            if (Math.abs(diff) > 50) {
+                if (diff > 0 && currentSlide < totalSlides - 1) {
+                    currentSlide++;
+                    updateCarousel();
+                } else if (diff < 0 && currentSlide > 0) {
+                    currentSlide--;
+                    updateCarousel();
+                }
+                isDragging = false;
+            }
+        });
+
+        track.addEventListener('touchend', () => {
+            isDragging = false;
+        });
+    </script>
+</body></html>

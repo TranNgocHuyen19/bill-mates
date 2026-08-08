@@ -1,0 +1,258 @@
+<!DOCTYPE html><html class="light" lang="vi"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport">
+<title>Bill Mates - Đăng ký</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "primary-fixed-dim": "#bac3ff",
+                    "on-tertiary-fixed": "#410006",
+                    "tertiary-container": "#a33236",
+                    "secondary-fixed-dim": "#4edea3",
+                    "inverse-on-surface": "#f2eff9",
+                    "on-primary-fixed-variant": "#293ca0",
+                    "error-container": "#ffdad6",
+                    "on-secondary": "#ffffff",
+                    "tertiary": "#831921",
+                    "outline-variant": "#c5c5d4",
+                    "surface-dim": "#dbd9e2",
+                    "on-background": "#1a1b22",
+                    "on-primary-fixed": "#00105c",
+                    "error": "#ba1a1a",
+                    "on-secondary-container": "#00714d",
+                    "secondary-container": "#6cf8bb",
+                    "surface-container-low": "#f4f2fc",
+                    "on-tertiary-container": "#ffc4c2",
+                    "tertiary-fixed": "#ffdad8",
+                    "on-primary": "#ffffff",
+                    "surface-container-high": "#e9e7f0",
+                    "secondary": "#006c49",
+                    "primary-container": "#3f51b5",
+                    "primary": "#24389c",
+                    "on-secondary-fixed-variant": "#005236",
+                    "on-surface": "#1a1b22",
+                    "surface-container-highest": "#e3e1ea",
+                    "on-error-container": "#93000a",
+                    "on-tertiary": "#ffffff",
+                    "surface-bright": "#fbf8ff",
+                    "surface-container-lowest": "#ffffff",
+                    "surface": "#fbf8ff",
+                    "inverse-surface": "#2f3037",
+                    "inverse-primary": "#bac3ff",
+                    "surface-variant": "#e3e1ea",
+                    "on-secondary-fixed": "#002113",
+                    "on-tertiary-fixed-variant": "#881d24",
+                    "tertiary-fixed-dim": "#ffb3b0",
+                    "primary-fixed": "#dee0ff",
+                    "background": "#fbf8ff",
+                    "on-surface-variant": "#454652",
+                    "outline": "#757684",
+                    "on-error": "#ffffff",
+                    "secondary-fixed": "#6ffbbe",
+                    "surface-container": "#efedf6",
+                    "on-primary-container": "#cacfff",
+                    "surface-tint": "#4355b9"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "gutter": "16px",
+                    "sm": "12px",
+                    "xs": "8px",
+                    "xl": "32px",
+                    "base": "4px",
+                    "margin-desktop": "48px",
+                    "md": "16px",
+                    "margin-mobile": "16px",
+                    "lg": "24px"
+            },
+            "fontFamily": {
+                    "numeric-xl": ["Be Vietnam Pro"],
+                    "label-sm": ["Be Vietnam Pro"],
+                    "label-lg": ["Be Vietnam Pro"],
+                    "display-md": ["Be Vietnam Pro"],
+                    "display-lg": ["Be Vietnam Pro"],
+                    "body-lg": ["Be Vietnam Pro"],
+                    "body-md": ["Be Vietnam Pro"],
+                    "display-lg-mobile": ["Be Vietnam Pro"],
+                    "headline-sm": ["Be Vietnam Pro"]
+            },
+            "fontSize": {
+                    "numeric-xl": ["28px", {"lineHeight": "34px", "fontWeight": "700"}],
+                    "label-sm": ["12px", {"lineHeight": "16px", "fontWeight": "500"}],
+                    "label-lg": ["14px", {"lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "600"}],
+                    "display-md": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "700"}],
+                    "display-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                    "display-lg-mobile": ["26px", {"lineHeight": "32px", "fontWeight": "700"}],
+                    "headline-sm": ["20px", {"lineHeight": "28px", "fontWeight": "600"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body {
+            background-color: #fbf8ff;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .input-focus-ring:focus-within {
+            border-color: #24389c;
+            box-shadow: 0 0 0 1px #24389c;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(8px);
+        }
+    </style>
+</head>
+<body class="font-body-md text-on-surface antialiased overflow-x-hidden min-h-screen flex flex-col">
+<!-- Hero Background Animation / Visual Anchor -->
+<div class="fixed top-0 left-0 w-full h-[309px] z-0 opacity-40">
+
+</div>
+<!-- Main Content Canvas -->
+<main class="relative z-10 flex-grow flex flex-col px-margin-mobile pt-16 pb-lg">
+<!-- Header / Identity -->
+<header class="mb-xl">
+<div class="flex items-center gap-xs mb-sm">
+<span class="material-symbols-outlined text-primary text-[32px]" data-icon="group">group</span>
+<h1 class="font-display-md text-display-md text-primary tracking-tight">Bill Mates</h1>
+</div>
+<h2 class="font-display-lg-mobile text-display-lg-mobile text-on-surface leading-tight">Bắt đầu quản lý <br>chi tiêu chung</h2>
+<p class="font-body-md text-body-md text-on-surface-variant mt-xs">Minh bạch, công bằng và gắn kết hơn.</p>
+</header>
+<!-- Sign Up Form Card -->
+<div class="bg-surface-container-lowest rounded-xl border border-outline-variant p-md shadow-sm mb-lg">
+<form class="space-y-md" id="signupForm">
+<!-- Full Name Field -->
+<div class="space-y-xs">
+<label class="font-label-lg text-label-lg text-on-surface-variant px-base">Họ và tên</label>
+<div class="flex items-center gap-sm bg-surface-container-low border border-outline-variant rounded-lg px-md h-12 transition-all input-focus-ring">
+<span class="material-symbols-outlined text-on-surface-variant text-[20px]" data-icon="person">person</span>
+<input class="bg-transparent border-none focus:ring-0 w-full font-body-md text-on-surface placeholder:text-outline" placeholder="Nguyễn Văn A" required="" type="text">
+</div>
+</div>
+<!-- Email Field -->
+<div class="space-y-xs">
+<label class="font-label-lg text-label-lg text-on-surface-variant px-base">Email</label>
+<div class="flex items-center gap-sm bg-surface-container-low border border-outline-variant rounded-lg px-md h-12 transition-all input-focus-ring">
+<span class="material-symbols-outlined text-on-surface-variant text-[20px]" data-icon="mail">mail</span>
+<input class="bg-transparent border-none focus:ring-0 w-full font-body-md text-on-surface placeholder:text-outline" placeholder="example@email.com" required="" type="email">
+</div>
+</div>
+<!-- Password Field -->
+<div class="space-y-xs">
+<label class="font-label-lg text-label-lg text-on-surface-variant px-base">Mật khẩu</label>
+<div class="flex items-center gap-sm bg-surface-container-low border border-outline-variant rounded-lg px-md h-12 transition-all input-focus-ring">
+<span class="material-symbols-outlined text-on-surface-variant text-[20px]" data-icon="lock">lock</span>
+<input class="bg-transparent border-none focus:ring-0 w-full font-body-md text-on-surface placeholder:text-outline" placeholder="••••••••" required="" type="password">
+<button class="text-on-surface-variant hover:text-primary transition-colors" type="button">
+<span class="material-symbols-outlined text-[20px]" data-icon="visibility">visibility</span>
+</button>
+</div>
+</div>
+<!-- Confirm Password Field -->
+<div class="space-y-xs">
+<label class="font-label-lg text-label-lg text-on-surface-variant px-base">Nhập lại mật khẩu</label>
+<div class="flex items-center gap-sm bg-surface-container-low border border-outline-variant rounded-lg px-md h-12 transition-all input-focus-ring">
+<span class="material-symbols-outlined text-on-surface-variant text-[20px]" data-icon="lock_reset">lock_reset</span>
+<input class="bg-transparent border-none focus:ring-0 w-full font-body-md text-on-surface placeholder:text-outline" placeholder="••••••••" required="" type="password">
+</div>
+</div>
+<!-- Submit Button -->
+<button class="w-full bg-primary text-on-primary h-14 rounded-full font-label-lg text-label-lg shadow-lg active:scale-95 transition-transform mt-lg flex items-center justify-center gap-xs" type="submit">
+<span>Đăng ký ngay</span>
+<span class="material-symbols-outlined" data-icon="arrow_forward">arrow_forward</span>
+</button>
+</form>
+</div>
+<!-- Secondary Actions -->
+<div class="text-center space-y-lg">
+<p class="font-body-md text-on-surface-variant">
+                Đã có tài khoản? 
+                <a class="text-primary font-label-lg hover:underline decoration-primary/30 underline-offset-4 ml-xs" href="#">Đăng nhập</a>
+</p>
+<!-- Social Sign Up Divider -->
+<div class="flex items-center gap-md py-xs">
+<div class="h-[1px] bg-outline-variant flex-grow"></div>
+<span class="text-label-sm font-label-sm text-outline uppercase tracking-widest">Hoặc</span>
+<div class="h-[1px] bg-outline-variant flex-grow"></div>
+</div>
+<!-- Social Button -->
+<button class="w-full h-14 border border-outline-variant rounded-full font-label-lg text-label-lg text-on-surface flex items-center justify-center gap-md hover:bg-surface-container-low active:bg-surface-container transition-colors">
+<img class="w-5 h-5" data-alt="Minimalist Google logo icon in vibrant colors on a clean white background, corporate style." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCRZOQFh39RFGnZvtzd7UfownVI-6tW0a4ilW1llwqp79tK_gFLJv2swx7jt0DrySrJdRl7JRo8m5GHCY-7O7K0n8svIym_EIiQQ0FGANxud_vo2i7LdXTlz4gF-4USnP8gh3Cdpyb48MBTYd89AxQyK2rR3-SK2qUhn1IR4ZgVkd8SMIUSFXPo1-INI_yVFRHN2kgToZxeU0msm6BIMJ32ipkwsF6OmD8XPNCuQlqiexVwouZcPiFGiHsDwLmUEA0iltF9osX-0cY">
+<span>Đăng ký bằng Google</span>
+</button>
+</div>
+<!-- Footer / Legal -->
+<footer class="mt-auto pt-xl text-center">
+<p class="font-label-sm text-label-sm text-outline px-xl leading-relaxed">
+                Bằng việc đăng ký, bạn đồng ý với <a class="text-on-surface-variant underline" href="#">Điều khoản dịch vụ</a> và <a class="text-on-surface-variant underline" href="#">Chính sách bảo mật</a> của chúng tôi.
+            </p>
+</footer>
+</main>
+<!-- Success Feedback Overlay (Hidden by default) -->
+<div class="fixed inset-0 z-[100] bg-surface flex items-center justify-center p-xl hidden" id="successOverlay">
+<div class="text-center space-y-lg animate-in fade-in zoom-in duration-500">
+<div class="w-24 h-24 bg-secondary-container text-on-secondary-container rounded-full flex items-center justify-center mx-auto mb-lg">
+<span class="material-symbols-outlined text-[48px]" data-icon="check_circle" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+<h3 class="font-display-md text-display-md text-on-surface">Chào mừng bạn!</h3>
+<p class="font-body-lg text-body-lg text-on-surface-variant">Tài khoản Bill Mates của bạn đã được tạo thành công.</p>
+<button class="px-xl py-md bg-primary text-on-primary rounded-full font-label-lg" onclick="location.reload()">Bắt đầu ngay</button>
+</div>
+</div>
+<script>
+        // Micro-interactions for form submission
+        document.getElementById('signupForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const btn = e.target.querySelector('button[type="submit"]');
+            const originalContent = btn.innerHTML;
+            
+            // Visual feedback
+            btn.disabled = true;
+            btn.innerHTML = '<span class="material-symbols-outlined animate-spin" data-icon="progress_activity">progress_activity</span>';
+            
+            // Simulate API call
+            setTimeout(() => {
+                document.getElementById('successOverlay').classList.remove('hidden');
+            }, 1200);
+        });
+
+        // Toggle Password Visibility Logic
+        const togglePass = document.querySelector('button[type="button"]');
+        const passInput = togglePass.previousElementSibling;
+        togglePass.addEventListener('click', () => {
+            const isPass = passInput.type === 'password';
+            passInput.type = isPass ? 'text' : 'password';
+            togglePass.querySelector('span').textContent = isPass ? 'visibility_off' : 'visibility';
+        });
+
+        // Input Focus Visuals
+        const inputs = document.querySelectorAll('input');
+        inputs.forEach(input => {
+            input.addEventListener('focus', () => {
+                input.parentElement.classList.add('shadow-[0_0_0_4px_rgba(36,56,156,0.08)]');
+            });
+            input.addEventListener('blur', () => {
+                input.parentElement.classList.remove('shadow-[0_0_0_4px_rgba(36,56,156,0.08)]');
+            });
+        });
+    </script>
+</body></html>

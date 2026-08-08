@@ -1,0 +1,234 @@
+<!DOCTYPE html><html class="light" lang="vi"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0, viewport-fit=cover" name="viewport">
+<title>Đăng nhập | Bill Mates</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "primary-fixed-dim": "#bac3ff",
+                    "on-tertiary-fixed": "#410006",
+                    "tertiary-container": "#a33236",
+                    "secondary-fixed-dim": "#4edea3",
+                    "inverse-on-surface": "#f2eff9",
+                    "on-primary-fixed-variant": "#293ca0",
+                    "error-container": "#ffdad6",
+                    "on-secondary": "#ffffff",
+                    "tertiary": "#831921",
+                    "outline-variant": "#c5c5d4",
+                    "surface-dim": "#dbd9e2",
+                    "on-background": "#1a1b22",
+                    "on-primary-fixed": "#00105c",
+                    "error": "#ba1a1a",
+                    "on-secondary-container": "#00714d",
+                    "secondary-container": "#6cf8bb",
+                    "surface-container-low": "#f4f2fc",
+                    "on-tertiary-container": "#ffc4c2",
+                    "tertiary-fixed": "#ffdad8",
+                    "on-primary": "#ffffff",
+                    "surface-container-high": "#e9e7f0",
+                    "secondary": "#006c49",
+                    "primary-container": "#3f51b5",
+                    "primary": "#24389c",
+                    "on-secondary-fixed-variant": "#005236",
+                    "on-surface": "#1a1b22",
+                    "surface-container-highest": "#e3e1ea",
+                    "on-error-container": "#93000a",
+                    "on-tertiary": "#ffffff",
+                    "surface-bright": "#fbf8ff",
+                    "surface-container-lowest": "#ffffff",
+                    "surface": "#fbf8ff",
+                    "inverse-surface": "#2f3037",
+                    "inverse-primary": "#bac3ff",
+                    "surface-variant": "#e3e1ea",
+                    "on-secondary-fixed": "#002113",
+                    "on-tertiary-fixed-variant": "#881d24",
+                    "tertiary-fixed-dim": "#ffb3b0",
+                    "primary-fixed": "#dee0ff",
+                    "background": "#fbf8ff",
+                    "on-surface-variant": "#454652",
+                    "outline": "#757684",
+                    "on-error": "#ffffff",
+                    "secondary-fixed": "#6ffbbe",
+                    "surface-container": "#efedf6",
+                    "on-primary-container": "#cacfff",
+                    "surface-tint": "#4355b9"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "gutter": "16px",
+                    "sm": "12px",
+                    "xs": "8px",
+                    "xl": "32px",
+                    "base": "4px",
+                    "margin-desktop": "48px",
+                    "md": "16px",
+                    "margin-mobile": "16px",
+                    "lg": "24px"
+            },
+            "fontFamily": {
+                    "numeric-xl": ["Be Vietnam Pro"],
+                    "label-sm": ["Be Vietnam Pro"],
+                    "label-lg": ["Be Vietnam Pro"],
+                    "display-md": ["Be Vietnam Pro"],
+                    "display-lg": ["Be Vietnam Pro"],
+                    "body-lg": ["Be Vietnam Pro"],
+                    "body-md": ["Be Vietnam Pro"],
+                    "display-lg-mobile": ["Be Vietnam Pro"],
+                    "headline-sm": ["Be Vietnam Pro"]
+            },
+            "fontSize": {
+                    "numeric-xl": ["28px", {"lineHeight": "34px", "fontWeight": "700"}],
+                    "label-sm": ["12px", {"lineHeight": "16px", "fontWeight": "500"}],
+                    "label-lg": ["14px", {"lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "600"}],
+                    "display-md": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "700"}],
+                    "display-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                    "display-lg-mobile": ["26px", {"lineHeight": "32px", "fontWeight": "700"}],
+                    "headline-sm": ["20px", {"lineHeight": "28px", "fontWeight": "600"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+      body {
+        font-family: 'Be Vietnam Pro', sans-serif;
+        -webkit-tap-highlight-color: transparent;
+      }
+      .material-symbols-outlined {
+        font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      }
+      .input-focus-ring:focus-within {
+        box-shadow: 0 0 0 2px theme('colors.primary-container');
+      }
+      .btn-active:active {
+        transform: scale(0.97);
+      }
+      /* Hide navigation components based on instructions */
+      nav { display: none; }
+    </style>
+</head>
+<body class="bg-background text-on-background min-h-screen flex flex-col items-center">
+<!-- Top Glow / Background Decorative Element -->
+<div class="fixed top-0 left-0 w-full h-1/2 bg-gradient-to-b from-primary/5 to-transparent pointer-events-none -z-10"></div>
+<main class="w-full max-w-[480px] px-margin-mobile flex flex-col min-h-screen pt-xl pb-lg">
+<!-- Logo & Branding Section -->
+<div class="flex flex-col items-center mt-xl mb-xl">
+<div class="w-20 h-20 bg-primary-container rounded-[28px] flex items-center justify-center mb-md shadow-lg shadow-primary/20">
+<span class="material-symbols-outlined text-[44px] text-on-primary" style="font-variation-settings: 'FILL' 1;">group</span>
+</div>
+<h1 class="font-display-md text-display-md text-primary mb-xs">Bill Mates</h1>
+<p class="font-body-md text-body-md text-on-surface-variant text-center px-lg">Chia sẻ chi phí minh bạch, gắn kết tình bạn bền vững.</p>
+</div>
+<!-- Login Form -->
+<form class="flex flex-col space-y-md flex-grow">
+<!-- Email Field -->
+<div class="space-y-xs">
+<label class="font-label-lg text-label-lg text-on-surface-variant ml-xs" for="email">Email</label>
+<div class="relative flex items-center group">
+<span class="material-symbols-outlined absolute left-md text-outline group-focus-within:text-primary transition-colors">mail</span>
+<input class="w-full h-[56px] pl-[52px] pr-md bg-surface border border-outline-variant rounded-xl font-body-lg text-body-lg text-on-surface focus:outline-none focus:border-primary transition-all shadow-sm" id="email" placeholder="example@gmail.com" type="email">
+</div>
+</div>
+<!-- Password Field -->
+<div class="space-y-xs">
+<label class="font-label-lg text-label-lg text-on-surface-variant ml-xs" for="password">Mật khẩu</label>
+<div class="relative flex items-center group">
+<span class="material-symbols-outlined absolute left-md text-outline group-focus-within:text-primary transition-colors">lock</span>
+<input class="w-full h-[56px] pl-[52px] pr-[52px] bg-surface border border-outline-variant rounded-xl font-body-lg text-body-lg text-on-surface focus:outline-none focus:border-primary transition-all shadow-sm" id="password" placeholder="••••••••" type="password">
+<button class="absolute right-md text-outline hover:text-on-surface p-1" onclick="togglePassword()" type="button">
+<span class="material-symbols-outlined" id="pass-toggle">visibility</span>
+</button>
+</div>
+</div>
+<!-- Remember Me & Forgot Pass -->
+<div class="flex items-center justify-between pt-xs">
+<label class="flex items-center space-x-sm cursor-pointer group">
+<div class="relative flex items-center">
+<input class="peer hidden" type="checkbox">
+<div class="w-5 h-5 border-2 border-outline rounded flex items-center justify-center peer-checked:bg-primary peer-checked:border-primary transition-all">
+<span class="material-symbols-outlined text-[16px] text-on-primary scale-0 peer-checked:scale-100 transition-transform">check</span>
+</div>
+</div>
+<span class="font-label-lg text-label-lg text-on-surface-variant group-hover:text-on-surface">Ghi nhớ đăng nhập</span>
+</label>
+<a class="font-label-lg text-label-lg text-primary hover:underline decoration-2 underline-offset-4" href="#">Quên mật khẩu?</a>
+</div>
+<!-- Primary Action -->
+<button class="w-full h-[56px] bg-primary text-on-primary font-label-lg text-label-lg rounded-xl flex items-center justify-center space-x-sm btn-active transition-transform mt-lg shadow-md active:shadow-sm" type="submit">
+<span>Đăng nhập</span>
+<span class="material-symbols-outlined">arrow_forward</span>
+</button>
+<!-- Divider -->
+<div class="flex items-center space-x-md py-lg">
+<div class="flex-grow h-px bg-outline-variant"></div>
+<span class="font-label-sm text-label-sm text-outline">HOẶC</span>
+<div class="flex-grow h-px bg-outline-variant"></div>
+</div>
+<!-- Social Action -->
+<button class="w-full h-[56px] bg-surface border border-outline-variant text-on-surface font-label-lg text-label-lg rounded-xl flex items-center justify-center space-x-sm btn-active transition-transform hover:bg-surface-container-low" type="button">
+<div class="w-6 h-6 flex items-center justify-center">
+<svg height="18" viewBox="0 0 24 24" width="18" xmlns="http://www.w3.org/2000/svg">
+<path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"></path>
+<path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"></path>
+<path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"></path>
+<path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 12-4.53z" fill="#EA4335"></path>
+</svg>
+</div>
+<span>Tiếp tục với Google</span>
+</button>
+</form>
+<!-- Footer Link -->
+<footer class="mt-xl text-center pb-safe">
+<p class="font-body-md text-body-md text-on-surface-variant">
+                Chưa có tài khoản? 
+                <a class="font-label-lg text-label-lg text-primary font-bold ml-xs hover:underline decoration-2 underline-offset-4" href="#">Đăng ký ngay</a>
+</p>
+</footer>
+</main>
+<!-- Visual Enhancements (Bottom Graphic) -->
+<div class="fixed bottom-0 left-0 w-full opacity-50 pointer-events-none">
+<div class="relative w-full h-24 overflow-hidden">
+<!-- Minimalist line art pattern for finance trust -->
+<svg class="absolute bottom-0 w-full h-full opacity-10" preserveAspectRatio="none" viewBox="0 0 400 100">
+<path class="text-primary" d="M0,50 C100,20 200,80 400,50" fill="transparent" stroke="currentColor" stroke-width="2"></path>
+<path class="text-secondary" d="M0,70 C150,40 250,90 400,60" fill="transparent" stroke="currentColor" stroke-width="2"></path>
+</svg>
+</div>
+</div>
+<script>
+        function togglePassword() {
+            const passInput = document.getElementById('password');
+            const toggleIcon = document.getElementById('pass-toggle');
+            
+            if (passInput.type === 'password') {
+                passInput.type = 'text';
+                toggleIcon.innerText = 'visibility_off';
+            } else {
+                passInput.type = 'password';
+                toggleIcon.innerText = 'visibility';
+            }
+        }
+
+        // Haptic-like feedback simulation for button
+        const buttons = document.querySelectorAll('.btn-active');
+        buttons.forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                // Future integration point for mobile web haptics
+            });
+        });
+    </script>
+</body></html>

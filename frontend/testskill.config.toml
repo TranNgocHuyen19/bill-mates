@@ -1,0 +1,32 @@
+[config]
+must_have_human_review_of_plan = false
+stop_when_no_page_analysis = true
+
+[app]
+app_url = "http://localhost:3000"
+
+[commands]
+app_start_command = "npm run dev"
+app_stop_command = ""
+test_run_command = "npm run test"
+
+[paths]
+test_context_root_folder = ".testskill"
+test_context_folder_name_template = "{date}-{slug}"
+
+[outputs]
+transcript_filename = "events.jsonl"
+test_result_report = "test-result.md"
+
+[framework]
+integration_test_framework = "Vitest + React Testing Library"
+integration_test_framework_docs = "https://vitest.dev/guide/"
+network_interception_framework = "Mock Service Worker"
+network_interception_framework_docs = "https://mswjs.io/docs/"
+unit_test_framework = "Vitest"
+unit_test_framework_docs = "https://vitest.dev/guide/"
+unit_test_mocking_framework = "Vitest"
+unit_test_mocking_framework_docs = "https://vitest.dev/guide/mocking"
+
+[canonical_example]
+path = ".testskill/examples/page.test.tsx"

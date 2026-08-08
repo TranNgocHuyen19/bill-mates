@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+
+<html lang="vi"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Bill Mates - Tùy chỉnh chia món</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            font-family: 'Be Vietnam Pro', sans-serif;
+            background-color: #fbf8ff;
+        }
+        .bottom-sheet-transition {
+            transition: transform 0.4s cubic-bezier(0.32, 0.72, 0, 1);
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #e3e1ea;
+            border-radius: 10px;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "tertiary-fixed-dim": "#ffb3b0",
+                        "on-tertiary-container": "#ffc4c2",
+                        "secondary-fixed": "#6ffbbe",
+                        "on-surface": "#1a1b22",
+                        "error-container": "#ffdad6",
+                        "primary-fixed-dim": "#bac3ff",
+                        "surface-container-lowest": "#ffffff",
+                        "surface-bright": "#fbf8ff",
+                        "secondary": "#006c49",
+                        "on-secondary-fixed": "#002113",
+                        "on-tertiary-fixed-variant": "#881d24",
+                        "on-primary-fixed": "#00105c",
+                        "secondary-container": "#6cf8bb",
+                        "on-primary": "#ffffff",
+                        "tertiary-fixed": "#ffdad8",
+                        "error": "#ba1a1a",
+                        "primary-fixed": "#dee0ff",
+                        "on-tertiary-fixed": "#410006",
+                        "on-primary-fixed-variant": "#293ca0",
+                        "secondary-fixed-dim": "#4edea3",
+                        "primary-container": "#3f51b5",
+                        "primary": "#24389c",
+                        "outline-variant": "#c5c5d4",
+                        "background": "#fbf8ff",
+                        "on-surface-variant": "#454652",
+                        "surface-variant": "#e3e1ea",
+                        "on-background": "#1a1b22",
+                        "on-primary-container": "#cacfff",
+                        "tertiary-container": "#a33236",
+                        "surface-tint": "#4355b9",
+                        "surface-container-low": "#f4f2fc",
+                        "outline": "#757684",
+                        "surface-container": "#efedf6",
+                        "on-error-container": "#93000a",
+                        "on-error": "#ffffff",
+                        "on-secondary-container": "#00714d",
+                        "tertiary": "#831921",
+                        "on-tertiary": "#ffffff",
+                        "surface": "#fbf8ff",
+                        "surface-dim": "#dbd9e2",
+                        "inverse-on-surface": "#f2eff9",
+                        "on-secondary-fixed-variant": "#005236",
+                        "inverse-primary": "#bac3ff",
+                        "inverse-surface": "#2f3037",
+                        "surface-container-highest": "#e3e1ea",
+                        "surface-container-high": "#e9e7f0",
+                        "on-secondary": "#ffffff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "12px",
+                        "2xl": "20px",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "xl": "32px",
+                        "base": "4px",
+                        "lg": "24px",
+                        "md": "16px",
+                        "gutter": "16px",
+                        "margin-mobile": "16px",
+                        "sm": "12px",
+                        "xs": "8px",
+                        "margin-desktop": "48px"
+                    },
+                    "fontFamily": {
+                        "numeric-xl": ["Be Vietnam Pro"],
+                        "body-lg": ["Be Vietnam Pro"],
+                        "display-lg-mobile": ["Be Vietnam Pro"],
+                        "label-sm": ["Be Vietnam Pro"],
+                        "body-md": ["Be Vietnam Pro"],
+                        "label-lg": ["Be Vietnam Pro"],
+                        "headline-sm": ["Be Vietnam Pro"],
+                        "display-md": ["Be Vietnam Pro"],
+                        "display-lg": ["Be Vietnam Pro"]
+                    },
+                    "fontSize": {
+                        "numeric-xl": ["28px", {"lineHeight": "34px", "fontWeight": "700"}],
+                        "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "display-lg-mobile": ["26px", {"lineHeight": "32px", "fontWeight": "700"}],
+                        "label-sm": ["12px", {"lineHeight": "16px", "fontWeight": "500"}],
+                        "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                        "label-lg": ["14px", {"lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "600"}],
+                        "headline-sm": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                        "display-md": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "700"}],
+                        "display-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface">
+<!-- Background Screen (Dimmed Step 2) -->
+<div class="fixed inset-0 z-0 bg-black/40 backdrop-blur-[2px]">
+<div class="max-w-[390px] mx-auto h-full bg-background relative overflow-hidden">
+<!-- Header Placeholder -->
+<div class="px-md py-lg flex items-center justify-between">
+<span class="material-symbols-outlined text-on-surface">arrow_back</span>
+<span class="font-headline-sm text-headline-sm">Bước 2: Phân bổ món</span>
+<span class="w-6"></span>
+</div>
+<!-- Items Placeholder -->
+<div class="px-md space-y-md">
+<div class="bg-white p-md rounded-xl border border-outline-variant shadow-sm flex justify-between items-center opacity-60">
+<div class="flex items-center gap-md">
+<div class="w-10 h-10 rounded-lg bg-surface-container flex items-center justify-center text-primary">
+<span class="material-symbols-outlined">restaurant</span>
+</div>
+<div>
+<p class="font-label-lg text-label-lg">Phở bò</p>
+<p class="font-body-md text-body-md text-on-surface-variant">45.000 ₫</p>
+</div>
+</div>
+<span class="material-symbols-outlined text-secondary">check_circle</span>
+</div>
+<!-- Active Item behind bottom sheet -->
+<div class="bg-white p-md rounded-xl border-2 border-primary shadow-md flex justify-between items-center">
+<div class="flex items-center gap-md">
+<div class="w-10 h-10 rounded-lg bg-primary-fixed flex items-center justify-center text-primary">
+<span class="material-symbols-outlined">local_bar</span>
+</div>
+<div>
+<p class="font-label-lg text-label-lg">Coca-Cola</p>
+<p class="font-body-md text-body-md text-on-surface-variant">30.000 ₫</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Bottom Sheet Container -->
+<div class="fixed inset-x-0 bottom-0 z-50 flex justify-center">
+<div class="w-full max-w-[390px] bg-white rounded-t-2xl shadow-[0_-8px_32px_rgba(0,0,0,0.12)] flex flex-col h-[751px] bottom-sheet-transition overflow-hidden">
+<!-- Drag Handle & Header -->
+<div class="flex flex-col items-center pt-xs pb-sm sticky top-0 bg-white z-10">
+<div class="w-8 h-1 bg-surface-variant rounded-full mb-md"></div>
+<div class="w-full px-md flex items-center justify-between">
+<div class="flex flex-col">
+<h1 class="font-headline-sm text-headline-sm text-on-surface">Tùy chỉnh chia món</h1>
+<p class="font-body-md text-body-md text-on-surface-variant">Coca-Cola • 30.000 ₫</p>
+</div>
+<button class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-surface-container-low active:scale-95 transition-all">
+<span class="material-symbols-outlined text-outline">close</span>
+</button>
+</div>
+</div>
+<!-- Content Area (Scrollable) -->
+<div class="flex-1 overflow-y-auto px-md custom-scrollbar space-y-lg pb-xl">
+<!-- Main Mode Toggle -->
+<div class="bg-surface-container-low p-base rounded-xl flex">
+<button class="flex-1 py-xs rounded-lg font-label-lg text-label-lg text-on-surface-variant transition-colors">Chia đều mặc định</button>
+<button class="flex-1 py-xs rounded-lg bg-white shadow-sm font-label-lg text-label-lg text-primary transition-all">Tùy chỉnh</button>
+</div>
+<!-- Member Selection -->
+<section class="space-y-md">
+<div class="flex items-center justify-between">
+<h3 class="font-label-lg text-label-lg text-on-surface">Chọn thành viên</h3>
+<div class="flex items-center gap-xs">
+<span class="font-label-sm text-label-sm text-primary">Đã chọn 2</span>
+<div class="flex items-center gap-xs px-xs py-[2px] bg-primary-fixed rounded-full">
+<span class="font-label-sm text-label-sm text-on-primary-fixed-variant">Chọn tất cả</span>
+<input checked="" class="w-4 h-4 rounded text-primary focus:ring-primary border-outline-variant" type="checkbox"/>
+</div>
+</div>
+</div>
+<div class="space-y-sm">
+<!-- Member Item 1 -->
+<label class="flex items-center justify-between p-sm rounded-xl border border-primary-container bg-surface-container-low cursor-pointer transition-colors active:scale-[0.98]">
+<div class="flex items-center gap-md">
+<div class="w-10 h-10 rounded-full bg-cover bg-center border-2 border-white shadow-sm" data-alt="Portrait of a young Vietnamese woman named Huyền with a friendly smile, warm studio lighting, modern minimalist photography style, deep indigo and soft white color palette to match UI." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuB3DFUo3ZtlBgoPQ9bOjK967l2js_pnKK9ANlqOiKSyoTTLURAks2QW-JCrU7FePGT8feeyaBk5kVTuBgH_cbFDQDMkPqNyKH_GJu85XrVkEVt6-itZhfvnWQrcQM0Dj5YivXJ-Awcj91ny4UbYrnQ0WhTR28EV91S2UBGPyXscy2Zec4wzvE9dvqn_YkX2iGNmBb9bC2bhZsfvBmKVBujVdPuwBqt6JOuQXmrGoWXGXnEX5AcW8Jb_jFyxt8wt6bdbrO33xIDC39E')"></div>
+<span class="font-body-lg text-body-lg text-on-surface">Huyền</span>
+</div>
+<input checked="" class="w-6 h-6 rounded-lg text-primary focus:ring-primary border-outline-variant" type="checkbox"/>
+</label>
+<!-- Member Item 2 -->
+<label class="flex items-center justify-between p-sm rounded-xl border border-primary-container bg-surface-container-low cursor-pointer transition-colors active:scale-[0.98]">
+<div class="flex items-center gap-md">
+<div class="w-10 h-10 rounded-full bg-cover bg-center border-2 border-white shadow-sm" data-alt="Portrait of a young Vietnamese man named An with modern glasses, soft morning light, minimalist aesthetic, using brand colors like deep indigo and emerald accents." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBug0eGW9OsT5OmocJC6h_-fSq9PGxVgLW25UozRqIZYFnxnKjoPMhCJIxS6R1lQ-Uon_qzl9oUIaC8DWUNMtDKc2LVoRwF7keU_6420qsIYyEQWCCm0zufT_CRrXOoDIObP56rKC_Iji6jvzMSJhC_BJzSeiyWO0gKYssLAsHAfAPc8mBxGz9RRaXjHs6BTUWJl7sYaXVCFaYWrNp0YJpe_62IH73wyMJea1tG2DyEY46Pco6SHCEIXjr-oGziQNjS8HTrKgZem1Y')"></div>
+<span class="font-body-lg text-body-lg text-on-surface">An</span>
+</div>
+<input checked="" class="w-6 h-6 rounded-lg text-primary focus:ring-primary border-outline-variant" type="checkbox"/>
+</label>
+<!-- Member Item 3 -->
+<label class="flex items-center justify-between p-sm rounded-xl border border-outline-variant bg-white cursor-pointer transition-colors active:scale-[0.98] hover:bg-surface-container-lowest">
+<div class="flex items-center gap-md">
+<div class="w-10 h-10 rounded-full bg-cover bg-center border-2 border-white shadow-sm" data-alt="Portrait of a friendly Vietnamese person named Bình, soft focused background, clean professional look, neutral grey and warm white lighting." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuD5ugDKswwm3kGbr5kcSOTnzq3nSVxhZ4sSplIZXVEmdgOL5q2zXKWU74KzKi7jLEQhYcu5Pxj6IsFa7p5ZIM6lVVyiD4Vew5B9q73v1fvJS3PxXaNWLdgsNWuhReg29u0V7OzJ63tSSx-FKSV5b_2uBdgqxCCVbl1s_f_TZjH2OfZNxcRxHfceC_Rz9ZMYHSeFjZteszl02XQV4_0Intt_9W5LQooD953q-wQ3VFeTAmh7l6vvoGIWfXkoxPhLq7rnbamsDrKPRJU')"></div>
+<span class="font-body-lg text-body-lg text-on-surface">Bình</span>
+</div>
+<input class="w-6 h-6 rounded-lg text-primary focus:ring-primary border-outline-variant" type="checkbox"/>
+</label>
+</div>
+</section>
+<!-- Split Method -->
+<section class="space-y-md">
+<h3 class="font-label-lg text-label-lg text-on-surface">Cách chia</h3>
+<div class="bg-surface-container p-base rounded-xl flex gap-base overflow-x-auto no-scrollbar">
+<button class="whitespace-nowrap px-md py-xs rounded-lg bg-white shadow-sm font-label-sm text-label-sm text-primary transition-all">Chia đều</button>
+<button class="whitespace-nowrap px-md py-xs rounded-lg font-label-sm text-label-sm text-on-surface-variant hover:bg-surface-container-high transition-colors">Số tiền</button>
+<button class="whitespace-nowrap px-md py-xs rounded-lg font-label-sm text-label-sm text-on-surface-variant hover:bg-surface-container-high transition-colors">Phần trăm</button>
+<button class="whitespace-nowrap px-md py-xs rounded-lg font-label-sm text-label-sm text-on-surface-variant hover:bg-surface-container-high transition-colors">Số phần</button>
+</div>
+</section>
+<!-- Split Content Display -->
+<section class="space-y-sm bg-primary-fixed/30 p-md rounded-2xl border border-primary-fixed-dim">
+<div class="flex items-center justify-between py-xs border-b border-primary-fixed">
+<div class="flex items-center gap-sm">
+<div class="w-6 h-6 rounded-full bg-white flex items-center justify-center">
+<span class="material-symbols-outlined text-primary text-[16px]">person</span>
+</div>
+<span class="font-body-md text-body-md text-on-surface">Huyền</span>
+</div>
+<span class="font-label-lg text-label-lg text-primary">15.000 ₫</span>
+</div>
+<div class="flex items-center justify-between py-xs">
+<div class="flex items-center gap-sm">
+<div class="w-6 h-6 rounded-full bg-white flex items-center justify-center">
+<span class="material-symbols-outlined text-primary text-[16px]">person</span>
+</div>
+<span class="font-body-md text-body-md text-on-surface">An</span>
+</div>
+<span class="font-label-lg text-label-lg text-primary">15.000 ₫</span>
+</div>
+<div class="pt-xs flex items-center gap-xs">
+<span class="material-symbols-outlined text-primary text-[18px]">info</span>
+<p class="font-label-sm text-label-sm text-on-primary-fixed-variant">Mỗi người được chia đều theo số thành viên đã chọn.</p>
+</div>
+</section>
+</div>
+<!-- Bottom Sticky Summary & Actions -->
+<div class="bg-white border-t border-surface-container-high p-md space-y-md shadow-[0_-4px_16px_rgba(0,0,0,0.04)]">
+<!-- Summary Card -->
+<div class="bg-surface-container-lowest p-md rounded-xl border border-outline-variant">
+<div class="flex justify-between items-center mb-xs">
+<span class="font-label-sm text-label-sm text-on-surface-variant">Thành tiền món:</span>
+<span class="font-label-lg text-label-lg text-on-surface">30.000 ₫</span>
+</div>
+<div class="flex justify-between items-center mb-xs">
+<span class="font-label-sm text-label-sm text-on-surface-variant">Đã phân bổ:</span>
+<span class="font-label-lg text-label-lg text-on-surface">30.000 ₫</span>
+</div>
+<div class="flex justify-between items-center pt-xs border-t border-dashed border-outline-variant">
+<span class="font-label-sm text-label-sm text-on-surface-variant">Còn lại:</span>
+<div class="flex items-center gap-xs">
+<span class="font-label-lg text-label-lg text-secondary">0 ₫</span>
+<span class="material-symbols-outlined text-secondary text-[16px]" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+</div>
+<p class="text-secondary text-center font-label-sm text-label-sm mt-xs">Đã phân bổ đủ.</p>
+</div>
+<!-- Actions -->
+<div class="flex gap-md">
+<button class="flex-1 py-md rounded-xl border border-outline font-label-lg text-label-lg text-outline active:bg-surface-container hover:bg-surface-container-low transition-all">
+                        Hủy
+                    </button>
+<button class="flex-[2] py-md rounded-xl bg-primary-container text-on-primary font-label-lg text-label-lg active:scale-[0.98] shadow-md hover:opacity-90 transition-all">
+                        Áp dụng
+                    </button>
+</div>
+</div>
+</div>
+</div>
+<!-- Micro-interaction Script -->
+<script>
+        document.querySelectorAll('label').forEach(label => {
+            label.addEventListener('click', function() {
+                const checkbox = this.querySelector('input[type="checkbox"]');
+                if(checkbox.checked) {
+                    this.classList.add('border-primary-container', 'bg-surface-container-low');
+                    this.classList.remove('border-outline-variant', 'bg-white');
+                } else {
+                    this.classList.remove('border-primary-container', 'bg-surface-container-low');
+                    this.classList.add('border-outline-variant', 'bg-white');
+                }
+            });
+        });
+
+        // Simple animation trigger for bottom sheet entry
+        window.addEventListener('DOMContentLoaded', () => {
+            const sheet = document.querySelector('.bottom-sheet-transition');
+            sheet.style.transform = 'translateY(100%)';
+            setTimeout(() => {
+                sheet.style.transform = 'translateY(0)';
+            }, 100);
+        });
+    </script>
+</body></html>
