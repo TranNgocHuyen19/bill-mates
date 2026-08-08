@@ -3,27 +3,44 @@
 import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { ArrowLeft, ArrowRight, Check, Users, UserPlus } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Check, Users, Plus, X } from 'lucide-react'
 import { Navbar } from '@/components/navbar'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
+import { Input } from '@/components/ui/input'
+import { createClient } from '@/lib/supabase/client'
 import { PATHS } from '@/constants'
+
+export interface MemberItem {
+  id: string
+  name: string
+}
 
 export default function NewExpenseStep2SplitPage() {
   const router = useRouter()
   const [splitType, setSplitType] = useState<'equal' | 'itemized' | 'percentage'>('equal')
-  const [members, setMembers] = useState<Array<{ id: string; name: string }>>([
+  const [title, setTitle] = useState<string>('Khoản chi mới')
+  const [amountNum, setAmountNum] = useState<number>(0)
+  const [newMemberName, setNewMemberName] = useState<string>('')
+  const [showAddMemberInput, setShowAddMemberInput] = useState<boolean>(false)
+
+  const [members, setMembers] = useState<MemberItem[]>([
     { id: 'm1', name: 'Bạn (Người trả tiền)' }
   ])
   const [selectedMembers, setSelectedMembers] = useState<string[]>(['m1'])
-  const [newMemberName, setNewMemberName] = useState('')
-
-  const [title, setTitle] = useState('Khoản chi mới')
-  const [amountNum, setAmountNum] = useState(0)
 
   useEffect(() => {
+    // Read current Supabase user name
+    const supabase = createClient()
+    supabase.auth.getUser().then(({ data }) => {
+      if (data.user) {
+        const uName = data.user.user_metadata?.name || data.user.user_metadata?.full_name || data.user.email?.split('@')[0] || 'Bạn'
+        setMembers([{ id: 'm1', name: `${uName} (Người trả tiền)` }])
+      }
+    })
+
+    // Read draft expense info from sessionStorage
     if (typeof window !== 'undefined') {
       const savedTitle = sessionStorage.getItem('draft_expense_title')
       const savedAmount = sessionStorage.getItem('draft_expense_amount')
@@ -37,10 +54,11 @@ export default function NewExpenseStep2SplitPage() {
     if (!newMemberName.trim()) return
 
     const newId = `m_${Date.now()}`
-    const newMember = { id: newId, name: newMemberName.trim() }
-    setMembers([...members, newMember])
+    const updatedMembers = [...members, { id: newId, name: newMemberName.trim() }]
+    setMembers(updatedMembers)
     setSelectedMembers([...selectedMembers, newId])
     setNewMemberName('')
+    setShowAddMemberInput(false)
   }
 
   const toggleMember = (id: string) => {
@@ -56,7 +74,9 @@ export default function NewExpenseStep2SplitPage() {
   const handleNext = () => {
     if (typeof window !== 'undefined') {
       sessionStorage.setItem('draft_expense_split_type', splitType)
-      sessionStorage.setItem('draft_expense_members_count', String(selectedMembers.length))
+      sessionStorage.setItem('draft_expense_members', JSON.stringify(
+        members.filter((m) => selectedMembers.includes(m.id))
+      ))
     }
     router.push(PATHS.EXPENSES.CONFIRM)
   }
@@ -83,7 +103,7 @@ export default function NewExpenseStep2SplitPage() {
         <div className="space-y-1">
           <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground">Chọn Phương Thức Chia Tiền</h1>
           <p className="text-xs text-muted-foreground">
-            Khoản chi: <strong className="text-foreground">{title} ({amountNum.toLocaleString()} ₫)</strong>
+            Khoản chi: <strong className="text-foreground">{title} ({amountNum > 0 ? `${amountNum.toLocaleString()} ₫` : '0 ₫'})</strong>
           </p>
         </div>
 
@@ -123,31 +143,17 @@ export default function NewExpenseStep2SplitPage() {
           </Card>
         </div>
 
-        {/* Member Selector & Dynamic Input */}
+        {/* Member Selector */}
         <div className="space-y-3 pt-2">
           <div className="flex items-center justify-between">
             <h3 className="font-bold text-xs sm:text-sm text-foreground flex items-center gap-1.5">
               <Users className="size-4 text-primary" /> Người tham gia ({selectedMembers.length}/{members.length})
             </h3>
             <span className="text-xs text-primary font-bold">
-              {amountPerPerson.toLocaleString()} ₫ / người
+              {amountPerPerson > 0 ? `${amountPerPerson.toLocaleString()} ₫ / người` : '0 ₫ / người'}
             </span>
           </div>
 
-          {/* Form to add custom member by name */}
-          <form onSubmit={handleAddMember} className="flex gap-2">
-            <Input
-              placeholder="Nhập tên người cùng chia (VD: An, Bình, Cường...)"
-              value={newMemberName}
-              onChange={(e) => setNewMemberName(e.target.value)}
-              className="h-10 text-xs rounded-xl flex-1 bg-card"
-            />
-            <Button type="submit" size="sm" variant="outline" className="h-10 gap-1 rounded-xl text-xs shrink-0">
-              <UserPlus className="size-3.5" /> Thêm người
-            </Button>
-          </form>
-
-          {/* Members list */}
           <div className="space-y-2">
             {members.map((member) => {
               const isSelected = selectedMembers.includes(member.id)
@@ -164,11 +170,39 @@ export default function NewExpenseStep2SplitPage() {
                 </div>
               )
             })}
+
+            {/* Add Member Form */}
+            {showAddMemberInput ? (
+              <form onSubmit={handleAddMember} className="flex gap-2 pt-1">
+                <Input
+                  placeholder="Nhập tên thành viên (Vd: Tuấn Anh, Bảo Nam)"
+                  value={newMemberName}
+                  onChange={(e) => setNewMemberName(e.target.value)}
+                  className="h-10 text-xs rounded-xl"
+                  autoFocus
+                />
+                <Button type="submit" size="sm" className="h-10 text-xs px-3 rounded-xl">
+                  Thêm
+                </Button>
+                <Button type="button" variant="ghost" size="sm" onClick={() => setShowAddMemberInput(false)} className="h-10 text-xs px-2 rounded-xl">
+                  <X className="size-4" />
+                </Button>
+              </form>
+            ) : (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowAddMemberInput(true)}
+                className="w-full h-10 border-dashed text-xs gap-1.5 rounded-2xl text-muted-foreground hover:text-foreground mt-1"
+              >
+                <Plus className="size-4" /> Thêm thành viên khác vào danh sách chia tiền
+              </Button>
+            )}
           </div>
         </div>
 
         <div className="pt-2 flex justify-end">
-          <Button onClick={handleNext} className="w-full sm:w-auto px-8 gap-2 font-semibold h-11 rounded-2xl">
+          <Button onClick={handleNext} className="w-full sm:w-auto px-8 gap-2 font-semibold h-11 rounded-2xl shadow-md">
             Xác nhận thông tin <ArrowRight className="size-4" />
           </Button>
         </div>
