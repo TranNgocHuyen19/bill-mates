@@ -1,22 +1,15 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
-
-const hasEnvVars = !!(
-  process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
-)
+import envConfig from '@/lib/config'
 
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
     request
   })
 
-  if (!hasEnvVars) {
-    return supabaseResponse
-  }
-
   const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
+    envConfig.NEXT_PUBLIC_SUPABASE_URL,
+    envConfig.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
     {
       cookies: {
         getAll() {
@@ -27,9 +20,7 @@ export async function updateSession(request: NextRequest) {
           supabaseResponse = NextResponse.next({
             request
           })
-          cookiesToSet.forEach(({ name, value, options }) =>
-            supabaseResponse.cookies.set(name, value, options)
-          )
+          cookiesToSet.forEach(({ name, value, options }) => supabaseResponse.cookies.set(name, value, options))
         }
       }
     }

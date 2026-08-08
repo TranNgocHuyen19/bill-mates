@@ -1,146 +1,104 @@
 'use client'
 
 import * as React from 'react'
-import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
+import { Eye, EyeOff, Loader2, LockKeyhole, Mail, UserRound } from 'lucide-react'
 import Link from 'next/link'
-import { User, Mail, Lock, Eye, EyeOff, Loader2 } from 'lucide-react'
+import { useForm } from 'react-hook-form'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { PATHS } from '@/constants'
-import { RegisterSchema, RegisterInput } from '../schemas'
 import { useRegisterMutation } from '../queries'
+import { RegisterSchema, type RegisterInput } from '../schemas'
 
 export function RegisterForm() {
   const [showPassword, setShowPassword] = React.useState(false)
-  const [showConfirmPassword, setShowConfirmPassword] = React.useState(false)
-  const registerMutation = useRegisterMutation()
-
+  const mutation = useRegisterMutation()
   const {
     register,
     handleSubmit,
     formState: { errors }
   } = useForm<RegisterInput>({
     resolver: zodResolver(RegisterSchema),
-    defaultValues: {
-      name: '',
-      email: '',
-      password: '',
-      confirmPassword: ''
-    }
+    defaultValues: { name: '', email: '', password: '', confirmPassword: '' }
   })
 
-  const onSubmit = (data: RegisterInput) => {
-    registerMutation.mutate(data)
-  }
-
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="space-y-2 text-center lg:text-left">
-        <h2 className="text-2xl font-bold font-sans tracking-tight text-foreground">
-          Đăng ký tài khoản
-        </h2>
-        <p className="text-sm text-muted-foreground">
-          Tham gia BillMates để chia sẻ chi tiêu phòng, nhóm dễ dàng.
+    <div className='space-y-6'>
+      <header>
+        <p className='text-sm font-semibold text-primary'>Bắt đầu cùng nhau</p>
+        <h2 className='mt-1 text-2xl font-bold tracking-tight'>Tạo tài khoản</h2>
+        <p className='mt-2 text-sm leading-6 text-muted-foreground'>
+          Chỉ mất một phút để tạo phòng và mời bạn cùng trọ.
         </p>
-      </div>
+      </header>
 
-      {/* Form */}
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-        {/* Name Field */}
+      <form className='space-y-4' onSubmit={handleSubmit((data) => mutation.mutate(data))}>
         <Input
-          id="name"
-          label="Họ và tên"
-          type="text"
-          placeholder="Nguyễn Văn A"
-          disabled={registerMutation.isPending}
-          icon={<User className="size-4" />}
+          id='name'
+          label='Họ và tên'
+          autoComplete='name'
+          placeholder='Nguyễn Văn A'
+          icon={<UserRound className='size-4' />}
           error={errors.name?.message}
+          disabled={mutation.isPending}
           {...register('name')}
         />
-
-        {/* Email Field */}
         <Input
-          id="email"
-          label="Email"
-          type="email"
-          placeholder="name@example.com"
-          disabled={registerMutation.isPending}
-          icon={<Mail className="size-4" />}
+          id='email'
+          type='email'
+          label='Email'
+          autoComplete='email'
+          placeholder='ban@example.com'
+          icon={<Mail className='size-4' />}
           error={errors.email?.message}
+          disabled={mutation.isPending}
           {...register('email')}
         />
-
-        {/* Password Field */}
         <Input
-          id="password"
-          label="Mật khẩu"
+          id='password'
           type={showPassword ? 'text' : 'password'}
-          placeholder="••••••••"
-          disabled={registerMutation.isPending}
-          icon={<Lock className="size-4" />}
+          label='Mật khẩu'
+          autoComplete='new-password'
+          placeholder='Tối thiểu 6 ký tự'
+          icon={<LockKeyhole className='size-4' />}
           trailingIcon={
             <button
-              type="button"
-              onClick={() => setShowPassword(!showPassword)}
-              className="hover:text-foreground transition-colors"
-              tabIndex={-1}
+              type='button'
+              aria-label={showPassword ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'}
+              onClick={() => setShowPassword((value) => !value)}
             >
-              {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+              {showPassword ? <EyeOff className='size-4' /> : <Eye className='size-4' />}
             </button>
           }
           error={errors.password?.message}
+          disabled={mutation.isPending}
           {...register('password')}
         />
-
-        {/* Confirm Password Field */}
         <Input
-          id="confirmPassword"
-          label="Xác nhận mật khẩu"
-          type={showConfirmPassword ? 'text' : 'password'}
-          placeholder="••••••••"
-          disabled={registerMutation.isPending}
-          icon={<Lock className="size-4" />}
-          trailingIcon={
-            <button
-              type="button"
-              onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-              className="hover:text-foreground transition-colors"
-              tabIndex={-1}
-            >
-              {showConfirmPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
-            </button>
-          }
+          id='confirmPassword'
+          type={showPassword ? 'text' : 'password'}
+          label='Xác nhận mật khẩu'
+          autoComplete='new-password'
+          placeholder='Nhập lại mật khẩu'
+          icon={<LockKeyhole className='size-4' />}
           error={errors.confirmPassword?.message}
+          disabled={mutation.isPending}
           {...register('confirmPassword')}
         />
-
-        {/* Submit Button */}
-        <Button
-          type="submit"
-          className="w-full h-12 text-sm font-semibold mt-4"
-          disabled={registerMutation.isPending}
-        >
-          {registerMutation.isPending ? (
-            <>
-              <Loader2 className="mr-2 size-4 animate-spin" />
-              Đang tạo tài khoản...
-            </>
-          ) : (
-            'Đăng ký tài khoản'
-          )}
+        <Button className='h-12 w-full rounded-xl font-semibold' disabled={mutation.isPending}>
+          {mutation.isPending && <Loader2 className='size-4 animate-spin' />}
+          {mutation.isPending ? 'Đang tạo tài khoản...' : 'Tạo tài khoản'}
         </Button>
       </form>
 
-      {/* Footer */}
-      <div className="text-center text-sm text-muted-foreground mt-4">
+      <p className='text-center text-sm text-muted-foreground'>
         Đã có tài khoản?{' '}
-        <Link href={PATHS.AUTH.LOGIN} className="font-semibold text-primary hover:underline">
-          Đăng nhập ngay
+        <Link className='font-semibold text-primary' href={PATHS.AUTH.LOGIN}>
+          Đăng nhập
         </Link>
-      </div>
+      </p>
     </div>
   )
 }

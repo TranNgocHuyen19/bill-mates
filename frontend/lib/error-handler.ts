@@ -28,10 +28,13 @@ const pickFirstMessage = (...values: Array<unknown>): string | undefined => {
 
 const getValidationFieldErrors = (error: AxiosError<BaseErrorResponse>): Array<{ field: string; message: string }> => {
   const payload = error.response?.data
-  
-  const errorsObj = payload?.errors && typeof payload.errors === 'object' && !Array.isArray(payload.errors)
-    ? payload.errors
-    : (payload?.data && typeof payload.data === 'object' && !Array.isArray(payload.data) ? payload.data : null)
+
+  const errorsObj =
+    payload?.errors && typeof payload.errors === 'object' && !Array.isArray(payload.errors)
+      ? payload.errors
+      : payload?.data && typeof payload.data === 'object' && !Array.isArray(payload.data)
+        ? payload.data
+        : null
 
   if (!errorsObj) {
     return []
@@ -60,7 +63,7 @@ export class EntityError extends Error {
 export const getErrorMessage = (error: unknown): string => {
   if (axios.isAxiosError(error)) {
     const data = error.response?.data as BaseErrorResponse | undefined
-    
+
     let firstArrayErrorMessage: string | undefined
     if (Array.isArray(data?.errors) && data.errors.length > 0) {
       firstArrayErrorMessage = data.errors[0]?.message
@@ -80,6 +83,9 @@ export const getErrorMessage = (error: unknown): string => {
     )
 
     return backendMessage || 'Đã xảy ra lỗi. Vui lòng thử lại sau.'
+  }
+  if (error instanceof Error && error.message.trim()) {
+    return error.message
   }
   return 'Đã xảy ra lỗi. Vui lòng thử lại sau.'
 }

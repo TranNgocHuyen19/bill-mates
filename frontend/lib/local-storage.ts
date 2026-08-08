@@ -4,9 +4,6 @@ const APP_PREFIX = 'billmates_'
 
 export const STORAGE_KEYS = {
   THEME: `${APP_PREFIX}theme`,
-  ACCESS_TOKEN: `${APP_PREFIX}access_token`,
-  REFRESH_TOKEN: `${APP_PREFIX}refresh_token`,
-  REFRESH_TOKEN_EXPIRATION: `${APP_PREFIX}refresh_token_expiration`,
   USER_PROFILE: `${APP_PREFIX}user_profile`,
   SETTINGS: `${APP_PREFIX}settings`,
   LOCALE: `${APP_PREFIX}locale`

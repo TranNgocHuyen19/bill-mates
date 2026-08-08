@@ -26,16 +26,16 @@ export default function RootLayout({
 }>) {
   return (
     <html
-      lang='en'
+      lang='vi'
       suppressHydrationWarning
       className={cn('antialiased', fontMono.variable, 'font-sans', beVietnamPro.variable)}
     >
-      <body className="pb-24 md:pb-0 min-h-screen">
+      <body className='min-h-screen pb-24 md:pb-0'>
         <QueryProvider>
           <ThemeProvider>
             {children}
             <BottomNav />
-            <Toaster richColors position="top-right" />
+            <Toaster richColors position='top-right' />
           </ThemeProvider>
         </QueryProvider>
       </body>

@@ -1,8 +1,10 @@
-import { ResetPasswordForm, AuthLayout } from '@/features/auth'
+import type { Metadata } from 'next'
 
-export const metadata = {
-  title: 'Đặt lại mật khẩu - BillMates',
-  description: 'Nhập mật khẩu mới cho tài khoản BillMates'
+import { AuthLayout, ResetPasswordForm } from '@/features/auth'
+
+export const metadata: Metadata = {
+  title: 'Đặt lại mật khẩu - Bill Mates',
+  description: 'Đặt mật khẩu mới cho tài khoản Bill Mates.'
 }
 
 export default function ResetPasswordPage() {

@@ -1,118 +1,71 @@
 'use client'
 
 import * as React from 'react'
-import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import Link from 'next/link'
-import { Lock, Eye, EyeOff, Loader2, ArrowLeft } from 'lucide-react'
+import { Eye, EyeOff, Loader2, LockKeyhole } from 'lucide-react'
+import { useForm } from 'react-hook-form'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { ResetPasswordSchema, ResetPasswordInput } from '../schemas'
 import { useResetPasswordMutation } from '../queries'
+import { ResetPasswordSchema, type ResetPasswordInput } from '../schemas'
 
 export function ResetPasswordForm() {
   const [showPassword, setShowPassword] = React.useState(false)
-  const [showConfirmPassword, setShowConfirmPassword] = React.useState(false)
-  const resetPasswordMutation = useResetPasswordMutation()
-
+  const mutation = useResetPasswordMutation()
   const {
     register,
     handleSubmit,
     formState: { errors }
   } = useForm<ResetPasswordInput>({
     resolver: zodResolver(ResetPasswordSchema),
-    defaultValues: {
-      password: '',
-      confirmPassword: ''
-    }
+    defaultValues: { password: '', confirmPassword: '' }
   })
 
-  const onSubmit = (data: ResetPasswordInput) => {
-    resetPasswordMutation.mutate(data)
-  }
-
   return (
-    <div className="space-y-6">
-      {/* Back to Login Link */}
-      <Link
-        href="/login"
-        className="inline-flex items-center gap-1 text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors"
-      >
-        <ArrowLeft className="size-3.5" />
-        Quay lại đăng nhập
-      </Link>
-
-      {/* Header */}
-      <div className="space-y-2 text-center lg:text-left">
-        <h2 className="text-2xl font-bold font-sans tracking-tight text-foreground">
-          Đặt lại mật khẩu mới
-        </h2>
-        <p className="text-sm text-muted-foreground">
-          Mật khẩu mới của bạn phải khác mật khẩu đã sử dụng trước đây.
+    <div className='space-y-6'>
+      <header>
+        <p className='text-sm font-semibold text-primary'>Bảo mật tài khoản</p>
+        <h2 className='mt-1 text-2xl font-bold tracking-tight'>Đặt mật khẩu mới</h2>
+        <p className='mt-2 text-sm leading-6 text-muted-foreground'>
+          Chọn mật khẩu dễ nhớ với bạn nhưng khó đoán với người khác.
         </p>
-      </div>
-
-      {/* Form */}
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-        {/* Password Field */}
+      </header>
+      <form className='space-y-4' onSubmit={handleSubmit((data) => mutation.mutate(data))}>
         <Input
-          id="password"
-          label="Mật khẩu mới"
+          id='password'
           type={showPassword ? 'text' : 'password'}
-          placeholder="••••••••"
-          disabled={resetPasswordMutation.isPending}
-          icon={<Lock className="size-4" />}
+          label='Mật khẩu mới'
+          autoComplete='new-password'
+          placeholder='Tối thiểu 6 ký tự'
+          icon={<LockKeyhole className='size-4' />}
           trailingIcon={
             <button
-              type="button"
-              onClick={() => setShowPassword(!showPassword)}
-              className="hover:text-foreground transition-colors"
-              tabIndex={-1}
+              type='button'
+              aria-label={showPassword ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'}
+              onClick={() => setShowPassword((value) => !value)}
             >
-              {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+              {showPassword ? <EyeOff className='size-4' /> : <Eye className='size-4' />}
             </button>
           }
           error={errors.password?.message}
+          disabled={mutation.isPending}
           {...register('password')}
         />
-
-        {/* Confirm Password Field */}
         <Input
-          id="confirmPassword"
-          label="Xác nhận mật khẩu mới"
-          type={showConfirmPassword ? 'text' : 'password'}
-          placeholder="••••••••"
-          disabled={resetPasswordMutation.isPending}
-          icon={<Lock className="size-4" />}
-          trailingIcon={
-            <button
-              type="button"
-              onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-              className="hover:text-foreground transition-colors"
-              tabIndex={-1}
-            >
-              {showConfirmPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
-            </button>
-          }
+          id='confirmPassword'
+          type={showPassword ? 'text' : 'password'}
+          label='Xác nhận mật khẩu'
+          autoComplete='new-password'
+          placeholder='Nhập lại mật khẩu mới'
+          icon={<LockKeyhole className='size-4' />}
           error={errors.confirmPassword?.message}
+          disabled={mutation.isPending}
           {...register('confirmPassword')}
         />
-
-        {/* Submit Button */}
-        <Button
-          type="submit"
-          className="w-full h-12 text-sm font-semibold mt-4"
-          disabled={resetPasswordMutation.isPending}
-        >
-          {resetPasswordMutation.isPending ? (
-            <>
-              <Loader2 className="mr-2 size-4 animate-spin" />
-              Đang cập nhật...
-            </>
-          ) : (
-            'Cập nhật mật khẩu'
-          )}
+        <Button className='h-12 w-full rounded-xl font-semibold' disabled={mutation.isPending}>
+          {mutation.isPending && <Loader2 className='size-4 animate-spin' />}
+          {mutation.isPending ? 'Đang cập nhật...' : 'Cập nhật mật khẩu'}
         </Button>
       </form>
     </div>

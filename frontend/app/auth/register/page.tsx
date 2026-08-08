@@ -1,8 +1,10 @@
-import { RegisterForm, AuthLayout } from '@/features/auth'
+import type { Metadata } from 'next'
 
-export const metadata = {
-  title: 'Đăng ký tài khoản - BillMates',
-  description: 'Tạo tài khoản BillMates mới để quản lý chi tiêu nhóm'
+import { AuthLayout, RegisterForm } from '@/features/auth'
+
+export const metadata: Metadata = {
+  title: 'Đăng ký - Bill Mates',
+  description: 'Tạo tài khoản Bill Mates để bắt đầu chia chi phí.'
 }
 
 export default function RegisterPage() {
