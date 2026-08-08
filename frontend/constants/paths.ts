@@ -12,6 +12,7 @@ export const PATHS = {
     SETTLE: '/debts/settle'
   },
   PROFILE: '/profile',
+  ABOUT: '/about',
   AUTH: {
     LOGIN: '/auth/login',
     REGISTER: '/auth/register',
