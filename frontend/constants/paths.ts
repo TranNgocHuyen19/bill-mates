@@ -1,0 +1,29 @@
+export const PATHS = {
+  HOME: '/',
+  ROOMS: '/rooms',
+  ROOM_DETAIL: (id: string = '101') => `/rooms/${id}`,
+  EXPENSES: {
+    NEW: '/expenses/new',
+    SPLIT: '/expenses/new/split',
+    CONFIRM: '/expenses/new/confirm'
+  },
+  DEBTS: {
+    INDEX: '/debts',
+    SETTLE: '/debts/settle'
+  },
+  PROFILE: '/profile',
+  AUTH: {
+    LOGIN: '/auth/login',
+    REGISTER: '/auth/register',
+    FORGOT_PASSWORD: '/auth/forgot-password',
+    RESET_PASSWORD: '/auth/reset-password'
+  },
+  LEGACY: {
+    LOGIN: '/login',
+    REGISTER: '/register',
+    FORGOT_PASSWORD: '/forgot-password',
+    RESET_PASSWORD: '/reset-password'
+  }
+} as const
+
+export type PathValues = typeof PATHS
