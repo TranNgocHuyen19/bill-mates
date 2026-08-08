@@ -184,7 +184,7 @@ export default function RoomDetailPage() {
               </Card>
             )}
             <Button variant='outline' className='h-11 w-full justify-between rounded-xl' asChild>
-              <Link href={PATHS.DEBTS.INDEX}>
+              <Link href={`${PATHS.DEBTS.INDEX}?roomId=${room.id}`}>
                 Xem công nợ của phòng
                 <ChevronRight className='size-4' />
               </Link>

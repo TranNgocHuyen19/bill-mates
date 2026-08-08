@@ -1,82 +1,106 @@
 'use client'
 
-import * as React from 'react'
-import { QrCode, Copy, CheckCircle2 } from 'lucide-react'
-import { Card } from '@/components/ui/card'
+import { CheckCircle2, Copy, Landmark, Loader2 } from 'lucide-react'
+
 import { Button } from '@/components/ui/button'
+import { Card } from '@/components/ui/card'
+import { formatVnd } from '@/lib/money'
 import { showSuccessToast } from '@/lib/toast'
+import type { PaymentAccountSummary } from '../api'
 
 export interface VietQRCardProps {
-  bankName: string
-  accountNumber: string
-  accountName: string
-  amount: string
+  account: PaymentAccountSummary | null
+  amount: number
   content: string
   onConfirm: () => void
   isConfirming?: boolean
 }
 
-export function VietQRCard({
-  bankName,
-  accountNumber,
-  accountName,
-  amount,
-  content,
-  onConfirm,
-  isConfirming = false
-}: VietQRCardProps) {
-  const handleCopy = (text: string, label: string) => {
-    if (navigator.clipboard) {
-      navigator.clipboard.writeText(text)
-      showSuccessToast(`Đã sao chép ${label}!`)
-    }
+export function VietQRCard({ account, amount, content, onConfirm, isConfirming = false }: VietQRCardProps) {
+  const copy = async (text: string, label: string) => {
+    await navigator.clipboard.writeText(text)
+    showSuccessToast(`Đã sao chép ${label}.`)
   }
+  const hasBankDetails = Boolean(account?.bank_code && account.account_number)
+  const qrUrl = hasBankDetails
+    ? `https://img.vietqr.io/image/${encodeURIComponent(account!.bank_code!)}-${encodeURIComponent(
+        account!.account_number!
+      )}-compact2.png?amount=${amount}&addInfo=${encodeURIComponent(content)}&accountName=${encodeURIComponent(
+        account?.account_name ?? ''
+      )}`
+    : null
 
   return (
-    <Card className="p-6 border-primary/20 space-y-6 bg-card text-center shadow-md rounded-3xl">
-      {/* VietQR Container */}
-      <div className="bg-white p-4 rounded-2xl inline-block shadow-xs border border-border">
-        <div className="size-56 bg-slate-100 rounded-xl border border-dashed border-slate-300 flex flex-col items-center justify-center p-4">
-          <QrCode className="size-32 text-primary" />
-          <span className="text-[11px] font-bold text-slate-700 mt-2">VietQR • {bankName}</span>
+    <Card className='space-y-5 rounded-3xl border-primary/20 p-5 text-center shadow-lg sm:p-7'>
+      {qrUrl ? (
+        <div className='mx-auto w-fit rounded-2xl border bg-white p-3 shadow-sm'>
+          {/* VietQR returns a ready-to-scan PNG for the recipient's configured account. */}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={qrUrl}
+            alt={`Mã VietQR chuyển tiền tới ${account?.account_name ?? 'người nhận'}`}
+            className='size-64 max-w-full object-contain'
+          />
         </div>
+      ) : (
+        <div className='mx-auto grid size-56 place-items-center rounded-3xl border border-dashed bg-muted/40 p-6'>
+          <div>
+            <Landmark className='mx-auto size-10 text-primary' />
+            <p className='mt-3 text-sm font-bold'>Người nhận chưa có tài khoản mặc định</p>
+            <p className='mt-1 text-xs text-muted-foreground'>Bạn vẫn có thể ghi nhận thanh toán tiền mặt.</p>
+          </div>
+        </div>
+      )}
+
+      <div>
+        <p className='text-xs font-semibold tracking-[0.14em] text-muted-foreground uppercase'>Số tiền cần chuyển</p>
+        <p className='mt-1 text-3xl font-bold text-primary'>{formatVnd(amount)}</p>
       </div>
 
-      <div className="space-y-1">
-        <span className="text-xs text-muted-foreground uppercase tracking-wider block">Số tiền cần chuyển</span>
-        <span className="text-3xl font-bold text-primary">{amount}</span>
-      </div>
+      {account && (
+        <div className='space-y-3 rounded-2xl bg-muted/50 p-4 text-left text-sm'>
+          <div className='flex items-start justify-between gap-4'>
+            <span className='text-muted-foreground'>Ngân hàng</span>
+            <strong className='text-right'>{account.bank_name ?? account.label}</strong>
+          </div>
+          {account.account_number && (
+            <div className='flex items-start justify-between gap-4'>
+              <span className='text-muted-foreground'>Số tài khoản</span>
+              <button
+                className='inline-flex min-h-8 items-center gap-1 font-mono font-bold text-primary'
+                onClick={() => copy(account.account_number!, 'số tài khoản')}
+              >
+                {account.account_number}
+                <Copy className='size-3.5' />
+              </button>
+            </div>
+          )}
+          <div className='flex items-start justify-between gap-4'>
+            <span className='text-muted-foreground'>Chủ tài khoản</span>
+            <strong className='text-right uppercase'>{account.account_name ?? 'Chưa cập nhật'}</strong>
+          </div>
+          <div className='flex items-start justify-between gap-4 border-t pt-3'>
+            <span className='text-muted-foreground'>Nội dung</span>
+            <button
+              className='inline-flex min-h-8 max-w-[70%] items-center gap-1 text-right font-mono text-xs font-bold text-primary'
+              onClick={() => copy(content, 'nội dung')}
+            >
+              {content}
+              <Copy className='size-3.5 shrink-0' />
+            </button>
+          </div>
+        </div>
+      )}
 
-      {/* Bank Details */}
-      <div className="space-y-2.5 bg-muted/40 p-4 rounded-2xl text-left text-xs">
-        <div className="flex justify-between items-center">
-          <span className="text-muted-foreground">Ngân hàng</span>
-          <span className="font-bold text-foreground">{bankName}</span>
-        </div>
-        <div className="flex justify-between items-center">
-          <span className="text-muted-foreground">Số tài khoản</span>
-          <span className="font-mono font-bold text-foreground flex items-center gap-1">
-            {accountNumber}
-            <Copy className="size-3 cursor-pointer text-primary" onClick={() => handleCopy(accountNumber, 'STK')} />
-          </span>
-        </div>
-        <div className="flex justify-between items-center">
-          <span className="text-muted-foreground">Chủ tài khoản</span>
-          <span className="font-bold text-foreground uppercase">{accountName}</span>
-        </div>
-        <div className="flex justify-between items-center border-t border-border pt-2">
-          <span className="text-muted-foreground">Nội dung chuyển</span>
-          <span className="font-mono font-bold text-primary flex items-center gap-1">
-            {content}
-            <Copy className="size-3 cursor-pointer text-primary" onClick={() => handleCopy(content, 'nội dung')} />
-          </span>
-        </div>
-      </div>
-
-      <Button onClick={onConfirm} disabled={isConfirming} className="w-full h-12 text-sm font-semibold gap-2 shadow-md shadow-primary/20 rounded-2xl">
-        <CheckCircle2 className="size-5" />
-        {isConfirming ? 'Đang xác nhận...' : 'Tôi đã chuyển khoản thành công'}
+      <Button
+        onClick={onConfirm}
+        disabled={isConfirming}
+        className='h-12 w-full gap-2 rounded-2xl shadow-md shadow-primary/20'
+      >
+        {isConfirming ? <Loader2 className='size-5 animate-spin' /> : <CheckCircle2 className='size-5' />}
+        {hasBankDetails ? 'Tôi đã chuyển khoản' : 'Ghi nhận thanh toán tiền mặt'}
       </Button>
+      <p className='text-xs text-muted-foreground'>Công nợ chỉ thay đổi sau khi người nhận xác nhận đã nhận tiền.</p>
     </Card>
   )
 }

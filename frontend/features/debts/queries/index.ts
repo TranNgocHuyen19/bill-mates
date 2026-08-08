@@ -1,27 +1,82 @@
 'use client'
 
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { getDebtsSummaryApi, settleDebtApi, type SettleDebtInput } from '../api'
-import { showSuccessToast, showErrorToast } from '@/lib/toast'
-import { getErrorMessage } from '@/lib/error-handler'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
-export const useDebtsSummaryQuery = (roomId: string = '101') => {
-  return useQuery({
-    queryKey: ['debts', roomId],
-    queryFn: () => getDebtsSummaryApi(roomId)
+import { getErrorMessage } from '@/lib/error-handler'
+import { showErrorToast, showSuccessToast } from '@/lib/toast'
+import {
+  cancelSettlementApi,
+  confirmSettlementApi,
+  createSettlementApi,
+  getBalancesApi,
+  getSettlementsApi,
+  rejectSettlementApi,
+  type CreateSettlementInput
+} from '../api'
+
+export const debtKeys = {
+  all: ['debts'] as const,
+  balances: (roomId: string) => [...debtKeys.all, roomId, 'balances'] as const,
+  settlements: (roomId: string) => [...debtKeys.all, roomId, 'settlements'] as const
+}
+
+export const useBalancesQuery = (roomId: string) =>
+  useQuery({
+    queryKey: debtKeys.balances(roomId),
+    queryFn: () => getBalancesApi(roomId),
+    enabled: Boolean(roomId)
+  })
+
+export const useSettlementsQuery = (roomId: string) =>
+  useQuery({
+    queryKey: debtKeys.settlements(roomId),
+    queryFn: () => getSettlementsApi(roomId),
+    enabled: Boolean(roomId)
+  })
+
+const useInvalidateDebts = (roomId: string) => {
+  const queryClient = useQueryClient()
+  return () => queryClient.invalidateQueries({ queryKey: [...debtKeys.all, roomId] })
+}
+
+export const useCreateSettlementMutation = (roomId: string) => {
+  const invalidate = useInvalidateDebts(roomId)
+  return useMutation({
+    mutationFn: (data: CreateSettlementInput) => createSettlementApi(data),
+    onSuccess: () => {
+      invalidate()
+      showSuccessToast('Đã gửi yêu cầu xác nhận thanh toán.')
+    },
+    onError: (error: unknown) => showErrorToast(getErrorMessage(error))
   })
 }
 
-export const useSettleDebtMutation = () => {
-  const queryClient = useQueryClient()
+export const useConfirmSettlementMutation = (roomId: string) => {
+  const invalidate = useInvalidateDebts(roomId)
   return useMutation({
-    mutationFn: (data: SettleDebtInput) => settleDebtApi(data),
+    mutationFn: confirmSettlementApi,
     onSuccess: () => {
-      showSuccessToast('Đã gửi thông báo xác nhận thanh toán!')
-      queryClient.invalidateQueries({ queryKey: ['debts'] })
+      invalidate()
+      showSuccessToast('Đã xác nhận nhận tiền.')
     },
-    onError: (error: unknown) => {
-      showErrorToast(getErrorMessage(error) || 'Xác nhận thanh toán thất bại.')
-    }
+    onError: (error: unknown) => showErrorToast(getErrorMessage(error))
+  })
+}
+
+export const useRejectSettlementMutation = (roomId: string) => {
+  const invalidate = useInvalidateDebts(roomId)
+  return useMutation({
+    mutationFn: rejectSettlementApi,
+    onSuccess: () => invalidate(),
+    onError: (error: unknown) => showErrorToast(getErrorMessage(error))
+  })
+}
+
+export const useCancelSettlementMutation = (roomId: string) => {
+  const invalidate = useInvalidateDebts(roomId)
+  return useMutation({
+    mutationFn: cancelSettlementApi,
+    onSuccess: () => invalidate(),
+    onError: (error: unknown) => showErrorToast(getErrorMessage(error))
   })
 }

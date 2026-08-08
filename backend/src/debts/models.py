@@ -77,9 +77,7 @@ class Settlement(UUIDPrimaryKeyMixin, TimestampMixin, Base):
 
 class SettlementReceipt(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     __tablename__ = "settlement_receipts"
-    __table_args__ = (
-        CheckConstraint("size_bytes > 0", name="size_bytes_positive"),
-    )
+    __table_args__ = (CheckConstraint("size_bytes > 0", name="size_bytes_positive"),)
 
     settlement_id: Mapped[UUID] = mapped_column(
         ForeignKey("settlements.id", ondelete="CASCADE"),

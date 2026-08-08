@@ -1,98 +1,139 @@
 'use client'
 
 import * as React from 'react'
+import { ArrowLeft, FileImage, Loader2, ShieldCheck } from 'lucide-react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
-import { ArrowLeft, CheckCircle2, QrCode, Copy, ShieldCheck, CreditCard } from 'lucide-react'
+import { useRouter, useSearchParams } from 'next/navigation'
+
 import { Navbar } from '@/components/navbar'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
-import { showSuccessToast } from '@/lib/toast'
 import { PATHS } from '@/constants'
+import { VietQRCard, uploadSettlementReceiptApi, useBalancesQuery, useCreateSettlementMutation } from '@/features/debts'
+import { getErrorMessage } from '@/lib/error-handler'
+import { showErrorToast } from '@/lib/toast'
 
-export default function SettleDebtPage() {
+function SettleDebtContent() {
   const router = useRouter()
-  const [isConfirming, setIsConfirming] = React.useState(false)
+  const searchParams = useSearchParams()
+  const roomId = searchParams.get('roomId') ?? ''
+  const toMemberId = searchParams.get('toMemberId') ?? ''
+  const requestedAmount = Number(searchParams.get('amount') ?? 0)
+  const balancesQuery = useBalancesQuery(roomId)
+  const createSettlement = useCreateSettlementMutation(roomId)
+  const [receipt, setReceipt] = React.useState<File | null>(null)
+  const suggestion = balancesQuery.data?.suggestions.find(
+    (item) =>
+      item.from_member_id === balancesQuery.data.current_member_id &&
+      item.to_member_id === toMemberId &&
+      Number(item.amount) === requestedAmount
+  )
+  const content = `BILLMATES ${roomId.slice(0, 6).toUpperCase()}`
 
-  const bankInfo = {
-    bankName: 'MBBank (Ngân hàng Quân Đội)',
-    accountNumber: '0988123456',
-    accountName: 'TRAN NGOC HUYEN',
-    amount: '150.000 ₫',
-    content: 'BILLMATES PHONG101 THANHTOAN'
+  const submit = async () => {
+    if (!suggestion) return
+    const settlement = await createSettlement.mutateAsync({
+      roomId,
+      to_member_id: suggestion.to_member_id,
+      amount: Number(suggestion.amount),
+      method: suggestion.payment_account ? 'bank_transfer' : 'cash',
+      payment_account_id: suggestion.payment_account?.id,
+      reference: content
+    })
+    if (receipt) {
+      try {
+        await uploadSettlementReceiptApi(settlement.id, receipt)
+      } catch (error) {
+        showErrorToast(`Thanh toán đã được lưu nhưng ảnh chưa tải lên: ${getErrorMessage(error)}`)
+      }
+    }
+    router.push(`${PATHS.DEBTS.INDEX}?roomId=${roomId}`)
   }
 
-  const handleConfirmSettle = () => {
-    setIsConfirming(true)
-    setTimeout(() => {
-      showSuccessToast('Đã gửi thông báo xác nhận thanh toán!')
-      router.push(PATHS.DEBTS.INDEX)
-    }, 800)
+  if (balancesQuery.isPending) {
+    return (
+      <div className='grid min-h-screen place-items-center bg-background'>
+        <Loader2 className='size-7 animate-spin text-primary' aria-label='Đang tải thanh toán' />
+      </div>
+    )
+  }
+
+  if (!suggestion) {
+    return (
+      <div className='min-h-screen bg-background'>
+        <Navbar />
+        <main className='mx-auto max-w-lg px-4 py-10'>
+          <Card className='rounded-3xl p-7 text-center'>
+            <ShieldCheck className='mx-auto size-10 text-secondary' />
+            <h1 className='mt-4 text-xl font-bold'>Khoản công nợ đã thay đổi</h1>
+            <p className='mt-2 text-sm text-muted-foreground'>Hãy quay lại để lấy gợi ý thanh toán mới nhất.</p>
+            <Button asChild className='mt-5 rounded-xl'>
+              <Link href={`${PATHS.DEBTS.INDEX}?roomId=${roomId}`}>Về trang công nợ</Link>
+            </Button>
+          </Card>
+        </main>
+      </div>
+    )
   }
 
   return (
-    <div className="min-h-screen bg-background text-foreground flex flex-col font-sans">
+    <div className='min-h-screen bg-background pb-24 text-foreground'>
       <Navbar />
-
-      <main className="flex-1 max-w-xl w-full mx-auto px-4 py-6 md:py-8 space-y-6">
-        <Button variant="ghost" size="sm" className="gap-1 text-xs" asChild>
-          <Link href={PATHS.DEBTS.INDEX}>
-            <ArrowLeft className="size-4" /> Quay lại Công nợ
+      <main className='mx-auto w-full max-w-xl space-y-5 px-4 py-5 sm:py-8'>
+        <Button variant='ghost' size='sm' className='-ml-2 rounded-xl' asChild>
+          <Link href={`${PATHS.DEBTS.INDEX}?roomId=${roomId}`}>
+            <ArrowLeft className='size-4' /> Quay lại công nợ
           </Link>
         </Button>
 
-        <div className="space-y-1 text-center">
-          <h1 className="text-2xl font-bold tracking-tight text-foreground">Thanh Toán Công Nợ</h1>
-          <p className="text-xs text-muted-foreground">Quét mã VietQR bên dưới bằng app ngân hàng để chuyển khoản chính xác.</p>
-        </div>
+        <header className='text-center'>
+          <p className='text-xs font-bold tracking-[0.16em] text-primary uppercase'>Thanh toán an toàn</p>
+          <h1 className='mt-1 text-2xl font-bold'>Trả cho {suggestion.to_name}</h1>
+          <p className='mt-2 text-sm text-muted-foreground'>
+            Quét QR, tải minh chứng nếu cần rồi gửi yêu cầu xác nhận.
+          </p>
+        </header>
 
-        {/* VietQR Mock Card */}
-        <Card className="p-6 border-primary/20 space-y-6 bg-card text-center shadow-md">
-          {/* VietQR Image Container */}
-          <div className="bg-white p-4 rounded-2xl inline-block shadow-sm border border-border">
-            <div className="size-56 bg-slate-100 rounded-xl border border-dashed border-slate-300 flex flex-col items-center justify-center p-4">
-              <QrCode className="size-32 text-primary" />
-              <span className="text-[11px] font-bold text-slate-700 mt-2">VietQR • MBBank</span>
-            </div>
-          </div>
+        <VietQRCard
+          account={suggestion.payment_account}
+          amount={Number(suggestion.amount)}
+          content={content}
+          onConfirm={submit}
+          isConfirming={createSettlement.isPending}
+        />
 
-          <div className="space-y-1">
-            <span className="text-xs text-muted-foreground uppercase tracking-wider block">Số tiền cần chuyển</span>
-            <span className="text-3xl font-bold text-primary">{bankInfo.amount}</span>
-          </div>
-
-          {/* Bank Transfer Details */}
-          <div className="space-y-2.5 bg-muted/40 p-4 rounded-xl text-left text-xs">
-            <div className="flex justify-between items-center">
-              <span className="text-muted-foreground">Ngân hàng</span>
-              <span className="font-bold text-foreground">{bankInfo.bankName}</span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-muted-foreground">Số tài khoản</span>
-              <span className="font-mono font-bold text-foreground flex items-center gap-1">
-                {bankInfo.accountNumber}
-                <Copy className="size-3 cursor-pointer text-primary" onClick={() => alert('Đã sao chép STK!')} />
+        <Card className='rounded-2xl p-4'>
+          <label className='flex min-h-14 cursor-pointer items-center gap-3 rounded-xl border border-dashed px-4 transition hover:border-primary'>
+            <FileImage className='size-5 text-primary' />
+            <span className='min-w-0 flex-1'>
+              <span className='block text-sm font-bold'>Ảnh minh chứng chuyển tiền</span>
+              <span className='block truncate text-xs text-muted-foreground'>
+                {receipt?.name ?? 'Không bắt buộc · JPEG, PNG hoặc WebP · tối đa 10 MB'}
               </span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-muted-foreground">Chủ tài khoản</span>
-              <span className="font-bold text-foreground uppercase">{bankInfo.accountName}</span>
-            </div>
-            <div className="flex justify-between items-center border-t border-border pt-2">
-              <span className="text-muted-foreground">Nội dung chuyển</span>
-              <span className="font-mono font-bold text-primary flex items-center gap-1">
-                {bankInfo.content}
-                <Copy className="size-3 cursor-pointer text-primary" onClick={() => alert('Đã sao chép nội dung!')} />
-              </span>
-            </div>
-          </div>
-
-          <Button onClick={handleConfirmSettle} disabled={isConfirming} className="w-full h-12 text-sm font-semibold gap-2 shadow-md shadow-primary/20">
-            <CheckCircle2 className="size-5" />
-            {isConfirming ? 'Đang xác nhận...' : 'Tôi đã chuyển khoản thành công'}
-          </Button>
+            </span>
+            <input
+              type='file'
+              accept='image/jpeg,image/png,image/webp'
+              className='sr-only'
+              onChange={(event) => setReceipt(event.target.files?.[0] ?? null)}
+            />
+          </label>
         </Card>
       </main>
     </div>
+  )
+}
+
+export default function SettleDebtPage() {
+  return (
+    <React.Suspense
+      fallback={
+        <div className='grid min-h-screen place-items-center bg-background'>
+          <Loader2 className='size-7 animate-spin text-primary' />
+        </div>
+      }
+    >
+      <SettleDebtContent />
+    </React.Suspense>
   )
 }
