@@ -30,7 +30,7 @@ export default function RootLayout({
       suppressHydrationWarning
       className={cn('antialiased', fontMono.variable, 'font-sans', beVietnamPro.variable)}
     >
-      <body className="pb-16 md:pb-0">
+      <body className="pb-24 md:pb-0 min-h-screen">
         <QueryProvider>
           <ThemeProvider>
             {children}
