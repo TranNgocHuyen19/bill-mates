@@ -1,6 +1,6 @@
 'use client'
 
-import * as React from 'react'
+import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useParams } from 'next/navigation'
 import { Plus, Users, Receipt, ArrowDownLeft, ChevronRight, Sparkles, Share2, FolderPlus, UserPlus } from 'lucide-react'
@@ -14,9 +14,9 @@ import { PATHS } from '@/constants'
 export default function RoomDetailPage() {
   const params = useParams()
   const roomId = (params?.id as string) || ''
-  const [roomName, setRoomName] = React.useState<string>('')
+  const [roomName, setRoomName] = useState<string>('')
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (typeof window !== 'undefined' && roomId) {
       try {
         const saved = localStorage.getItem('bill_mates_rooms_list')
@@ -35,11 +35,11 @@ export default function RoomDetailPage() {
   }, [roomId])
 
   // Dynamic state without mock data
-  const [members] = React.useState<
+  const [members] = useState<
     Array<{ name: string; role: string; balance: string; isPositive: boolean }>
   >([{ name: 'Bạn (Trưởng phòng)', role: 'Trưởng phòng', balance: '0 ₫', isPositive: true }])
 
-  const [expenses] = React.useState<
+  const [expenses] = useState<
     Array<{
       id: string
       title: string
