@@ -56,7 +56,7 @@ def _summary(
     )
 
 
-async def _active_membership(
+async def require_room_member(
     session: AsyncSession,
     room_id: UUID,
     profile_id: UUID,
@@ -138,7 +138,7 @@ class RoomService:
         user: AuthenticatedUser,
         room_id: UUID,
     ) -> RoomDetail:
-        membership = await _active_membership(session, room_id, user.id)
+        membership = await require_room_member(session, room_id, user.id)
         room = await repository.get_room(session, room_id)
         if room is None:
             raise AppError(
@@ -181,7 +181,7 @@ class RoomService:
         room_id: UUID,
         data: RoomUpdate,
     ) -> RoomDetail:
-        await _active_membership(session, room_id, user.id, roles=MANAGER_ROLES)
+        await require_room_member(session, room_id, user.id, roles=MANAGER_ROLES)
         room = await repository.get_room(session, room_id)
         if room is None:
             raise AppError(
@@ -218,7 +218,7 @@ class RoomService:
         user: AuthenticatedUser,
         room_id: UUID,
     ) -> None:
-        await _active_membership(session, room_id, user.id, roles={RoomRole.OWNER})
+        await require_room_member(session, room_id, user.id, roles={RoomRole.OWNER})
         room = await repository.get_room(session, room_id)
         if room is None:
             raise AppError(
@@ -245,7 +245,7 @@ class RoomService:
         room_id: UUID,
         data: InviteCreate,
     ) -> RoomInvite:
-        membership = await _active_membership(
+        membership = await require_room_member(
             session,
             room_id,
             user.id,
@@ -323,7 +323,9 @@ class RoomService:
         member_id: UUID,
         data: MemberRoleUpdate,
     ) -> None:
-        actor = await _active_membership(session, room_id, user.id, roles=MANAGER_ROLES)
+        actor = await require_room_member(
+            session, room_id, user.id, roles=MANAGER_ROLES
+        )
         member = await session.get(RoomMember, member_id)
         if member is None or member.room_id != room_id:
             raise AppError(
@@ -352,7 +354,7 @@ class RoomService:
         user: AuthenticatedUser,
         room_id: UUID,
     ) -> None:
-        membership = await _active_membership(session, room_id, user.id)
+        membership = await require_room_member(session, room_id, user.id)
         if membership.role == RoomRole.OWNER:
             raise AppError(
                 code="owner_cannot_leave",
@@ -378,7 +380,7 @@ class RoomService:
         room_id: UUID,
         member_id: UUID,
     ) -> None:
-        await _active_membership(session, room_id, user.id, roles=MANAGER_ROLES)
+        await require_room_member(session, room_id, user.id, roles=MANAGER_ROLES)
         member = await session.get(RoomMember, member_id)
         if member is None or member.room_id != room_id:
             raise AppError(
@@ -410,7 +412,7 @@ class RoomService:
         user: AuthenticatedUser,
         room_id: UUID,
     ) -> list[Category]:
-        await _active_membership(session, room_id, user.id)
+        await require_room_member(session, room_id, user.id)
         return await repository.list_categories(session, room_id)
 
     @staticmethod
@@ -420,7 +422,7 @@ class RoomService:
         room_id: UUID,
         data: CategoryCreate,
     ) -> Category:
-        await _active_membership(session, room_id, user.id, roles=MANAGER_ROLES)
+        await require_room_member(session, room_id, user.id, roles=MANAGER_ROLES)
         category = Category(room_id=room_id, **data.model_dump())
         session.add(category)
         try:
@@ -442,7 +444,7 @@ class RoomService:
         category_id: UUID,
         data: CategoryUpdate,
     ) -> Category:
-        await _active_membership(session, room_id, user.id, roles=MANAGER_ROLES)
+        await require_room_member(session, room_id, user.id, roles=MANAGER_ROLES)
         category = await session.get(Category, category_id)
         if category is None or category.room_id != room_id:
             raise AppError(

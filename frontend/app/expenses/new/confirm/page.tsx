@@ -1,112 +1,189 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import * as React from 'react'
+import { ArrowLeft, CheckCircle2, Clock3, Loader2, ReceiptText, ShieldCheck } from 'lucide-react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
-import { ArrowLeft, CheckCircle2 } from 'lucide-react'
+import { useRouter, useSearchParams } from 'next/navigation'
+
 import { Navbar } from '@/components/navbar'
+import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
-import { showSuccessToast } from '@/lib/toast'
 import { PATHS } from '@/constants'
+import { useExpenseQuery, usePostExpenseMutation } from '@/features/expenses'
+import { useRoomDetailQuery } from '@/features/rooms'
+import { formatVnd } from '@/lib/money'
 
-export default function NewExpenseStep3ConfirmPage() {
+function ConfirmExpenseContent() {
+  const searchParams = useSearchParams()
   const router = useRouter()
-  const [isSubmitting, setIsSubmitting] = useState<boolean>(false)
+  const expenseId = searchParams.get('expenseId') ?? ''
+  const expenseQuery = useExpenseQuery(expenseId)
+  const roomQuery = useRoomDetailQuery(expenseQuery.data?.room_id ?? '')
+  const postExpense = usePostExpenseMutation(expenseId)
+  const expense = expenseQuery.data
+  const room = roomQuery.data
+  const membersById = new Map(room?.members.map((member) => [member.id, member]) ?? [])
 
-  const [title, setTitle] = useState<string>('Hóa đơn mới')
-  const [amountNum, setAmountNum] = useState<number>(0)
-  const [splitType, setSplitType] = useState<string>('equal')
-
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const savedTitle = sessionStorage.getItem('draft_expense_title')
-      const savedAmount = sessionStorage.getItem('draft_expense_amount')
-      const savedType = sessionStorage.getItem('draft_expense_split_type')
-
-      if (savedTitle) {
-        setTitle(savedTitle)
-      }
-      if (savedAmount) {
-        setAmountNum(parseInt(savedAmount, 10) || 0)
-      }
-      if (savedType) {
-        setSplitType(savedType)
-      }
-    }
-  }, [])
-
-  const handleSave = () => {
-    setIsSubmitting(true)
-    setTimeout(() => {
-      showSuccessToast('Đã thêm và lưu khoản chi thành công!')
-      if (typeof window !== 'undefined') {
-        sessionStorage.removeItem('draft_expense_title')
-        sessionStorage.removeItem('draft_expense_amount')
-        sessionStorage.removeItem('draft_expense_split_type')
-      }
-      router.push(PATHS.ROOMS)
-    }, 600)
+  if (expenseQuery.isPending || roomQuery.isPending) {
+    return (
+      <div className='grid min-h-screen place-items-center bg-background'>
+        <Loader2 className='size-7 animate-spin text-primary' aria-label='Đang kiểm tra khoản chi' />
+      </div>
+    )
   }
 
-  const splitLabel = splitType === 'equal' ? 'Chia đều' : splitType === 'itemized' ? 'Theo món' : 'Theo tỷ lệ %'
+  if (!expense || !room) {
+    return (
+      <div className='grid min-h-screen place-items-center bg-background px-4'>
+        <Card className='rounded-2xl p-7 text-center'>
+          <p className='font-bold'>Không tìm thấy khoản chi cần xác nhận.</p>
+          <Button asChild className='mt-4 rounded-xl'>
+            <Link href={PATHS.ROOMS}>Về danh sách phòng</Link>
+          </Button>
+        </Card>
+      </div>
+    )
+  }
+
+  const payer = membersById.get(expense.paid_by_member_id)
+  const isPosted = expense.status === 'posted'
 
   return (
-    <div className="min-h-screen bg-background text-foreground flex flex-col font-sans">
+    <div className='min-h-screen bg-background pb-28 text-foreground'>
       <Navbar />
+      <main className='mx-auto w-full max-w-3xl space-y-5 px-4 py-5 sm:py-8'>
+        <div className='flex items-center justify-between'>
+          <Link
+            href={`${PATHS.EXPENSES.SPLIT}?expenseId=${expense.id}`}
+            className='inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-muted-foreground'
+          >
+            <ArrowLeft className='size-4' />
+            Bước 2
+          </Link>
+          <span className='rounded-full bg-primary/10 px-3 py-1.5 text-xs font-bold text-primary'>Bước 3 / 3</span>
+        </div>
 
-      <main className="flex-1 max-w-2xl w-full mx-auto px-4 py-4 sm:py-8 space-y-5 sm:space-y-6">
-        {/* Wizard Header */}
-        <div className="flex items-center justify-between">
-          <Button variant="ghost" size="sm" className="gap-1 text-xs" asChild>
-            <Link href={PATHS.EXPENSES.SPLIT}>
-              <ArrowLeft className="size-4" /> Bước 2
-            </Link>
-          </Button>
-          <div className="text-xs font-semibold text-muted-foreground">
-            Bước <span className="text-primary font-bold">3</span> / 3
+        <header>
+          <p className='text-xs font-semibold tracking-[0.16em] text-primary uppercase'>Kiểm tra cuối</p>
+          <h1 className='mt-1 text-2xl font-bold tracking-tight'>Xác nhận khoản chi</h1>
+          <p className='mt-1 text-sm text-muted-foreground'>
+            Chỉ khi bấm “Chốt khoản chi”, số tiền mới được cộng vào công nợ.
+          </p>
+        </header>
+
+        <div className='grid grid-cols-3 gap-2' aria-label='Tiến trình tạo khoản chi'>
+          <div className='h-1.5 rounded-full bg-primary' />
+          <div className='h-1.5 rounded-full bg-primary' />
+          <div className='h-1.5 rounded-full bg-primary' />
+        </div>
+
+        <Card className='overflow-hidden rounded-3xl p-0'>
+          <div className='bg-primary p-5 text-white sm:p-6'>
+            <div className='flex items-start justify-between gap-4'>
+              <div>
+                <Badge className='border-white/20 bg-white/15 text-white hover:bg-white/15'>
+                  {isPosted ? 'Đã chốt' : 'Đơn nháp'}
+                </Badge>
+                <h2 className='mt-3 text-xl font-bold'>{expense.title}</h2>
+                <p className='mt-1 text-sm text-white/70'>{room.name}</p>
+              </div>
+              <ReceiptText className='size-8 text-white/60' />
+            </div>
+            <p className='mt-6 text-3xl font-bold'>{formatVnd(expense.total_amount)}</p>
           </div>
-        </div>
-
-        <div className="space-y-1">
-          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground">Xác Nhận Hóa Đơn</h1>
-          <p className="text-xs text-muted-foreground">Vui lòng kiểm tra lại thông tin chia tiền trước khi hoàn tất.</p>
-        </div>
-
-        {/* Invoice Summary Card */}
-        <Card className="p-5 sm:p-6 border-primary/20 space-y-5 bg-card shadow-xs rounded-3xl">
-          <div className="flex items-center justify-between pb-4 border-b border-border">
+          <div className='grid grid-cols-2 gap-4 p-5 text-sm'>
             <div>
-              <span className="text-xs text-muted-foreground uppercase tracking-wider block">Tên hóa đơn</span>
-              <h2 className="text-lg sm:text-xl font-bold text-foreground">{title}</h2>
+              <p className='text-xs text-muted-foreground'>Người đã trả</p>
+              <p className='mt-1 font-bold'>{payer?.nickname || payer?.display_name}</p>
             </div>
-            <div className="text-right">
-              <span className="text-xs text-muted-foreground uppercase tracking-wider block">Tổng tiền</span>
-              <span className="text-xl sm:text-2xl font-bold text-primary">{amountNum.toLocaleString()} ₫</span>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4 text-xs">
-            <div className="space-y-0.5">
-              <span className="text-muted-foreground">Người thanh toán</span>
-              <span className="font-bold text-foreground block">Bạn</span>
-            </div>
-            <div className="space-y-0.5">
-              <span className="text-muted-foreground">Phương thức chia</span>
-              <span className="font-bold text-foreground block">{splitLabel}</span>
+            <div>
+              <p className='text-xs text-muted-foreground'>Ngày chi</p>
+              <p className='mt-1 font-bold'>
+                {new Intl.DateTimeFormat('vi-VN').format(new Date(expense.expense_date))}
+              </p>
             </div>
           </div>
         </Card>
 
-        <div className="pt-2 flex justify-end gap-3">
-          <Button variant="outline" className="rounded-xl" asChild>
-            <Link href={PATHS.EXPENSES.SPLIT}>Sửa lại</Link>
+        <section className='space-y-3'>
+          <div className='flex items-center justify-between'>
+            <h2 className='font-bold'>Chi tiết từng món</h2>
+            <span className='text-xs text-muted-foreground'>{expense.items.length} món</span>
+          </div>
+          {expense.items.map((item) => (
+            <Card key={item.id} className='rounded-2xl p-4'>
+              <div className='flex items-start justify-between gap-3'>
+                <div>
+                  <p className='font-bold'>{item.name}</p>
+                  <p className='mt-0.5 text-xs text-muted-foreground'>{item.splits.length} người tham gia</p>
+                </div>
+                <p className='font-bold'>{formatVnd(item.total_amount)}</p>
+              </div>
+              <div className='mt-3 space-y-2 border-t pt-3'>
+                {item.splits.map((split) => {
+                  const member = membersById.get(split.member_id)
+                  return (
+                    <div key={split.id} className='flex items-center justify-between text-sm'>
+                      <span className='text-muted-foreground'>
+                        {member?.nickname || member?.display_name || 'Thành viên'}
+                      </span>
+                      <span className='font-semibold'>{formatVnd(split.amount_owed)}</span>
+                    </div>
+                  )
+                })}
+              </div>
+            </Card>
+          ))}
+        </section>
+
+        <Card className='rounded-2xl border-secondary/20 bg-secondary/5 p-4'>
+          <div className='flex gap-3'>
+            <ShieldCheck className='size-5 shrink-0 text-secondary' />
+            <div>
+              <p className='text-sm font-bold'>Kiểm tra giao dịch an toàn</p>
+              <p className='mt-1 text-xs leading-5 text-muted-foreground'>
+                Backend sẽ kiểm tra lại tổng món, tổng phần chia và membership trong một transaction.
+              </p>
+            </div>
+          </div>
+        </Card>
+
+        <div className='sticky bottom-20 z-20 grid grid-cols-[0.8fr_1.2fr] gap-3 rounded-2xl border bg-card/95 p-3 shadow-xl backdrop-blur sm:bottom-4'>
+          <Button variant='outline' className='h-12 rounded-xl' asChild>
+            <Link href={PATHS.ROOM_DETAIL(expense.room_id)}>
+              <Clock3 className='size-4' />
+              Để nháp
+            </Link>
           </Button>
-          <Button onClick={handleSave} disabled={isSubmitting} className="gap-2 font-semibold h-11 px-8 rounded-2xl shadow-md">
-            <CheckCircle2 className="size-4" /> {isSubmitting ? 'Đang lưu...' : 'Hoàn tất & Lưu hóa đơn'}
+          <Button
+            className='h-12 rounded-xl'
+            disabled={postExpense.isPending || isPosted}
+            onClick={() =>
+              postExpense.mutate(undefined, {
+                onSuccess: () => router.replace(PATHS.ROOM_DETAIL(expense.room_id))
+              })
+            }
+          >
+            {postExpense.isPending ? <Loader2 className='size-4 animate-spin' /> : <CheckCircle2 className='size-4' />}
+            {isPosted ? 'Đã chốt' : postExpense.isPending ? 'Đang chốt...' : 'Chốt khoản chi'}
           </Button>
         </div>
       </main>
     </div>
+  )
+}
+
+export default function ConfirmExpensePage() {
+  return (
+    <React.Suspense
+      fallback={
+        <div className='grid min-h-screen place-items-center'>
+          <Loader2 className='size-6 animate-spin text-primary' />
+        </div>
+      }
+    >
+      <ConfirmExpenseContent />
+    </React.Suspense>
   )
 }

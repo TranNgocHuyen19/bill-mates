@@ -25,6 +25,7 @@ import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { PATHS } from '@/constants'
+import { useExpensesQuery } from '@/features/expenses'
 import {
   useCategoriesQuery,
   useCreateCategoryMutation,
@@ -47,6 +48,7 @@ export default function RoomDetailPage() {
   const params = useParams<{ id: string }>()
   const roomId = params.id
   const roomQuery = useRoomDetailQuery(roomId)
+  const expensesQuery = useExpensesQuery(roomId)
   const categoriesQuery = useCategoriesQuery(roomId)
   const createInvite = useCreateInviteMutation(roomId)
   const createCategory = useCreateCategoryMutation(roomId)
@@ -153,15 +155,34 @@ export default function RoomDetailPage() {
                 </Link>
               </Button>
             </div>
-            <Card className='rounded-2xl border-dashed p-7 text-center'>
-              <span className='mx-auto grid size-12 place-items-center rounded-2xl bg-primary/10 text-primary'>
-                <ReceiptText className='size-6' />
-              </span>
-              <p className='mt-3 font-semibold'>Chưa có khoản chi đã chốt</p>
-              <p className='mt-1 text-xs text-muted-foreground'>
-                Các đơn nháp và hóa đơn sẽ xuất hiện tại đây sau khi module chi phí được kết nối.
-              </p>
-            </Card>
+            {expensesQuery.isPending ? (
+              <Card className='h-28 animate-pulse rounded-2xl bg-muted' />
+            ) : expensesQuery.data?.length ? (
+              <div className='space-y-2'>
+                {expensesQuery.data.slice(0, 5).map((expense) => (
+                  <Card key={expense.id} className='flex items-center gap-3 rounded-2xl p-4'>
+                    <span className='grid size-11 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary'>
+                      <ReceiptText className='size-5' />
+                    </span>
+                    <div className='min-w-0 flex-1'>
+                      <p className='truncate text-sm font-bold'>{expense.title}</p>
+                      <p className='mt-0.5 text-xs text-muted-foreground'>
+                        {expense.status === 'draft' ? 'Đơn nháp' : expense.status === 'posted' ? 'Đã chốt' : 'Đã hủy'}
+                      </p>
+                    </div>
+                    <p className='text-sm font-bold'>{formatVnd(expense.total_amount)}</p>
+                  </Card>
+                ))}
+              </div>
+            ) : (
+              <Card className='rounded-2xl border-dashed p-7 text-center'>
+                <span className='mx-auto grid size-12 place-items-center rounded-2xl bg-primary/10 text-primary'>
+                  <ReceiptText className='size-6' />
+                </span>
+                <p className='mt-3 font-semibold'>Chưa có khoản chi</p>
+                <p className='mt-1 text-xs text-muted-foreground'>Tạo đơn nháp đầu tiên để bắt đầu chia tiền.</p>
+              </Card>
+            )}
             <Button variant='outline' className='h-11 w-full justify-between rounded-xl' asChild>
               <Link href={PATHS.DEBTS.INDEX}>
                 Xem công nợ của phòng

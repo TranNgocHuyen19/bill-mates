@@ -4,6 +4,7 @@ from typing import Any
 from uuid import UUID
 
 from sqlalchemy import (
+    JSON,
     CheckConstraint,
     Date,
     DateTime,
@@ -11,7 +12,6 @@ from sqlalchemy import (
     ForeignKey,
     Index,
     Integer,
-    JSON,
     Numeric,
     String,
     Text,
@@ -127,9 +127,7 @@ class ExpenseItemSplit(UUIDPrimaryKeyMixin, TimestampMixin, Base):
 
 class ExpenseReceipt(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     __tablename__ = "expense_receipts"
-    __table_args__ = (
-        CheckConstraint("size_bytes > 0", name="size_bytes_positive"),
-    )
+    __table_args__ = (CheckConstraint("size_bytes > 0", name="size_bytes_positive"),)
 
     expense_id: Mapped[UUID] = mapped_column(
         ForeignKey("expenses.id", ondelete="CASCADE"),

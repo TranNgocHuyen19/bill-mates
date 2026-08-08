@@ -1,212 +1,250 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import * as React from 'react'
+import { ArrowLeft, ArrowRight, CheckCircle2, Loader2, ShoppingBasket, Trash2 } from 'lucide-react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
-import { ArrowLeft, ArrowRight, Check, Users, Plus, X } from 'lucide-react'
+import { useRouter, useSearchParams } from 'next/navigation'
+
 import { Navbar } from '@/components/navbar'
+import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { Input } from '@/components/ui/input'
-import { createClient } from '@/lib/supabase/client'
 import { PATHS } from '@/constants'
+import {
+  ExpenseItemEditor,
+  useDeleteExpenseItemMutation,
+  useExpenseQuery,
+  useSaveExpenseItemMutation,
+  type SplitMethod
+} from '@/features/expenses'
+import { useRoomDetailQuery } from '@/features/rooms'
+import { formatVnd } from '@/lib/money'
+import { cn } from '@/lib/utils'
 
-export interface MemberItem {
-  id: string
-  name: string
+const methodLabels: Record<SplitMethod, string> = {
+  equal: 'Chia đều',
+  exact: 'Số tiền chính xác',
+  percentage: 'Phần trăm',
+  shares: 'Trọng số'
 }
 
-export default function NewExpenseStep2SplitPage() {
+function SplitExpenseContent() {
+  const searchParams = useSearchParams()
   const router = useRouter()
-  const [splitType, setSplitType] = useState<'equal' | 'itemized' | 'percentage'>('equal')
-  const [title, setTitle] = useState<string>('Khoản chi mới')
-  const [amountNum, setAmountNum] = useState<number>(0)
-  const [newMemberName, setNewMemberName] = useState<string>('')
-  const [showAddMemberInput, setShowAddMemberInput] = useState<boolean>(false)
+  const expenseId = searchParams.get('expenseId') ?? ''
+  const expenseQuery = useExpenseQuery(expenseId)
+  const roomQuery = useRoomDetailQuery(expenseQuery.data?.room_id ?? '')
+  const saveItem = useSaveExpenseItemMutation(expenseId)
+  const deleteItem = useDeleteExpenseItemMutation(expenseId)
+  const [mode, setMode] = React.useState<'whole' | 'itemized'>('whole')
+  const expense = expenseQuery.data
+  const activeMembers = roomQuery.data?.members.filter((member) => member.status === 'active') ?? []
+  const itemsTotal = expense?.items.reduce((sum, item) => sum + Number(item.total_amount), 0) ?? 0
+  const expenseTotal = Number(expense?.total_amount ?? 0)
+  const remaining = Math.max(0, expenseTotal - itemsTotal)
+  const overBy = Math.max(0, itemsTotal - expenseTotal)
+  const canContinue =
+    Boolean(expense?.items.length) &&
+    itemsTotal === expenseTotal &&
+    expense?.items.every((item) => item.splits.length > 0)
 
-  const [members, setMembers] = useState<MemberItem[]>([
-    { id: 'm1', name: 'Bạn (Người trả tiền)' }
-  ])
-  const [selectedMembers, setSelectedMembers] = useState<string[]>(['m1'])
-
-  useEffect(() => {
-    // Read current Supabase user name
-    const supabase = createClient()
-    supabase.auth.getUser().then(({ data }) => {
-      if (data.user) {
-        const uName = data.user.user_metadata?.name || data.user.user_metadata?.full_name || data.user.email?.split('@')[0] || 'Bạn'
-        setMembers([{ id: 'm1', name: `${uName} (Người trả tiền)` }])
-      }
-    })
-
-    // Read draft expense info from sessionStorage
-    if (typeof window !== 'undefined') {
-      const savedTitle = sessionStorage.getItem('draft_expense_title')
-      const savedAmount = sessionStorage.getItem('draft_expense_amount')
-      if (savedTitle) setTitle(savedTitle)
-      if (savedAmount) setAmountNum(parseInt(savedAmount, 10) || 0)
-    }
-  }, [])
-
-  const handleAddMember = (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!newMemberName.trim()) return
-
-    const newId = `m_${Date.now()}`
-    const updatedMembers = [...members, { id: newId, name: newMemberName.trim() }]
-    setMembers(updatedMembers)
-    setSelectedMembers([...selectedMembers, newId])
-    setNewMemberName('')
-    setShowAddMemberInput(false)
+  if (expenseQuery.isPending || roomQuery.isPending) {
+    return (
+      <div className='grid min-h-screen place-items-center bg-background'>
+        <Loader2 className='size-7 animate-spin text-primary' aria-label='Đang tải đơn nháp' />
+      </div>
+    )
   }
 
-  const toggleMember = (id: string) => {
-    if (selectedMembers.includes(id)) {
-      if (selectedMembers.length > 1) {
-        setSelectedMembers(selectedMembers.filter((m) => m !== id))
-      }
-    } else {
-      setSelectedMembers([...selectedMembers, id])
-    }
+  if (!expense || !roomQuery.data) {
+    return (
+      <div className='grid min-h-screen place-items-center bg-background px-4'>
+        <Card className='max-w-md rounded-2xl p-7 text-center'>
+          <p className='font-bold'>Không tìm thấy đơn nháp</p>
+          <Button asChild className='mt-4 rounded-xl'>
+            <Link href={PATHS.ROOMS}>Về danh sách phòng</Link>
+          </Button>
+        </Card>
+      </div>
+    )
   }
-
-  const handleNext = () => {
-    if (typeof window !== 'undefined') {
-      sessionStorage.setItem('draft_expense_split_type', splitType)
-      sessionStorage.setItem('draft_expense_members', JSON.stringify(
-        members.filter((m) => selectedMembers.includes(m.id))
-      ))
-    }
-    router.push(PATHS.EXPENSES.CONFIRM)
-  }
-
-  const amountPerPerson = selectedMembers.length > 0 ? Math.round(amountNum / selectedMembers.length) : 0
 
   return (
-    <div className="min-h-screen bg-background text-foreground flex flex-col font-sans">
+    <div className='min-h-screen bg-background pb-28 text-foreground'>
       <Navbar />
+      <main className='mx-auto w-full max-w-3xl space-y-5 px-4 py-5 sm:py-8'>
+        <div className='flex items-center justify-between'>
+          <Link
+            href={`${PATHS.EXPENSES.NEW}?roomId=${expense.room_id}`}
+            className='inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-muted-foreground'
+          >
+            <ArrowLeft className='size-4' />
+            Bước 1
+          </Link>
+          <span className='rounded-full bg-primary/10 px-3 py-1.5 text-xs font-bold text-primary'>Bước 2 / 3</span>
+        </div>
 
-      <main className="flex-1 max-w-2xl w-full mx-auto px-4 py-4 sm:py-8 space-y-5 sm:space-y-6">
-        {/* Wizard Header */}
-        <div className="flex items-center justify-between">
-          <Button variant="ghost" size="sm" className="gap-1 text-xs" asChild>
-            <Link href={PATHS.EXPENSES.NEW}>
-              <ArrowLeft className="size-4" /> Bước 1
-            </Link>
-          </Button>
-          <div className="text-xs font-semibold text-muted-foreground">
-            Bước <span className="text-primary font-bold">2</span> / 3
+        <header>
+          <p className='text-xs font-semibold tracking-[0.16em] text-primary uppercase'>Món & người chia</p>
+          <h1 className='mt-1 text-2xl font-bold tracking-tight'>{expense.title}</h1>
+          <div className='mt-2 flex flex-wrap items-center gap-2 text-sm text-muted-foreground'>
+            <Badge variant='outline'>Đơn nháp</Badge>
+            <span>Tổng hóa đơn: </span>
+            <strong className='text-foreground'>{formatVnd(expense.total_amount)}</strong>
           </div>
+        </header>
+
+        <div className='grid grid-cols-3 gap-2' aria-label='Tiến trình tạo khoản chi'>
+          <div className='h-1.5 rounded-full bg-primary' />
+          <div className='h-1.5 rounded-full bg-primary' />
+          <div className='h-1.5 rounded-full bg-primary/15' />
         </div>
 
-        <div className="space-y-1">
-          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground">Chọn Phương Thức Chia Tiền</h1>
-          <p className="text-xs text-muted-foreground">
-            Khoản chi: <strong className="text-foreground">{title} ({amountNum > 0 ? `${amountNum.toLocaleString()} ₫` : '0 ₫'})</strong>
-          </p>
-        </div>
-
-        {/* Split Option Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          <Card
-            className={`p-4 border-2 cursor-pointer transition-all rounded-2xl ${splitType === 'equal' ? 'border-primary bg-primary/5' : 'border-border hover:border-primary/50'}`}
-            onClick={() => setSplitType('equal')}
-          >
-            <div className="space-y-1.5">
-              <Badge variant={splitType === 'equal' ? 'default' : 'secondary'}>Phổ biến</Badge>
-              <h3 className="font-bold text-sm">Chia Đều</h3>
-              <p className="text-[11px] text-muted-foreground">Tất cả thành viên chia đều số tiền bằng nhau.</p>
-            </div>
-          </Card>
-
-          <Card
-            className={`p-4 border-2 cursor-pointer transition-all rounded-2xl ${splitType === 'itemized' ? 'border-primary bg-primary/5' : 'border-border hover:border-primary/50'}`}
-            onClick={() => setSplitType('itemized')}
-          >
-            <div className="space-y-1.5">
-              <Badge variant="outline">Chi tiết</Badge>
-              <h3 className="font-bold text-sm">Theo Món / Bill</h3>
-              <p className="text-[11px] text-muted-foreground">Ai ăn/dùng món nào sẽ trả đúng món đó.</p>
-            </div>
-          </Card>
-
-          <Card
-            className={`p-4 border-2 cursor-pointer transition-all rounded-2xl ${splitType === 'percentage' ? 'border-primary bg-primary/5' : 'border-border hover:border-primary/50'}`}
-            onClick={() => setSplitType('percentage')}
-          >
-            <div className="space-y-1.5">
-              <Badge variant="outline">Tỷ lệ</Badge>
-              <h3 className="font-bold text-sm">Theo Tỷ Lệ %</h3>
-              <p className="text-[11px] text-muted-foreground">Phân chia theo phần trăm hoặc số ngày ở.</p>
-            </div>
-          </Card>
-        </div>
-
-        {/* Member Selector */}
-        <div className="space-y-3 pt-2">
-          <div className="flex items-center justify-between">
-            <h3 className="font-bold text-xs sm:text-sm text-foreground flex items-center gap-1.5">
-              <Users className="size-4 text-primary" /> Người tham gia ({selectedMembers.length}/{members.length})
-            </h3>
-            <span className="text-xs text-primary font-bold">
-              {amountPerPerson > 0 ? `${amountPerPerson.toLocaleString()} ₫ / người` : '0 ₫ / người'}
-            </span>
+        <Card className='grid grid-cols-3 gap-3 rounded-2xl p-4'>
+          <div>
+            <p className='text-[11px] text-muted-foreground uppercase'>Đã nhập</p>
+            <p className='mt-1 font-bold'>{formatVnd(itemsTotal)}</p>
           </div>
+          <div>
+            <p className='text-[11px] text-muted-foreground uppercase'>
+              {overBy ? 'Vượt quá' : 'Còn lại'}
+            </p>
+            <p
+              className={cn(
+                'mt-1 font-bold',
+                overBy ? 'text-destructive' : remaining ? 'text-tertiary' : 'text-secondary'
+              )}
+            >
+              {formatVnd(overBy || remaining)}
+            </p>
+          </div>
+          <div>
+            <p className='text-[11px] text-muted-foreground uppercase'>Số món</p>
+            <p className='mt-1 font-bold'>{expense.items.length}</p>
+          </div>
+        </Card>
 
-          <div className="space-y-2">
-            {members.map((member) => {
-              const isSelected = selectedMembers.includes(member.id)
-              return (
-                <div
-                  key={member.id}
-                  onClick={() => toggleMember(member.id)}
-                  className={`p-3.5 rounded-2xl border flex items-center justify-between cursor-pointer transition-all ${isSelected ? 'border-primary/50 bg-primary/5' : 'border-border opacity-60'}`}
-                >
-                  <span className="font-medium text-sm text-foreground">{member.name}</span>
-                  <div className={`size-5 rounded-md flex items-center justify-center ${isSelected ? 'bg-primary text-primary-foreground' : 'border border-border'}`}>
-                    {isSelected && <Check className="size-3.5" />}
-                  </div>
+        {expense.items.length > 0 && (
+          <section className='space-y-2'>
+            <h2 className='font-bold'>Món đã lưu</h2>
+            {expense.items.map((item) => (
+              <Card key={item.id} className='flex items-center gap-3 rounded-2xl p-4'>
+                <span className='grid size-11 shrink-0 place-items-center rounded-xl bg-secondary/10 text-secondary'>
+                  <CheckCircle2 className='size-5' />
+                </span>
+                <div className='min-w-0 flex-1'>
+                  <p className='truncate text-sm font-bold'>{item.name}</p>
+                  <p className='mt-0.5 text-xs text-muted-foreground'>
+                    {item.splits.length} người •{' '}
+                    {item.splits[0] ? methodLabels[item.splits[0].split_method] : 'Chưa chia'}
+                  </p>
                 </div>
-              )
-            })}
+                <div className='text-right'>
+                  <p className='text-sm font-bold'>{formatVnd(item.total_amount)}</p>
+                  <button
+                    className='mt-1 inline-flex min-h-8 items-center gap-1 text-xs text-destructive'
+                    onClick={() => deleteItem.mutate(item.id)}
+                    disabled={deleteItem.isPending}
+                  >
+                    <Trash2 className='size-3.5' />
+                    Xóa
+                  </button>
+                </div>
+              </Card>
+            ))}
+          </section>
+        )}
 
-            {/* Add Member Form */}
-            {showAddMemberInput ? (
-              <form onSubmit={handleAddMember} className="flex gap-2 pt-1">
-                <Input
-                  placeholder="Nhập tên thành viên (Vd: Tuấn Anh, Bảo Nam)"
-                  value={newMemberName}
-                  onChange={(e) => setNewMemberName(e.target.value)}
-                  className="h-10 text-xs rounded-xl"
-                  autoFocus
-                />
-                <Button type="submit" size="sm" className="h-10 text-xs px-3 rounded-xl">
-                  Thêm
-                </Button>
-                <Button type="button" variant="ghost" size="sm" onClick={() => setShowAddMemberInput(false)} className="h-10 text-xs px-2 rounded-xl">
-                  <X className="size-4" />
-                </Button>
-              </form>
-            ) : (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setShowAddMemberInput(true)}
-                className="w-full h-10 border-dashed text-xs gap-1.5 rounded-2xl text-muted-foreground hover:text-foreground mt-1"
+        {remaining > 0 && (
+          <section className='space-y-3'>
+            <div className='grid grid-cols-2 rounded-2xl bg-muted p-1'>
+              <button
+                className={cn(
+                  'min-h-11 rounded-xl text-sm font-semibold transition',
+                  mode === 'whole' && 'bg-card text-primary shadow-sm'
+                )}
+                onClick={() => setMode('whole')}
               >
-                <Plus className="size-4" /> Thêm thành viên khác vào danh sách chia tiền
-              </Button>
-            )}
-          </div>
-        </div>
+                Chia toàn hóa đơn
+              </button>
+              <button
+                className={cn(
+                  'min-h-11 rounded-xl text-sm font-semibold transition',
+                  mode === 'itemized' && 'bg-card text-primary shadow-sm'
+                )}
+                onClick={() => setMode('itemized')}
+              >
+                Chia từng món
+              </button>
+            </div>
 
-        <div className="pt-2 flex justify-end">
-          <Button onClick={handleNext} className="w-full sm:w-auto px-8 gap-2 font-semibold h-11 rounded-2xl shadow-md">
-            Xác nhận thông tin <ArrowRight className="size-4" />
+            <ExpenseItemEditor
+              key={`${mode}-${expense.items.length}`}
+              members={activeMembers}
+              defaultName={mode === 'whole' ? 'Toàn bộ hóa đơn' : ''}
+              defaultAmount={remaining}
+              isPending={saveItem.isPending}
+              onSave={({ name, amount, method, participants }) =>
+                saveItem.mutate({
+                  item: {
+                    expenseId,
+                    name,
+                    unit_price: amount,
+                    position: expense.items.length
+                  },
+                  split: { method, splits: participants }
+                })
+              }
+            />
+          </section>
+        )}
+
+        {overBy > 0 && (
+          <Card className='rounded-2xl border-destructive/30 bg-destructive/5 p-4 text-destructive'>
+            <p className='text-sm font-bold'>Tổng các món đang vượt hóa đơn {formatVnd(overBy)}</p>
+            <p className='mt-1 text-xs'>
+              Xóa món bị nhập dư rồi thêm lại với số tiền đúng để tiếp tục.
+            </p>
+          </Card>
+        )}
+
+        {itemsTotal === expenseTotal && (
+          <Card className='rounded-2xl border-secondary/25 bg-secondary/5 p-4'>
+            <div className='flex items-center gap-3'>
+              <ShoppingBasket className='size-5 text-secondary' />
+              <div>
+                <p className='text-sm font-bold'>Tổng các món đã khớp hóa đơn</p>
+                <p className='text-xs text-muted-foreground'>Bạn có thể sang bước kiểm tra cuối.</p>
+              </div>
+            </div>
+          </Card>
+        )}
+
+        <div className='sticky bottom-20 z-20 rounded-2xl border bg-card/95 p-3 shadow-xl backdrop-blur sm:bottom-4'>
+          <Button
+            className='h-12 w-full rounded-xl'
+            disabled={!canContinue}
+            onClick={() => router.push(`${PATHS.EXPENSES.CONFIRM}?expenseId=${expense.id}`)}
+          >
+            Kiểm tra khoản chi
+            <ArrowRight className='size-4' />
           </Button>
         </div>
       </main>
     </div>
+  )
+}
+
+export default function SplitExpensePage() {
+  return (
+    <React.Suspense
+      fallback={
+        <div className='grid min-h-screen place-items-center'>
+          <Loader2 className='size-6 animate-spin text-primary' />
+        </div>
+      }
+    >
+      <SplitExpenseContent />
+    </React.Suspense>
   )
 }
