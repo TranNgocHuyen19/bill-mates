@@ -41,7 +41,7 @@ export default function ProfilePage() {
     <div className="min-h-screen bg-background text-foreground flex flex-col font-sans">
       <Navbar />
 
-      <main className="flex-1 max-w-2xl w-full mx-auto px-4 py-4 sm:py-8 space-y-5 sm:space-y-6">
+      <main className="flex-1 max-w-2xl w-full mx-auto px-4 py-4 pb-24 sm:py-8 space-y-5 sm:space-y-6">
         <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground flex items-center gap-2">
           <User className="size-6 text-primary" /> Tài Khoản & Cài Đặt
         </h1>
