@@ -42,7 +42,7 @@ export function CreateRoomModal({ isOpen, onClose, onSubmit }: CreateRoomModalPr
         <form onSubmit={handleSubmit} className="space-y-4">
           <Input
             label="Tên phòng / Nhóm chi tiêu"
-            placeholder="VD: Phòng Trọ 101, Chuyến đi Đà Lạt"
+            placeholder="VD: Căn Hộ Homies, Chuyến đi Đà Lạt"
             value={roomName}
             onChange={(e) => setRoomName(e.target.value)}
             required
