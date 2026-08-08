@@ -2,16 +2,19 @@
 
 import * as React from 'react'
 import Link from 'next/link'
-import { Wallet, LogOut, User, Loader2, Home } from 'lucide-react'
+import { Wallet, LogOut, User, Loader2, Home, CreditCard, ChevronDown } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { useLogoutMutation } from '@/features/auth/queries'
 import type { User as SupabaseUser } from '@supabase/supabase-js'
 import { PATHS } from '@/constants'
+import { cn } from '@/lib/utils'
 
 export function Navbar() {
   const [user, setUser] = React.useState<SupabaseUser | null>(null)
   const [loading, setLoading] = React.useState(true)
+  const [isMenuOpen, setIsMenuOpen] = React.useState(false)
+  const menuRef = React.useRef<HTMLDivElement>(null)
   const logoutMutation = useLogoutMutation()
 
   React.useEffect(() => {
@@ -34,6 +37,17 @@ export function Navbar() {
     }
   }, [])
 
+  // Close dropdown menu when clicking outside
+  React.useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setIsMenuOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
+
   const userName = user?.user_metadata?.name || user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Thành viên'
 
   return (
@@ -52,34 +66,76 @@ export function Navbar() {
           <a href="#faq" className="hover:text-foreground transition-colors">Câu hỏi thường gặp</a>
         </nav>
 
-        <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
+        <div className="flex items-center gap-2 shrink-0">
           {loading ? (
             <div className="size-8 flex items-center justify-center">
               <Loader2 className="size-4 animate-spin text-muted-foreground" />
             </div>
           ) : user ? (
-            <div className="flex items-center gap-1.5 sm:gap-3">
-              <Button size="sm" className="gap-1 sm:gap-1.5 px-2.5 sm:px-3 text-xs font-semibold shrink-0" asChild>
-                <Link href={PATHS.ROOMS}>
-                  <Home className="size-3.5 sm:size-4" />
-                  <span className="hidden xs:inline">Vào App</span>
-                </Link>
-              </Button>
-              <Link href={PATHS.PROFILE} className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-xs font-semibold text-primary hover:bg-primary/20 transition-colors max-w-[100px] sm:max-w-[160px]">
-                <User className="size-3.5 shrink-0" />
-                <span className="truncate">{userName}</span>
-              </Link>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="p-2 sm:px-3 text-destructive hover:bg-destructive/10 shrink-0"
-                onClick={() => logoutMutation.mutate()}
-                disabled={logoutMutation.isPending}
-                title="Đăng xuất"
+            <div className="relative" ref={menuRef}>
+              <button
+                onClick={() => setIsMenuOpen(!isMenuOpen)}
+                className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 hover:bg-primary/20 text-xs font-semibold text-primary transition-all shadow-sm focus:outline-none"
               >
-                <LogOut className="size-3.5" />
-                <span className="hidden sm:inline">Đăng xuất</span>
-              </Button>
+                <div className="size-6 rounded-full bg-primary text-primary-foreground font-bold text-xs flex items-center justify-center">
+                  {userName.charAt(0).toUpperCase()}
+                </div>
+                <span className="max-w-[120px] truncate">{userName}</span>
+                <ChevronDown className={cn('size-3.5 transition-transform duration-200', isMenuOpen && 'rotate-180')} />
+              </button>
+
+              {/* Dropdown Menu */}
+              {isMenuOpen && (
+                <div className="absolute right-0 mt-2 w-56 bg-card border border-border rounded-2xl shadow-xl py-2 z-50 animate-in fade-in zoom-in-95">
+                  <div className="px-4 py-2 border-b border-border">
+                    <p className="text-xs font-bold text-foreground truncate">{userName}</p>
+                    <p className="text-[11px] text-muted-foreground truncate">{user.email}</p>
+                  </div>
+
+                  <div className="py-1">
+                    <Link
+                      href={PATHS.ROOMS}
+                      onClick={() => setIsMenuOpen(false)}
+                      className="flex items-center gap-2.5 px-4 py-2.5 text-xs font-semibold text-foreground hover:bg-primary/10 hover:text-primary transition-colors"
+                    >
+                      <Home className="size-4 text-primary" />
+                      <span>Vào ứng dụng (Phòng)</span>
+                    </Link>
+
+                    <Link
+                      href={PATHS.DEBTS.INDEX}
+                      onClick={() => setIsMenuOpen(false)}
+                      className="flex items-center gap-2.5 px-4 py-2.5 text-xs font-semibold text-foreground hover:bg-primary/10 hover:text-primary transition-colors"
+                    >
+                      <CreditCard className="size-4 text-primary" />
+                      <span>Quản lý công nợ</span>
+                    </Link>
+
+                    <Link
+                      href={PATHS.PROFILE}
+                      onClick={() => setIsMenuOpen(false)}
+                      className="flex items-center gap-2.5 px-4 py-2.5 text-xs font-semibold text-foreground hover:bg-primary/10 hover:text-primary transition-colors"
+                    >
+                      <User className="size-4 text-primary" />
+                      <span>Tài khoản & Cài đặt</span>
+                    </Link>
+                  </div>
+
+                  <div className="border-t border-border pt-1">
+                    <button
+                      onClick={() => {
+                        setIsMenuOpen(false)
+                        logoutMutation.mutate()
+                      }}
+                      disabled={logoutMutation.isPending}
+                      className="w-full flex items-center gap-2.5 px-4 py-2.5 text-xs font-semibold text-destructive hover:bg-destructive/10 transition-colors text-left"
+                    >
+                      <LogOut className="size-4" />
+                      <span>Đăng xuất</span>
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           ) : (
             <>
