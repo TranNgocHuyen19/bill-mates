@@ -1,243 +1,291 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import * as React from 'react'
+import {
+  ArrowLeft,
+  ChevronRight,
+  Crown,
+  FolderPlus,
+  Loader2,
+  Plus,
+  ReceiptText,
+  RefreshCw,
+  Share2,
+  ShieldCheck,
+  Trash2,
+  UserRound,
+  UsersRound
+} from 'lucide-react'
 import Link from 'next/link'
 import { useParams } from 'next/navigation'
-import { Plus, Users, Receipt, ArrowDownLeft, ChevronRight, Sparkles, Share2, FolderPlus, UserPlus } from 'lucide-react'
+
 import { Navbar } from '@/components/navbar'
+import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { showSuccessToast } from '@/lib/toast'
+import { Input } from '@/components/ui/input'
 import { PATHS } from '@/constants'
+import {
+  useCategoriesQuery,
+  useCreateCategoryMutation,
+  useCreateInviteMutation,
+  useRemoveMemberMutation,
+  useRoomDetailQuery,
+  useUpdateMemberRoleMutation,
+  type RoomRole
+} from '@/features/rooms'
+import { formatVnd } from '@/lib/money'
+import { showSuccessToast } from '@/lib/toast'
+
+const roleLabels: Record<RoomRole, string> = {
+  owner: 'Chủ phòng',
+  admin: 'Quản trị',
+  member: 'Thành viên'
+}
 
 export default function RoomDetailPage() {
-  const params = useParams()
-  const roomId = (params?.id as string) || ''
-  const [roomName, setRoomName] = useState<string>('')
+  const params = useParams<{ id: string }>()
+  const roomId = params.id
+  const roomQuery = useRoomDetailQuery(roomId)
+  const categoriesQuery = useCategoriesQuery(roomId)
+  const createInvite = useCreateInviteMutation(roomId)
+  const createCategory = useCreateCategoryMutation(roomId)
+  const updateRole = useUpdateMemberRoleMutation(roomId)
+  const removeMember = useRemoveMemberMutation(roomId)
+  const [showCategoryForm, setShowCategoryForm] = React.useState(false)
+  const room = roomQuery.data
+  const canManage = room?.role === 'owner' || room?.role === 'admin'
 
-  useEffect(() => {
-    if (typeof window !== 'undefined' && roomId) {
-      try {
-        const saved = localStorage.getItem('bill_mates_rooms_list')
-        if (saved) {
-          const list = JSON.parse(saved)
-          const found = list.find((r: { id: string; name: string }) => r.id === roomId)
-          if (found && found.name) {
-            setRoomName(found.name)
-            return
-          }
-        }
-      } catch (e) {
-        console.error('Failed to read room name from localStorage:', e)
+  const shareInvite = () => {
+    createInvite.mutate(undefined, {
+      onSuccess: async (invite) => {
+        const link = `${window.location.origin}/rooms/join/${invite.token}`
+        await navigator.clipboard.writeText(link)
+        showSuccessToast('Đã sao chép liên kết mời dùng trong 72 giờ.')
       }
-    }
-  }, [roomId])
-
-  // Dynamic state without mock data
-  const [members] = useState<
-    Array<{ name: string; role: string; balance: string; isPositive: boolean }>
-  >([{ name: 'Bạn (Trưởng phòng)', role: 'Trưởng phòng', balance: '0 ₫', isPositive: true }])
-
-  const [expenses] = useState<
-    Array<{
-      id: string
-      title: string
-      payer: string
-      amount: string
-      date: string
-      splitMethod: string
-      icon: string
-    }>
-  >([])
-
-  const totalExpensesAmount = expenses.reduce((acc, curr) => acc + parseInt(curr.amount.replace(/\D/g, '') || '0'), 0)
-
-  const handleShareInvite = () => {
-    if (navigator.clipboard) {
-      navigator.clipboard.writeText(`${window.location.origin}/rooms/join/${roomId}`)
-      showSuccessToast('Đã sao chép liên kết mời tham gia phòng!')
-    }
+    })
   }
 
-  const displayName = roomName || (roomId ? `Phòng #${roomId}` : 'Chi tiết phòng')
+  if (roomQuery.isPending) {
+    return (
+      <div className='grid min-h-screen place-items-center bg-background'>
+        <Loader2 className='size-7 animate-spin text-primary' aria-label='Đang tải phòng' />
+      </div>
+    )
+  }
+
+  if (!room) {
+    return (
+      <div className='grid min-h-screen place-items-center bg-background px-4'>
+        <Card className='max-w-md rounded-2xl p-7 text-center'>
+          <p className='font-bold'>Không mở được phòng này</p>
+          <p className='mt-1 text-sm text-muted-foreground'>Phòng không tồn tại hoặc bạn không còn quyền truy cập.</p>
+          <Button className='mt-4 rounded-xl' onClick={() => roomQuery.refetch()}>
+            <RefreshCw className='size-4' />
+            Thử lại
+          </Button>
+        </Card>
+      </div>
+    )
+  }
 
   return (
-    <div className='flex min-h-screen flex-col bg-background font-sans text-foreground'>
+    <div className='min-h-screen bg-background pb-24 text-foreground'>
       <Navbar />
+      <main className='mx-auto w-full max-w-5xl space-y-6 px-4 py-5 sm:px-6 sm:py-8'>
+        <Link
+          href={PATHS.ROOMS}
+          className='inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-muted-foreground hover:text-primary'
+        >
+          <ArrowLeft className='size-4' />
+          Tất cả phòng
+        </Link>
 
-      <main className='mx-auto w-full max-w-5xl flex-1 space-y-5 px-4 py-4 sm:space-y-6 sm:py-8'>
-        {/* Top Room Banner */}
-        <div className='flex flex-col justify-between gap-4 rounded-3xl border border-primary/20 bg-gradient-to-r from-primary/10 via-primary/5 to-transparent p-5 shadow-xs sm:flex-row sm:items-center sm:p-6'>
-          <div className='space-y-1'>
-            <div className='flex items-center gap-2'>
-              <Badge variant='default' className='text-xs'>
-                Mã phòng: {roomId || 'N/A'}
+        <section className='relative overflow-hidden rounded-3xl bg-[linear-gradient(135deg,#24389c,#3f51b5_68%,#006c49)] p-5 text-white shadow-xl shadow-primary/15 sm:p-7'>
+          <div className='absolute -top-16 -right-14 size-44 rounded-full border-[28px] border-white/5' />
+          <div className='relative flex items-start justify-between gap-4'>
+            <div className='min-w-0'>
+              <Badge className='border-white/20 bg-white/15 text-white hover:bg-white/15'>
+                {roleLabels[room.role]}
               </Badge>
-              <span className='text-xs text-muted-foreground'>{members.length} Thành viên</span>
+              <h1 className='mt-3 truncate text-2xl font-bold sm:text-3xl'>{room.name}</h1>
+              <p className='mt-1 max-w-xl text-sm leading-6 text-white/70'>
+                {room.description || 'Sổ chi phí chung của mọi thành viên trong phòng.'}
+              </p>
             </div>
-            <h1 className='text-xl font-bold tracking-tight text-foreground sm:text-3xl'>{displayName}</h1>
-            <p className='text-xs text-muted-foreground sm:text-sm'>
-              Quản lý hóa đơn chi tiêu & tính toán chia tiền nhóm tự động.
-            </p>
+            {canManage && (
+              <Button
+                variant='secondary'
+                size='sm'
+                className='relative h-11 shrink-0 rounded-xl'
+                onClick={shareInvite}
+                disabled={createInvite.isPending}
+              >
+                {createInvite.isPending ? <Loader2 className='size-4 animate-spin' /> : <Share2 className='size-4' />}
+                <span className='hidden sm:inline'>Mời thành viên</span>
+                <span className='sm:hidden'>Mời</span>
+              </Button>
+            )}
           </div>
-
-          <div className='flex items-center gap-2'>
-            <Button variant='outline' size='sm' className='h-10 gap-1.5 rounded-xl text-xs' onClick={handleShareInvite}>
-              <Share2 className='size-4' /> Mời bạn
-            </Button>
-            <Button
-              size='sm'
-              className='h-10 gap-1.5 rounded-xl text-xs font-semibold shadow-md shadow-primary/20'
-              asChild
-            >
-              <Link href={PATHS.EXPENSES.NEW}>
-                <Plus className='size-4' /> Thêm khoản chi
-              </Link>
-            </Button>
+          <div className='relative mt-6 grid grid-cols-2 gap-3'>
+            <div className='rounded-2xl bg-white/10 p-3 backdrop-blur'>
+              <p className='text-xs text-white/65'>Tổng chi đã chốt</p>
+              <p className='mt-1 text-xl font-bold'>{formatVnd(room.total_expenses)}</p>
+            </div>
+            <div className='rounded-2xl bg-white/10 p-3 backdrop-blur'>
+              <p className='text-xs text-white/65'>Thành viên hoạt động</p>
+              <p className='mt-1 text-xl font-bold'>{room.member_count}</p>
+            </div>
           </div>
-        </div>
+        </section>
 
-        {/* Financial Summary Cards */}
-        <div className='grid grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-4'>
-          <Card className='space-y-2 rounded-2xl border-emerald-500/30 bg-emerald-500/5 p-4 sm:p-5'>
+        <div className='grid gap-6 lg:grid-cols-[1.45fr_0.95fr]'>
+          <section className='space-y-3'>
             <div className='flex items-center justify-between'>
-              <span className='text-xs font-semibold uppercase text-muted-foreground'>Số tiền bạn nhận</span>
-              <div className='flex size-8 items-center justify-center rounded-full bg-emerald-500/20 text-emerald-600 dark:text-emerald-400'>
-                <ArrowDownLeft className='size-4' />
+              <div>
+                <h2 className='font-bold'>Khoản chi gần đây</h2>
+                <p className='text-xs text-muted-foreground'>Đơn nháp sẽ không được cộng vào tổng chi.</p>
               </div>
-            </div>
-            <div className='text-xl font-bold text-emerald-600 sm:text-2xl dark:text-emerald-400'>0 ₫</div>
-            <p className='text-[11px] text-muted-foreground'>Chưa có khoản nợ phát sinh</p>
-          </Card>
-
-          <Card className='space-y-2 rounded-2xl border-border bg-card p-4 sm:p-5'>
-            <div className='flex items-center justify-between'>
-              <span className='text-xs font-semibold uppercase text-muted-foreground'>Tổng chi tiêu nhóm</span>
-              <div className='flex size-8 items-center justify-center rounded-full bg-primary/20 text-primary'>
-                <Receipt className='size-4' />
-              </div>
-            </div>
-            <div className='text-xl font-bold text-foreground sm:text-2xl'>
-              {totalExpensesAmount > 0 ? `${totalExpensesAmount.toLocaleString()} ₫` : '0 ₫'}
-            </div>
-            <p className='text-[11px] text-muted-foreground'>{expenses.length} Hóa đơn đã tạo</p>
-          </Card>
-
-          <Card className='space-y-2 rounded-2xl border-amber-500/30 bg-amber-500/5 p-4 sm:p-5'>
-            <div className='flex items-center justify-between'>
-              <span className='text-xs font-semibold uppercase text-muted-foreground'>Tối ưu hóa dòng tiền</span>
-              <div className='flex size-8 items-center justify-center rounded-full bg-amber-500/20 text-amber-600 dark:text-amber-400'>
-                <Sparkles className='size-4' />
-              </div>
-            </div>
-            <div className='text-sm font-bold text-foreground'>0 Giao dịch cần xử lý</div>
-            <Button variant='link' size='sm' className='h-auto p-0 text-xs font-semibold text-primary' asChild>
-              <Link href={PATHS.DEBTS.INDEX}>
-                Chi tiết công nợ <ChevronRight className='size-3' />
-              </Link>
-            </Button>
-          </Card>
-        </div>
-
-        {/* Two Columns: Recent Expenses & Room Members */}
-        <div className='grid grid-cols-1 gap-5 sm:gap-6 lg:grid-cols-3'>
-          {/* Left Column: Recent Expenses */}
-          <div className='space-y-4 lg:col-span-2'>
-            <div className='flex items-center justify-between'>
-              <h2 className='flex items-center gap-2 text-base font-bold text-foreground sm:text-lg'>
-                <Receipt className='size-5 text-primary' /> Hóa đơn gần đây
-              </h2>
-              <Button variant='ghost' size="sm" className="text-xs" asChild>
-                <Link href={PATHS.EXPENSES.NEW}>+ Tạo mới</Link>
+              <Button asChild size='sm' className='rounded-xl'>
+                <Link href={`${PATHS.EXPENSES.NEW}?roomId=${room.id}`}>
+                  <Plus className='size-4' />
+                  Thêm khoản chi
+                </Link>
               </Button>
             </div>
+            <Card className='rounded-2xl border-dashed p-7 text-center'>
+              <span className='mx-auto grid size-12 place-items-center rounded-2xl bg-primary/10 text-primary'>
+                <ReceiptText className='size-6' />
+              </span>
+              <p className='mt-3 font-semibold'>Chưa có khoản chi đã chốt</p>
+              <p className='mt-1 text-xs text-muted-foreground'>
+                Các đơn nháp và hóa đơn sẽ xuất hiện tại đây sau khi module chi phí được kết nối.
+              </p>
+            </Card>
+            <Button variant='outline' className='h-11 w-full justify-between rounded-xl' asChild>
+              <Link href={PATHS.DEBTS.INDEX}>
+                Xem công nợ của phòng
+                <ChevronRight className='size-4' />
+              </Link>
+            </Button>
+          </section>
 
-            {expenses.length === 0 ? (
-              <Card className='flex flex-col items-center justify-center space-y-3 rounded-2xl border-2 border-dashed border-primary/20 bg-primary/5 p-6 text-center'>
-                <div className='flex size-12 items-center justify-center rounded-full bg-primary/10 text-primary'>
-                  <FolderPlus className='size-6' />
-                </div>
-                <div className='space-y-0.5'>
-                  <h3 className='text-sm font-bold text-foreground'>Chưa có hóa đơn nào</h3>
-                  <p className='text-xs text-muted-foreground'>
-                    Tạo khoản chi đầu tiên để phân chia tiền nhà, điện nước hoặc ăn uống.
-                  </p>
-                </div>
-                <Button size='sm' className='gap-1.5 rounded-xl font-semibold' asChild>
-                  <Link href={PATHS.EXPENSES.NEW}>
-                    <Plus className='size-4' /> Thêm khoản chi mới
-                  </Link>
-                </Button>
-              </Card>
-            ) : (
-              <div className='space-y-3'>
-                {expenses.map((exp) => (
-                  <Card
-                    key={exp.id}
-                    className='flex items-center justify-between gap-4 rounded-2xl p-4 transition-colors hover:border-primary/40'
-                  >
-                    <div className='flex items-center gap-3.5'>
-                      <div className='flex size-11 shrink-0 items-center justify-center rounded-2xl bg-muted text-xl'>
-                        {exp.icon}
-                      </div>
-                      <div>
-                        <h4 className='text-sm font-bold text-foreground'>{exp.title}</h4>
-                        <div className='mt-0.5 flex items-center gap-2 text-xs text-muted-foreground'>
-                          <span>
-                            Người chi: <strong>{exp.payer}</strong>
-                          </span>
-                          <span>•</span>
-                          <span>{exp.splitMethod}</span>
-                        </div>
-                      </div>
+          <section className='space-y-3'>
+            <h2 className='flex items-center gap-2 font-bold'>
+              <UsersRound className='size-5 text-primary' />
+              Thành viên
+            </h2>
+            <Card className='divide-y divide-border overflow-hidden rounded-2xl p-0'>
+              {room.members.map((member) => (
+                <div key={member.id} className='flex min-h-16 items-center gap-3 px-4 py-3'>
+                  <span className='grid size-10 shrink-0 place-items-center rounded-full bg-primary/10 font-bold text-primary'>
+                    {member.display_name.charAt(0).toUpperCase()}
+                  </span>
+                  <div className='min-w-0 flex-1'>
+                    <p className='truncate text-sm font-semibold'>{member.nickname || member.display_name}</p>
+                    <p className='truncate text-xs text-muted-foreground'>
+                      {roleLabels[member.role]} • {member.status}
+                    </p>
+                  </div>
+                  {member.role === 'owner' ? (
+                    <Crown className='size-4 text-amber-500' />
+                  ) : canManage ? (
+                    <div className='flex items-center gap-1'>
+                      {room.role === 'owner' && (
+                        <button
+                          className='text-outline grid size-9 place-items-center rounded-full hover:bg-primary/10 hover:text-primary'
+                          aria-label={member.role === 'admin' ? 'Đổi thành thành viên' : 'Đổi thành quản trị'}
+                          onClick={() =>
+                            updateRole.mutate({
+                              memberId: member.id,
+                              role: member.role === 'admin' ? 'member' : 'admin'
+                            })
+                          }
+                        >
+                          <ShieldCheck className='size-4' />
+                        </button>
+                      )}
+                      <button
+                        className='text-outline grid size-9 place-items-center rounded-full hover:bg-destructive/10 hover:text-destructive'
+                        aria-label={`Xóa ${member.display_name}`}
+                        onClick={() => {
+                          if (window.confirm(`Xóa ${member.display_name} khỏi phòng?`)) {
+                            removeMember.mutate(member.id)
+                          }
+                        }}
+                      >
+                        <Trash2 className='size-4' />
+                      </button>
                     </div>
+                  ) : (
+                    <UserRound className='text-outline size-4' />
+                  )}
+                </div>
+              ))}
+            </Card>
+          </section>
+        </div>
 
-                    <div className='shrink-0 text-right'>
-                      <span className='block text-sm font-bold text-foreground'>{exp.amount}</span>
-                      <span className='text-[11px] text-muted-foreground'>{exp.date}</span>
-                    </div>
-                  </Card>
-                ))}
-              </div>
+        <section className='space-y-3'>
+          <div className='flex items-center justify-between'>
+            <div>
+              <h2 className='font-bold'>Danh mục chi tiêu</h2>
+              <p className='text-xs text-muted-foreground'>Dùng chung cho mọi hóa đơn trong phòng.</p>
+            </div>
+            {canManage && (
+              <Button variant='outline' size='sm' className='rounded-xl' onClick={() => setShowCategoryForm((v) => !v)}>
+                {showCategoryForm ? 'Đóng' : 'Thêm'}
+              </Button>
             )}
           </div>
 
-          {/* Right Column: Room Members */}
-          <div className='space-y-4'>
-            <div className='flex items-center justify-between'>
-              <h2 className='flex items-center gap-2 text-base font-bold text-foreground sm:text-lg'>
-                <Users className='size-5 text-primary' /> Thành viên ({members.length})
-              </h2>
-            </div>
-
-            <Card className='space-y-3 rounded-2xl p-4'>
-              {members.map((m, idx) => (
-                <div key={idx} className='flex items-center justify-between border-b border-border py-2 last:border-0'>
-                  <div>
-                    <span className='block text-sm font-semibold text-foreground'>{m.name}</span>
-                    <span className='text-xs text-muted-foreground'>{m.role}</span>
-                  </div>
-
-                  <span
-                    className={`text-xs font-bold ${m.balance === '0 ₫' ? 'text-muted-foreground' : m.isPositive ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}
-                  >
-                    {m.balance}
-                  </span>
-                </div>
-              ))}
-
-              <Button
-                variant='outline'
-                size='sm'
-                className='mt-2 h-10 w-full gap-1.5 rounded-xl text-xs'
-                onClick={handleShareInvite}
+          {showCategoryForm && (
+            <Card className='rounded-2xl p-4'>
+              <form
+                className='flex flex-col gap-3 sm:flex-row'
+                onSubmit={(event) => {
+                  event.preventDefault()
+                  const form = new FormData(event.currentTarget)
+                  createCategory.mutate(
+                    {
+                      name: String(form.get('name')).trim(),
+                      icon: 'shapes',
+                      color: '#3f51b5'
+                    },
+                    {
+                      onSuccess: () => {
+                        event.currentTarget.reset()
+                        setShowCategoryForm(false)
+                      }
+                    }
+                  )
+                }}
               >
-                <UserPlus className='size-4 text-primary' /> Mời bạn cùng phòng
-              </Button>
+                <Input name='name' placeholder='Tên danh mục mới' required className='flex-1' />
+                <Button className='h-11 rounded-xl' disabled={createCategory.isPending}>
+                  {createCategory.isPending ? (
+                    <Loader2 className='size-4 animate-spin' />
+                  ) : (
+                    <FolderPlus className='size-4' />
+                  )}
+                  Lưu danh mục
+                </Button>
+              </form>
             </Card>
+          )}
+
+          <div className='flex flex-wrap gap-2'>
+            {categoriesQuery.data?.map((category) => (
+              <span
+                key={category.id}
+                className='rounded-full border bg-card px-3 py-2 text-xs font-semibold'
+                style={{ borderColor: category.color ?? undefined }}
+              >
+                {category.name}
+              </span>
+            ))}
           </div>
-        </div>
+        </section>
       </main>
     </div>
   )

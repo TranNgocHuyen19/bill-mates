@@ -1,75 +1,457 @@
-from typing import Any
-from src.rooms.schemas import RoomCreate, AddMemberInput
-from src.supabase import supabase_db
+import secrets
+from datetime import UTC, datetime, timedelta
+from decimal import Decimal
+from uuid import UUID
+
+from fastapi import status
+from sqlalchemy import func, select
+from sqlalchemy.exc import IntegrityError
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from src.activity.models import ActivityLog
+from src.exceptions import AppError
+from src.expenses.models import Expense
+from src.models import ExpenseStatus, InviteStatus, MembershipStatus, RoomRole
+from src.rooms import repository
+from src.rooms.models import Category, Room, RoomInvite, RoomMember
+from src.rooms.schemas import (
+    CategoryCreate,
+    CategoryUpdate,
+    InviteCreate,
+    MemberRoleUpdate,
+    RoomCreate,
+    RoomDetail,
+    RoomMemberResponse,
+    RoomSummary,
+    RoomUpdate,
+)
+from src.users.dependencies import AuthenticatedUser
+from src.users.service import UserService
+
+MANAGER_ROLES = {RoomRole.OWNER, RoomRole.ADMIN}
+DEFAULT_CATEGORIES = (
+    ("Ăn uống", "utensils", "#006c49"),
+    ("Điện nước", "zap", "#24389c"),
+    ("Nhà ở", "house", "#a33236"),
+    ("Khác", "shapes", "#757684"),
+)
+
+
+def _summary(
+    room: Room,
+    membership: RoomMember,
+    member_count: int,
+    total_expenses: Decimal,
+) -> RoomSummary:
+    return RoomSummary(
+        id=room.id,
+        name=room.name,
+        description=room.description,
+        currency=room.currency,
+        role=membership.role,
+        status=membership.status,
+        member_count=member_count,
+        total_expenses=total_expenses,
+        archived_at=room.archived_at,
+    )
+
+
+async def _active_membership(
+    session: AsyncSession,
+    room_id: UUID,
+    profile_id: UUID,
+    *,
+    roles: set[RoomRole] | None = None,
+) -> RoomMember:
+    membership = await repository.get_membership(session, room_id, profile_id)
+    if membership is None or membership.status != MembershipStatus.ACTIVE:
+        raise AppError(
+            code="room_access_denied",
+            message="Bạn không phải thành viên đang hoạt động của phòng này.",
+            status_code=status.HTTP_403_FORBIDDEN,
+        )
+    if roles is not None and membership.role not in roles:
+        raise AppError(
+            code="room_role_required",
+            message="Bạn không có quyền thực hiện thao tác này.",
+            status_code=status.HTTP_403_FORBIDDEN,
+        )
+    return membership
 
 
 class RoomService:
-    """Service for handling Room CRUD operations on Supabase DB."""
+    @staticmethod
+    async def list_rooms(
+        session: AsyncSession,
+        user: AuthenticatedUser,
+    ) -> list[RoomSummary]:
+        await UserService.get_or_create_profile(session, user)
+        rows = await repository.list_room_rows(session, user.id)
+        return [_summary(*row) for row in rows]
 
     @staticmethod
-    async def get_user_rooms(user_id: str) -> list[dict[str, Any]]:
-        # Fetch real rooms from Supabase DB
-        db_rooms = await supabase_db.select("rooms", {"select": "*", "order": "created_at.desc"})
+    async def create_room(
+        session: AsyncSession,
+        user: AuthenticatedUser,
+        data: RoomCreate,
+    ) -> RoomSummary:
+        await UserService.get_or_create_profile(session, user)
+        room = Room(
+            name=data.name.strip(),
+            description=data.description,
+            currency=data.currency.upper(),
+            created_by_profile_id=user.id,
+        )
+        session.add(room)
+        await session.flush()
 
-        if db_rooms:
-            return db_rooms
-
-        # Fallback default room data if database tables are newly provisioned
-        return [
-            {
-                "id": "101",
-                "name": "Phòng Trọ 101 - Căn Hộ Homies",
-                "address": "123 Nguyễn Văn Bảo, Gò Vấp, TP.HCM",
-                "membersCount": 4,
-                "totalExpenses": "4.250.000 ₫",
-                "userBalance": "+ 320.000 ₫",
-                "isOwed": True,
-                "lastActivity": "Hôm qua: Tiền điện tháng 8"
-            },
-            {
-                "id": "dalat-2026",
-                "name": "Chuyến Đi Đà Lạt 3N2Đ",
-                "address": "Phường 10, Đà Lạt",
-                "membersCount": 6,
-                "totalExpenses": "8.900.000 ₫",
-                "userBalance": "- 150.000 ₫",
-                "isOwed": False,
-                "lastActivity": "3 ngày trước: Tiền thuê xe máy"
-            }
-        ]
-
-    @staticmethod
-    async def get_room_detail(room_id: str) -> dict[str, Any]:
-        db_room = await supabase_db.select("rooms", {"id": f"eq.{room_id}"})
-        room_info = db_room[0] if db_room else None
-
-        return {
-            "id": room_id,
-            "name": room_info.get("name") if room_info else "Phòng Trọ 101 - Căn Hộ Homies",
-            "address": room_info.get("address") if room_info else "123 Nguyễn Văn Bảo, Phường 4, Gò Vấp, TP.HCM",
-            "membersCount": 4,
-            "totalExpenses": "2.270.000 ₫",
-            "userBalance": "+ 320.000 ₫",
-            "members": [
-                {"name": "Huyên (Bạn)", "role": "Trưởng phòng", "balance": "+ 320.000 ₫", "isPositive": True},
-                {"name": "Tuấn Anh", "role": "Thành viên", "balance": "- 180.000 ₫", "isPositive": False},
-                {"name": "Bảo Nam", "role": "Thành viên", "balance": "- 140.000 ₫", "isPositive": False},
-                {"name": "Minh Hoàng", "role": "Thành viên", "balance": "0 ₫", "isPositive": True}
+        owner = RoomMember(
+            room_id=room.id,
+            profile_id=user.id,
+            role=RoomRole.OWNER,
+            status=MembershipStatus.ACTIVE,
+            joined_at=datetime.now(UTC),
+        )
+        session.add(owner)
+        session.add_all(
+            [
+                Category(room_id=room.id, name=name, icon=icon, color=color)
+                for name, icon, color in DEFAULT_CATEGORIES
             ]
-        }
+        )
+        session.add(
+            ActivityLog(
+                room_id=room.id,
+                actor_profile_id=user.id,
+                action="room.created",
+                entity_type="room",
+                entity_id=room.id,
+                new_values={"name": room.name, "currency": room.currency},
+            )
+        )
+        await session.commit()
+        return _summary(room, owner, 1, Decimal(0))
 
     @staticmethod
-    async def create_room(data: RoomCreate, user_id: str) -> dict[str, Any]:
-        # Insert real room record into Supabase DB
-        new_room = {
-            "name": data.name,
-            "address": data.address or "",
-            "owner_id": user_id
-        }
-        result = await supabase_db.insert("rooms", new_room)
+    async def get_room_detail(
+        session: AsyncSession,
+        user: AuthenticatedUser,
+        room_id: UUID,
+    ) -> RoomDetail:
+        membership = await _active_membership(session, room_id, user.id)
+        room = await repository.get_room(session, room_id)
+        if room is None:
+            raise AppError(
+                code="room_not_found",
+                message="Không tìm thấy phòng.",
+                status_code=status.HTTP_404_NOT_FOUND,
+            )
+        rows = await repository.list_member_rows(session, room_id)
+        members = [
+            RoomMemberResponse(
+                id=member.id,
+                profile_id=profile.id,
+                display_name=profile.display_name,
+                email=profile.email,
+                nickname=member.nickname,
+                role=member.role,
+                status=member.status,
+                joined_at=member.joined_at,
+            )
+            for member, profile in rows
+        ]
+        total = await session.scalar(
+            select(func.coalesce(func.sum(Expense.total_amount), 0)).where(
+                Expense.room_id == room_id,
+                Expense.status == ExpenseStatus.POSTED,
+            )
+        )
+        summary = _summary(
+            room,
+            membership,
+            sum(member.status == MembershipStatus.ACTIVE for member, _ in rows),
+            total,
+        )
+        return RoomDetail(**summary.model_dump(), members=members)
 
-        return {
-            "status": "success",
-            "message": f"Đã lưu phòng '{data.name}' vào CSDL Supabase.",
-            "data": result[0] if result else new_room
+    @staticmethod
+    async def update_room(
+        session: AsyncSession,
+        user: AuthenticatedUser,
+        room_id: UUID,
+        data: RoomUpdate,
+    ) -> RoomDetail:
+        await _active_membership(session, room_id, user.id, roles=MANAGER_ROLES)
+        room = await repository.get_room(session, room_id)
+        if room is None:
+            raise AppError(
+                code="room_not_found",
+                message="Không tìm thấy phòng.",
+                status_code=status.HTTP_404_NOT_FOUND,
+            )
+        old_values = {
+            "name": room.name,
+            "description": room.description,
+            "currency": room.currency,
         }
+        for field, value in data.model_dump(exclude_unset=True).items():
+            setattr(
+                room, field, value.upper() if field == "currency" and value else value
+            )
+        session.add(
+            ActivityLog(
+                room_id=room.id,
+                actor_profile_id=user.id,
+                action="room.updated",
+                entity_type="room",
+                entity_id=room.id,
+                old_values=old_values,
+                new_values=data.model_dump(exclude_unset=True),
+            )
+        )
+        await session.commit()
+        return await RoomService.get_room_detail(session, user, room_id)
+
+    @staticmethod
+    async def archive_room(
+        session: AsyncSession,
+        user: AuthenticatedUser,
+        room_id: UUID,
+    ) -> None:
+        await _active_membership(session, room_id, user.id, roles={RoomRole.OWNER})
+        room = await repository.get_room(session, room_id)
+        if room is None:
+            raise AppError(
+                code="room_not_found",
+                message="Không tìm thấy phòng.",
+                status_code=status.HTTP_404_NOT_FOUND,
+            )
+        room.archived_at = datetime.now(UTC)
+        session.add(
+            ActivityLog(
+                room_id=room.id,
+                actor_profile_id=user.id,
+                action="room.archived",
+                entity_type="room",
+                entity_id=room.id,
+            )
+        )
+        await session.commit()
+
+    @staticmethod
+    async def create_invite(
+        session: AsyncSession,
+        user: AuthenticatedUser,
+        room_id: UUID,
+        data: InviteCreate,
+    ) -> RoomInvite:
+        membership = await _active_membership(
+            session,
+            room_id,
+            user.id,
+            roles=MANAGER_ROLES,
+        )
+        invite = RoomInvite(
+            room_id=room_id,
+            created_by_member_id=membership.id,
+            token=secrets.token_urlsafe(32),
+            expires_at=datetime.now(UTC) + timedelta(hours=data.expires_in_hours),
+            max_uses=data.max_uses,
+        )
+        session.add(invite)
+        await session.commit()
+        await session.refresh(invite)
+        return invite
+
+    @staticmethod
+    async def join_room(
+        session: AsyncSession,
+        user: AuthenticatedUser,
+        token: str,
+    ) -> RoomMember:
+        await UserService.get_or_create_profile(session, user)
+        invite = await repository.get_invite_for_update(session, token)
+        now = datetime.now(UTC)
+        expires_at = invite.expires_at if invite is not None else None
+        if expires_at is not None and expires_at.tzinfo is None:
+            expires_at = expires_at.replace(tzinfo=UTC)
+        if (
+            invite is None
+            or invite.status != InviteStatus.ACTIVE
+            or expires_at is None
+            or expires_at <= now
+            or invite.use_count >= invite.max_uses
+        ):
+            raise AppError(
+                code="invite_invalid",
+                message="Lời mời đã hết hạn, bị thu hồi hoặc hết lượt sử dụng.",
+                status_code=status.HTTP_410_GONE,
+            )
+
+        membership = await repository.get_membership(session, invite.room_id, user.id)
+        if membership is not None:
+            if membership.status == MembershipStatus.REMOVED:
+                raise AppError(
+                    code="membership_removed",
+                    message="Bạn đã bị xóa khỏi phòng và không thể dùng lời mời này.",
+                    status_code=status.HTTP_403_FORBIDDEN,
+                )
+            membership.status = MembershipStatus.ACTIVE
+            membership.joined_at = now
+        else:
+            membership = RoomMember(
+                room_id=invite.room_id,
+                profile_id=user.id,
+                role=RoomRole.MEMBER,
+                status=MembershipStatus.ACTIVE,
+                joined_at=now,
+            )
+            session.add(membership)
+
+        invite.use_count += 1
+        if invite.use_count >= invite.max_uses:
+            invite.status = InviteStatus.EXPIRED
+        await session.commit()
+        await session.refresh(membership)
+        return membership
+
+    @staticmethod
+    async def update_member_role(
+        session: AsyncSession,
+        user: AuthenticatedUser,
+        room_id: UUID,
+        member_id: UUID,
+        data: MemberRoleUpdate,
+    ) -> None:
+        actor = await _active_membership(session, room_id, user.id, roles=MANAGER_ROLES)
+        member = await session.get(RoomMember, member_id)
+        if member is None or member.room_id != room_id:
+            raise AppError(
+                code="member_not_found",
+                message="Không tìm thấy thành viên.",
+                status_code=status.HTTP_404_NOT_FOUND,
+            )
+        if data.role == RoomRole.OWNER or member.role == RoomRole.OWNER:
+            raise AppError(
+                code="owner_transfer_required",
+                message="Cần dùng luồng chuyển chủ phòng riêng.",
+                status_code=status.HTTP_409_CONFLICT,
+            )
+        if actor.role == RoomRole.ADMIN and data.role != RoomRole.MEMBER:
+            raise AppError(
+                code="owner_role_required",
+                message="Chỉ chủ phòng được cấp quyền quản trị.",
+                status_code=status.HTTP_403_FORBIDDEN,
+            )
+        member.role = data.role
+        await session.commit()
+
+    @staticmethod
+    async def leave_room(
+        session: AsyncSession,
+        user: AuthenticatedUser,
+        room_id: UUID,
+    ) -> None:
+        membership = await _active_membership(session, room_id, user.id)
+        if membership.role == RoomRole.OWNER:
+            raise AppError(
+                code="owner_cannot_leave",
+                message="Chủ phòng cần chuyển quyền trước khi rời phòng.",
+                status_code=status.HTTP_409_CONFLICT,
+            )
+        membership.status = MembershipStatus.LEFT
+        session.add(
+            ActivityLog(
+                room_id=room_id,
+                actor_profile_id=user.id,
+                action="member.left",
+                entity_type="room_member",
+                entity_id=membership.id,
+            )
+        )
+        await session.commit()
+
+    @staticmethod
+    async def remove_member(
+        session: AsyncSession,
+        user: AuthenticatedUser,
+        room_id: UUID,
+        member_id: UUID,
+    ) -> None:
+        await _active_membership(session, room_id, user.id, roles=MANAGER_ROLES)
+        member = await session.get(RoomMember, member_id)
+        if member is None or member.room_id != room_id:
+            raise AppError(
+                code="member_not_found",
+                message="Không tìm thấy thành viên.",
+                status_code=status.HTTP_404_NOT_FOUND,
+            )
+        if member.role == RoomRole.OWNER:
+            raise AppError(
+                code="owner_cannot_be_removed",
+                message="Không thể xóa chủ phòng.",
+                status_code=status.HTTP_409_CONFLICT,
+            )
+        member.status = MembershipStatus.REMOVED
+        session.add(
+            ActivityLog(
+                room_id=room_id,
+                actor_profile_id=user.id,
+                action="member.removed",
+                entity_type="room_member",
+                entity_id=member.id,
+            )
+        )
+        await session.commit()
+
+    @staticmethod
+    async def list_categories(
+        session: AsyncSession,
+        user: AuthenticatedUser,
+        room_id: UUID,
+    ) -> list[Category]:
+        await _active_membership(session, room_id, user.id)
+        return await repository.list_categories(session, room_id)
+
+    @staticmethod
+    async def create_category(
+        session: AsyncSession,
+        user: AuthenticatedUser,
+        room_id: UUID,
+        data: CategoryCreate,
+    ) -> Category:
+        await _active_membership(session, room_id, user.id, roles=MANAGER_ROLES)
+        category = Category(room_id=room_id, **data.model_dump())
+        session.add(category)
+        try:
+            await session.commit()
+        except IntegrityError as exc:
+            raise AppError(
+                code="category_name_exists",
+                message="Tên danh mục đã tồn tại trong phòng.",
+                status_code=status.HTTP_409_CONFLICT,
+            ) from exc
+        await session.refresh(category)
+        return category
+
+    @staticmethod
+    async def update_category(
+        session: AsyncSession,
+        user: AuthenticatedUser,
+        room_id: UUID,
+        category_id: UUID,
+        data: CategoryUpdate,
+    ) -> Category:
+        await _active_membership(session, room_id, user.id, roles=MANAGER_ROLES)
+        category = await session.get(Category, category_id)
+        if category is None or category.room_id != room_id:
+            raise AppError(
+                code="category_not_found",
+                message="Không tìm thấy danh mục.",
+                status_code=status.HTTP_404_NOT_FOUND,
+            )
+        for field, value in data.model_dump(exclude_unset=True).items():
+            setattr(category, field, value)
+        await session.commit()
+        await session.refresh(category)
+        return category

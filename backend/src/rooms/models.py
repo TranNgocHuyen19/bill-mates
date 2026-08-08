@@ -105,7 +105,9 @@ class RoomInvite(UUIDPrimaryKeyMixin, TimestampMixin, Base):
         nullable=False,
         default=InviteStatus.ACTIVE,
     )
-    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    expires_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False
+    )
     max_uses: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
     use_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
 
