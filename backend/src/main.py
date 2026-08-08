@@ -1,7 +1,13 @@
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from src.config import settings
-from src.users.dependencies import get_current_user
+
+# Import Domain Routers
+from src.auth.router import router as auth_router
+from src.users.router import router as users_router
+from src.rooms.router import router as rooms_router
+from src.expenses.router import router as expenses_router
+from src.debts.router import router as debts_router
 
 # Initialize FastAPI application
 app = FastAPI(
@@ -20,31 +26,12 @@ app.add_middleware(
 
 # Root status check endpoint
 @app.get("/")
-async def read_root():
+async def read_root() -> dict[str, str]:
     return {"message": f"Welcome to {settings.PROJECT_NAME} API!"}
 
-# Get current user profile endpoint
-@app.get(f"{settings.API_V1_STR}/auth/me")
-async def get_me(current_user: dict = Depends(get_current_user)):
-    return {
-        "status": "success",
-        "data": current_user
-    }
-
-# Backend Auth Login Endpoint
-@app.post(f"{settings.API_V1_STR}/auth/login")
-async def auth_login(data: dict):
-    return {
-        "status": "success",
-        "message": "Auth login endpoint ready. Auth is verified via Supabase Token."
-    }
-
-# Backend Auth Register Endpoint
-@app.post(f"{settings.API_V1_STR}/auth/register")
-async def auth_register(data: dict):
-    return {
-        "status": "success",
-        "message": "Auth register endpoint ready."
-    }
-
-
+# Register Domain Routers under /api/v1
+app.include_router(auth_router, prefix=settings.API_V1_STR)
+app.include_router(users_router, prefix=settings.API_V1_STR)
+app.include_router(rooms_router, prefix=settings.API_V1_STR)
+app.include_router(expenses_router, prefix=settings.API_V1_STR)
+app.include_router(debts_router, prefix=settings.API_V1_STR)
