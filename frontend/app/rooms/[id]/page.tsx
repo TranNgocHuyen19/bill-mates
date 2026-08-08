@@ -13,14 +13,33 @@ import { PATHS } from '@/constants'
 
 export default function RoomDetailPage() {
   const params = useParams()
-  const roomId = params?.id || '101'
+  const roomId = (params?.id as string) || ''
+  const [roomName, setRoomName] = React.useState<string>('')
+
+  React.useEffect(() => {
+    if (typeof window !== 'undefined' && roomId) {
+      try {
+        const saved = localStorage.getItem('bill_mates_rooms_list')
+        if (saved) {
+          const list = JSON.parse(saved)
+          const found = list.find((r: { id: string; name: string }) => r.id === roomId)
+          if (found && found.name) {
+            setRoomName(found.name)
+            return
+          }
+        }
+      } catch (e) {
+        console.error('Failed to read room name from localStorage:', e)
+      }
+    }
+  }, [roomId])
 
   // Dynamic state without mock data
-  const [members, setMembers] = React.useState<
+  const [members] = React.useState<
     Array<{ name: string; role: string; balance: string; isPositive: boolean }>
   >([{ name: 'Bạn (Trưởng phòng)', role: 'Trưởng phòng', balance: '0 ₫', isPositive: true }])
 
-  const [expenses, setExpenses] = React.useState<
+  const [expenses] = React.useState<
     Array<{
       id: string
       title: string
@@ -41,6 +60,8 @@ export default function RoomDetailPage() {
     }
   }
 
+  const displayName = roomName || (roomId ? `Phòng #${roomId}` : 'Chi tiết phòng')
+
   return (
     <div className='flex min-h-screen flex-col bg-background font-sans text-foreground'>
       <Navbar />
@@ -51,11 +72,11 @@ export default function RoomDetailPage() {
           <div className='space-y-1'>
             <div className='flex items-center gap-2'>
               <Badge variant='default' className='text-xs'>
-                Mã phòng #{roomId}
+                Mã phòng: {roomId || 'N/A'}
               </Badge>
               <span className='text-xs text-muted-foreground'>{members.length} Thành viên</span>
             </div>
-            <h1 className='text-xl font-bold tracking-tight text-foreground sm:text-3xl'>Phòng Trọ #{roomId}</h1>
+            <h1 className='text-xl font-bold tracking-tight text-foreground sm:text-3xl'>{displayName}</h1>
             <p className='text-xs text-muted-foreground sm:text-sm'>
               Quản lý hóa đơn chi tiêu & tính toán chia tiền nhóm tự động.
             </p>
@@ -81,7 +102,7 @@ export default function RoomDetailPage() {
         <div className='grid grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-4'>
           <Card className='space-y-2 rounded-2xl border-emerald-500/30 bg-emerald-500/5 p-4 sm:p-5'>
             <div className='flex items-center justify-between'>
-              <span className='text-xs font-semibold text-muted-foreground uppercase'>Số tiền bạn nhận</span>
+              <span className='text-xs font-semibold uppercase text-muted-foreground'>Số tiền bạn nhận</span>
               <div className='flex size-8 items-center justify-center rounded-full bg-emerald-500/20 text-emerald-600 dark:text-emerald-400'>
                 <ArrowDownLeft className='size-4' />
               </div>
@@ -92,7 +113,7 @@ export default function RoomDetailPage() {
 
           <Card className='space-y-2 rounded-2xl border-border bg-card p-4 sm:p-5'>
             <div className='flex items-center justify-between'>
-              <span className='text-xs font-semibold text-muted-foreground uppercase'>Tổng chi tiêu nhóm</span>
+              <span className='text-xs font-semibold uppercase text-muted-foreground'>Tổng chi tiêu nhóm</span>
               <div className='flex size-8 items-center justify-center rounded-full bg-primary/20 text-primary'>
                 <Receipt className='size-4' />
               </div>
@@ -105,7 +126,7 @@ export default function RoomDetailPage() {
 
           <Card className='space-y-2 rounded-2xl border-amber-500/30 bg-amber-500/5 p-4 sm:p-5'>
             <div className='flex items-center justify-between'>
-              <span className='text-xs font-semibold text-muted-foreground uppercase'>Tối ưu hóa dòng tiền</span>
+              <span className='text-xs font-semibold uppercase text-muted-foreground'>Tối ưu hóa dòng tiền</span>
               <div className='flex size-8 items-center justify-center rounded-full bg-amber-500/20 text-amber-600 dark:text-amber-400'>
                 <Sparkles className='size-4' />
               </div>
@@ -127,7 +148,7 @@ export default function RoomDetailPage() {
               <h2 className='flex items-center gap-2 text-base font-bold text-foreground sm:text-lg'>
                 <Receipt className='size-5 text-primary' /> Hóa đơn gần đây
               </h2>
-              <Button variant='ghost' size='sm' className='text-xs' asChild>
+              <Button variant='ghost' size="sm" className="text-xs" asChild>
                 <Link href={PATHS.EXPENSES.NEW}>+ Tạo mới</Link>
               </Button>
             </div>
