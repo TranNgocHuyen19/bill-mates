@@ -3,7 +3,7 @@
 import * as React from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Home, Receipt, Plus, CreditCard, User } from 'lucide-react'
+import { Home, Plus, CreditCard, User } from 'lucide-react'
 import { PATHS } from '@/constants'
 import { cn } from '@/lib/utils'
 
@@ -18,7 +18,7 @@ export function BottomNav() {
   const navItems = [
     {
       label: 'Tổng quan',
-      href: PATHS.ROOM_DETAIL('101'),
+      href: PATHS.ROOMS,
       icon: Home,
       isActive: pathname.startsWith('/rooms') || pathname === '/'
     },

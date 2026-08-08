@@ -1,7 +1,7 @@
 export const PATHS = {
   HOME: '/',
   ROOMS: '/rooms',
-  ROOM_DETAIL: (id: string = '101') => `/rooms/${id}`,
+  ROOM_DETAIL: (id: string) => `/rooms/${id}`,
   EXPENSES: {
     NEW: '/expenses/new',
     SPLIT: '/expenses/new/split',
