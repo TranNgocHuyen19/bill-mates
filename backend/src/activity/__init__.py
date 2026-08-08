@@ -1,0 +1,1 @@
+"""Room activity log domain."""
