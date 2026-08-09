@@ -16,9 +16,9 @@ $publicUrl = "https://$dnsName"
 & $tailscale.Source serve reset
 & $tailscale.Source serve --bg http://127.0.0.1:3000
 & $tailscale.Source serve --bg --set-path /api http://127.0.0.1:8000/api
-& $tailscale.Source serve --bg --set-path /auth http://127.0.0.1:55421/auth
-& $tailscale.Source serve --bg --set-path /rest http://127.0.0.1:55421/rest
-& $tailscale.Source serve --bg --set-path /storage http://127.0.0.1:55421/storage
+& $tailscale.Source serve --bg --set-path /auth/v1 http://127.0.0.1:55421/auth/v1
+& $tailscale.Source serve --bg --set-path /rest/v1 http://127.0.0.1:55421/rest/v1
+& $tailscale.Source serve --bg --set-path /storage/v1 http://127.0.0.1:55421/storage/v1
 
 $serveStatus = & $tailscale.Source serve status --json
 if (-not $serveStatus -or $serveStatus.Trim() -eq "{}") {

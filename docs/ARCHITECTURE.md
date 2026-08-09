@@ -14,7 +14,7 @@ BillMates tách frontend và backend nhưng dùng chung Supabase chạy local:
 | OCR        | PaddleOCR                                      | Đọc dòng chữ và gợi ý món từ ảnh bill                 |
 
 Tất cả thành phần chạy trên cùng máy Windows. Tailscale Serve cung cấp HTTPS riêng và định
-tuyến `/` vào Next.js, `/api` vào FastAPI, còn `/auth`, `/storage`, `/rest` vào Supabase local.
+tuyến `/` vào Next.js, `/api` vào FastAPI, còn `/auth/v1`, `/storage/v1`, `/rest/v1` vào Supabase local.
 Không có route cho PostgreSQL hoặc Supabase Studio, và Tailscale Funnel luôn tắt.
 
 ## 2. Một request đi qua hệ thống như thế nào?

@@ -20,9 +20,9 @@ Các cổng Supabase dùng dải `5542x` vì Windows/Hyper-V có thể dành ri�
 ```text
 /                 -> http://127.0.0.1:3000
 /api/*            -> http://127.0.0.1:8000/api/*
-/auth/*           -> http://127.0.0.1:55421/auth/*
-/storage/*        -> http://127.0.0.1:55421/storage/*
-/rest/*           -> http://127.0.0.1:55421/rest/*
+/auth/v1/*        -> http://127.0.0.1:55421/auth/v1/*
+/storage/v1/*     -> http://127.0.0.1:55421/storage/v1/*
+/rest/v1/*        -> http://127.0.0.1:55421/rest/v1/*
 ```
 
 Không bật Tailscale Funnel. Studio, Mailpit và PostgreSQL không được gắn route Tailscale.

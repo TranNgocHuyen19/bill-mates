@@ -49,7 +49,7 @@ qua. File `.env` cũ không bị ghi đè.
                   v
       https://msi.tail41bfb8.ts.net
           |        |        |
-          |        |        +-- /auth, /storage, /rest
+          |        |        +-- /auth/v1, /storage/v1, /rest/v1
           |        |                   -> Supabase local :55421
           |        +----------- /api -> FastAPI :8000 -> PaddleOCR
           +------------------------- / -> Next.js :3000
