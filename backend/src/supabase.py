@@ -9,7 +9,7 @@ class SupabaseClient:
     """Async Client for interacting directly with Supabase Database (PostgREST API)."""
 
     def __init__(self) -> None:
-        self.base_url = f"{settings.SUPABASE_URL}/rest/v1"
+        self.base_url = f"{settings.supabase_api_url}/rest/v1"
         self.headers = {
             "apikey": settings.SUPABASE_SERVICE_ROLE_KEY,
             "Authorization": f"Bearer {settings.SUPABASE_SERVICE_ROLE_KEY}",

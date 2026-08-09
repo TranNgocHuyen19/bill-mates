@@ -30,7 +30,7 @@ def _get_signing_key(token: str, algorithm: str) -> str | object:
         return settings.SUPABASE_JWT_SECRET
 
     jwks_client = PyJWKClient(
-        f"{settings.SUPABASE_URL.rstrip('/')}/auth/v1/.well-known/jwks.json",
+        f"{settings.supabase_api_url}/auth/v1/.well-known/jwks.json",
         cache_keys=True,
     )
     return jwks_client.get_signing_key_from_jwt(token).key

@@ -500,7 +500,7 @@ class ExpenseService:
         }
         async with httpx.AsyncClient(timeout=30) as client:
             response = await client.post(
-                f"{settings.SUPABASE_URL.rstrip('/')}/storage/v1/object/{bucket}/{storage_path}",
+                f"{settings.supabase_api_url}/storage/v1/object/{bucket}/{storage_path}",
                 headers=headers,
                 content=content,
             )
@@ -635,7 +635,7 @@ class ExpenseService:
             "authorization": f"Bearer {settings.SUPABASE_SERVICE_ROLE_KEY}",
         }
         storage_url = (
-            f"{settings.SUPABASE_URL.rstrip('/')}/storage/v1/object/authenticated/"
+            f"{settings.supabase_api_url}/storage/v1/object/authenticated/"
             f"{receipt.bucket}/{receipt.storage_path}"
         )
         try:

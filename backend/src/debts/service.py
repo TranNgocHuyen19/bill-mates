@@ -574,7 +574,7 @@ class DebtService:
         }
         async with httpx.AsyncClient(timeout=30) as client:
             response = await client.post(
-                f"{settings.SUPABASE_URL.rstrip('/')}/storage/v1/object/"
+                f"{settings.supabase_api_url}/storage/v1/object/"
                 f"{bucket}/{storage_path}",
                 headers=headers,
                 content=content,
