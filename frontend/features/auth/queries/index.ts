@@ -6,13 +6,14 @@ import { useRouter } from 'next/navigation'
 import { PATHS } from '@/constants'
 import { getErrorMessage } from '@/lib/error-handler'
 import { showErrorToast, showSuccessToast } from '@/lib/toast'
-import { forgotPasswordApi, loginApi, loginWithGoogleApi, logoutApi, registerApi, resetPasswordApi } from '../api'
+import { forgotPasswordApi, loginApi, logoutApi, registerApi, resetPasswordApi } from '../api'
 
-export const useLoginMutation = () => {
+export const useLoginMutation = (onSuccessCallback?: () => void) => {
   const router = useRouter()
   return useMutation({
     mutationFn: loginApi,
     onSuccess: () => {
+      onSuccessCallback?.()
       showSuccessToast('Đăng nhập thành công!')
       router.replace(PATHS.ROOMS)
       router.refresh()
@@ -20,12 +21,6 @@ export const useLoginMutation = () => {
     onError: (error: unknown) => showErrorToast(getErrorMessage(error))
   })
 }
-
-export const useGoogleLoginMutation = () =>
-  useMutation({
-    mutationFn: loginWithGoogleApi,
-    onError: (error: unknown) => showErrorToast(getErrorMessage(error))
-  })
 
 export const useRegisterMutation = () => {
   const router = useRouter()

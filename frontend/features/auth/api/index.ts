@@ -35,16 +35,6 @@ export const registerApi = async (data: RegisterInput): Promise<AuthResult> => {
   return { session: authData.session, user: authData.user }
 }
 
-export const loginWithGoogleApi = async (): Promise<void> => {
-  const { error } = await createClient().auth.signInWithOAuth({
-    provider: 'google',
-    options: {
-      redirectTo: `${window.location.origin}${PATHS.ROOMS}`
-    }
-  })
-  if (error) throw error
-}
-
 export const forgotPasswordApi = async (data: ForgotPasswordInput): Promise<void> => {
   const { error } = await createClient().auth.resetPasswordForEmail(data.email, {
     redirectTo: `${window.location.origin}${PATHS.AUTH.RESET_PASSWORD}`

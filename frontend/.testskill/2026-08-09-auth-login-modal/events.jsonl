@@ -1,0 +1,4 @@
+{"event":"test-plan-created","status":"completed","scope":"auth-login-modal"}
+{"event":"automated-checks","status":"passed","checks":["typecheck","lint","vitest","build","git-diff-check","google-oauth-search"]}
+{"event":"browser-check","status":"passed","checks":["modal-opens","url-unchanged","escape-closes","mobile-390x844","password-login-request-no-google-popup","fallback-login-page"]}
+{"event":"independent-verifier","status":"unavailable","reason":"No active credentials for configured provider"}

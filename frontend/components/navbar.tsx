@@ -17,7 +17,7 @@ import {
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
-import { useLogoutMutation } from '@/features/auth'
+import { LoginModal, useLogoutMutation } from '@/features/auth'
 import type { User as SupabaseUser } from '@supabase/supabase-js'
 import { PATHS } from '@/constants'
 import { cn } from '@/lib/utils'
@@ -29,6 +29,7 @@ export function Navbar() {
   const [user, setUser] = React.useState<SupabaseUser | null>(null)
   const [loading, setLoading] = React.useState(true)
   const [isMenuOpen, setIsMenuOpen] = React.useState(false)
+  const [isLoginOpen, setIsLoginOpen] = React.useState(false)
   const menuRef = React.useRef<HTMLDivElement>(null)
   const logoutMutation = useLogoutMutation()
 
@@ -213,7 +214,9 @@ export function Navbar() {
             ) : (
               <>
                 <Button variant='ghost' size='sm' asChild>
-                  <Link href={PATHS.AUTH.LOGIN}>Đăng nhập</Link>
+                  <button type='button' onClick={() => setIsLoginOpen(true)}>
+                    Đăng nhập
+                  </button>
                 </Button>
                 <Button size='sm' asChild>
                   <Link href={PATHS.AUTH.REGISTER}>Đăng ký</Link>
@@ -305,6 +308,8 @@ export function Navbar() {
           </aside>
         </div>
       )}
+
+      <LoginModal open={isLoginOpen} onOpenChange={setIsLoginOpen} />
     </>
   )
 }

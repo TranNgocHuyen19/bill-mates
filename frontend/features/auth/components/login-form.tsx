@@ -9,13 +9,17 @@ import { useForm } from 'react-hook-form'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { PATHS } from '@/constants'
-import { useGoogleLoginMutation, useLoginMutation } from '../queries'
+import { useLoginMutation } from '../queries'
 import { LoginSchema, type LoginInput } from '../schemas'
 
-export function LoginForm() {
+interface LoginFormProps {
+  onSuccess?: () => void
+  showHeader?: boolean
+}
+
+export function LoginForm({ onSuccess, showHeader = true }: LoginFormProps) {
   const [showPassword, setShowPassword] = React.useState(false)
-  const loginMutation = useLoginMutation()
-  const googleMutation = useGoogleLoginMutation()
+  const loginMutation = useLoginMutation(onSuccess)
   const {
     register,
     handleSubmit,
@@ -27,13 +31,15 @@ export function LoginForm() {
 
   return (
     <div className='space-y-6'>
-      <header>
-        <p className='text-sm font-semibold text-primary'>Chào mừng trở lại</p>
-        <h2 className='mt-1 text-2xl font-bold tracking-tight'>Đăng nhập Bill Mates</h2>
-        <p className='mt-2 text-sm leading-6 text-muted-foreground'>
-          Mọi khoản chi của phòng được đồng bộ ngay sau khi bạn đăng nhập.
-        </p>
-      </header>
+      {showHeader && (
+        <header>
+          <p className='text-sm font-semibold text-primary'>Chào mừng trở lại</p>
+          <h2 className='mt-1 text-2xl font-bold tracking-tight'>Đăng nhập Bill Mates</h2>
+          <p className='mt-2 text-sm leading-6 text-muted-foreground'>
+            Mọi khoản chi của phòng được đồng bộ ngay sau khi bạn đăng nhập.
+          </p>
+        </header>
+      )}
 
       <form className='space-y-4' onSubmit={handleSubmit((data) => loginMutation.mutate(data))}>
         <Input
@@ -79,23 +85,6 @@ export function LoginForm() {
           {loginMutation.isPending ? 'Đang đăng nhập...' : 'Đăng nhập'}
         </Button>
       </form>
-
-      <div className='flex items-center gap-3 text-xs text-muted-foreground'>
-        <span className='h-px flex-1 bg-border' />
-        hoặc
-        <span className='h-px flex-1 bg-border' />
-      </div>
-
-      <Button
-        type='button'
-        variant='outline'
-        className='h-12 w-full rounded-xl'
-        disabled={googleMutation.isPending}
-        onClick={() => googleMutation.mutate()}
-      >
-        <span className='font-bold text-[#4285f4]'>G</span>
-        {googleMutation.isPending ? 'Đang chuyển đến Google...' : 'Tiếp tục với Google'}
-      </Button>
 
       <p className='text-center text-sm text-muted-foreground'>
         Chưa có tài khoản?{' '}
