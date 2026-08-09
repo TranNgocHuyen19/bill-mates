@@ -106,9 +106,7 @@ function SplitExpenseContent() {
             <p className='mt-1 font-bold'>{formatVnd(itemsTotal)}</p>
           </div>
           <div>
-            <p className='text-[11px] text-muted-foreground uppercase'>
-              {overBy ? 'Vượt quá' : 'Còn lại'}
-            </p>
+            <p className='text-[11px] text-muted-foreground uppercase'>{overBy ? 'Vượt quá' : 'Còn lại'}</p>
             <p
               className={cn(
                 'mt-1 font-bold',
@@ -184,7 +182,17 @@ function SplitExpenseContent() {
               defaultName={mode === 'whole' ? 'Toàn bộ hóa đơn' : ''}
               defaultAmount={remaining}
               isPending={saveItem.isPending}
-              onSave={({ name, amount, method, participants }) =>
+              onSave={({
+                name,
+                amount,
+                method,
+                participants
+              }: {
+                name: string
+                amount: number
+                method: SplitMethod
+                participants: Array<{ member_id: string; share_value?: number | null }>
+              }) =>
                 saveItem.mutate({
                   item: {
                     expenseId,
@@ -202,9 +210,7 @@ function SplitExpenseContent() {
         {overBy > 0 && (
           <Card className='rounded-2xl border-destructive/30 bg-destructive/5 p-4 text-destructive'>
             <p className='text-sm font-bold'>Tổng các món đang vượt hóa đơn {formatVnd(overBy)}</p>
-            <p className='mt-1 text-xs'>
-              Xóa món bị nhập dư rồi thêm lại với số tiền đúng để tiếp tục.
-            </p>
+            <p className='mt-1 text-xs'>Xóa món bị nhập dư rồi thêm lại với số tiền đúng để tiếp tục.</p>
           </Card>
         )}
 

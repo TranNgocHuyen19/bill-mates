@@ -1,0 +1,208 @@
+'use client'
+
+import * as React from 'react'
+import { ArrowLeft, ArrowRight, CalendarDays, Camera, FileText, Loader2, ReceiptText, UsersRound } from 'lucide-react'
+import Link from 'next/link'
+import { useRouter, useSearchParams } from 'next/navigation'
+
+import { Navbar } from '@/components/navbar'
+import { Button } from '@/components/ui/button'
+import { Card } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { PATHS } from '@/constants'
+import { uploadExpenseReceiptApi, useCreateExpenseDraftMutation } from '../index'
+import { useRoomDetailQuery, useRoomsQuery } from '@/features/rooms'
+import { getErrorMessage } from '@/lib/error-handler'
+import { showErrorToast } from '@/lib/toast'
+
+function ExpenseCreateFormContent() {
+  const router = useRouter()
+  const searchParams = useSearchParams()
+  const requestedRoomId = searchParams.get('roomId') ?? ''
+  const roomsQuery = useRoomsQuery()
+  const [selectedRoomId, setSelectedRoomId] = React.useState(requestedRoomId)
+  const roomId = selectedRoomId || requestedRoomId || roomsQuery.data?.[0]?.id || ''
+  const roomQuery = useRoomDetailQuery(roomId)
+  const createDraft = useCreateExpenseDraftMutation()
+  const activeMembers = roomQuery.data?.members.filter((member) => member.status === 'active') ?? []
+
+  return (
+    <div className='min-h-screen bg-background pb-24 text-foreground'>
+      <Navbar />
+      <main className='mx-auto w-full max-w-2xl space-y-5 px-4 py-5 sm:py-8'>
+        <div className='flex items-center justify-between'>
+          <Link
+            href={roomId ? PATHS.ROOM_DETAIL(roomId) : PATHS.ROOMS}
+            className='inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-muted-foreground'
+          >
+            <ArrowLeft className='size-4' />
+            Quay lại
+          </Link>
+          <span className='rounded-full bg-primary/10 px-3 py-1.5 text-xs font-bold text-primary'>Bước 1 / 3</span>
+        </div>
+
+        <header>
+          <p className='text-xs font-semibold tracking-[0.16em] text-primary uppercase'>Khoản chi mới</p>
+          <h1 className='mt-1 text-2xl font-bold tracking-tight'>Thông tin hóa đơn</h1>
+          <p className='mt-1 text-sm text-muted-foreground'>
+            Bước này tạo một đơn nháp trên server, chưa ảnh hưởng công nợ.
+          </p>
+        </header>
+
+        <div className='grid grid-cols-3 gap-2' aria-label='Tiến trình tạo khoản chi'>
+          <div className='h-1.5 rounded-full bg-primary' />
+          <div className='h-1.5 rounded-full bg-primary/15' />
+          <div className='h-1.5 rounded-full bg-primary/15' />
+        </div>
+
+        <Card className='rounded-3xl p-4 sm:p-6'>
+          <form
+            className='space-y-5'
+            onSubmit={(event) => {
+              event.preventDefault()
+              const form = new FormData(event.currentTarget)
+              const receipt = form.get('receipt')
+              createDraft.mutate(
+                {
+                  roomId,
+                  title: String(form.get('title')).trim(),
+                  total_amount: Number(form.get('total_amount')),
+                  paid_by_member_id: String(form.get('paid_by_member_id')),
+                  expense_date: String(form.get('expense_date')),
+                  note: String(form.get('note')).trim() || undefined
+                },
+                {
+                  onSuccess: async (expense) => {
+                    if (receipt instanceof File && receipt.size > 0) {
+                      try {
+                        await uploadExpenseReceiptApi(expense.id, receipt)
+                      } catch (error) {
+                        showErrorToast(`Đơn nháp đã lưu nhưng ảnh tải lên thất bại: ${getErrorMessage(error)}`)
+                      }
+                    }
+                    router.push(`${PATHS.EXPENSES.SPLIT}?expenseId=${expense.id}`)
+                  }
+                }
+              )
+            }}
+          >
+            <label className='block space-y-1.5 text-xs font-semibold text-muted-foreground'>
+              Phòng
+              <div className='relative'>
+                <UsersRound className='text-outline pointer-events-none absolute top-3.5 left-3 size-4' />
+                <select
+                  className='h-12 w-full appearance-none rounded-xl border bg-background pr-3 pl-10 text-sm outline-none focus:border-primary focus:ring-3 focus:ring-primary/20'
+                  value={roomId}
+                  onChange={(event) => setSelectedRoomId(event.target.value)}
+                  required
+                >
+                  <option value='' disabled>
+                    Chọn phòng
+                  </option>
+                  {roomsQuery.data?.map((room) => (
+                    <option key={room.id} value={room.id}>
+                      {room.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </label>
+
+            <Input
+              name='title'
+              label='Tên khoản chi'
+              placeholder='Ví dụ: Đi chợ cuối tuần'
+              icon={<ReceiptText className='size-4' />}
+              minLength={1}
+              required
+            />
+            <Input
+              name='total_amount'
+              type='number'
+              inputMode='numeric'
+              min={1}
+              step={1}
+              label='Tổng tiền (VND)'
+              placeholder='0'
+              trailingIcon={<span className='text-xs font-semibold'>₫</span>}
+              required
+            />
+
+            <div className='grid gap-4 sm:grid-cols-2'>
+              <label className='block space-y-1.5 text-xs font-semibold text-muted-foreground'>
+                Người đã trả
+                <select
+                  name='paid_by_member_id'
+                  className='h-12 w-full rounded-xl border bg-background px-3 text-sm outline-none focus:border-primary focus:ring-3 focus:ring-primary/20'
+                  required
+                >
+                  <option value=''>Chọn người trả</option>
+                  {activeMembers.map((member) => (
+                    <option key={member.id} value={member.id}>
+                      {member.nickname || member.display_name}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <Input
+                name='expense_date'
+                type='date'
+                label='Ngày chi'
+                icon={<CalendarDays className='size-4' />}
+                defaultValue={new Date().toISOString().slice(0, 10)}
+                required
+              />
+            </div>
+
+            <Input
+              name='note'
+              label='Ghi chú (không bắt buộc)'
+              placeholder='Thông tin giúp mọi người dễ nhận biết'
+              icon={<FileText className='size-4' />}
+            />
+
+            <label className='border-outline-variant block cursor-pointer rounded-2xl border border-dashed bg-muted/40 p-4 transition hover:border-primary'>
+              <span className='flex items-center gap-3'>
+                <span className='grid size-10 place-items-center rounded-xl bg-primary/10 text-primary'>
+                  <Camera className='size-5' />
+                </span>
+                <span>
+                  <span className='block text-sm font-semibold'>Thêm ảnh hóa đơn</span>
+                  <span className='block text-xs text-muted-foreground'>JPEG, PNG hoặc WebP • tối đa 10 MB</span>
+                </span>
+              </span>
+              <input
+                name='receipt'
+                type='file'
+                accept='image/jpeg,image/png,image/webp'
+                className='mt-3 block w-full text-xs text-muted-foreground file:mr-3 file:rounded-lg file:border-0 file:bg-primary/10 file:px-3 file:py-2 file:font-semibold file:text-primary'
+              />
+            </label>
+
+            <Button
+              className='h-12 w-full rounded-xl font-semibold'
+              disabled={createDraft.isPending || !roomId || !activeMembers.length}
+            >
+              {createDraft.isPending ? <Loader2 className='size-4 animate-spin' /> : <ArrowRight className='size-4' />}
+              {createDraft.isPending ? 'Đang lưu đơn nháp...' : 'Lưu nháp & chia tiền'}
+            </Button>
+          </form>
+        </Card>
+      </main>
+    </div>
+  )
+}
+
+export function ExpenseCreatePage() {
+  return (
+    <React.Suspense
+      fallback={
+        <div className='grid min-h-screen place-items-center'>
+          <Loader2 className='size-6 animate-spin text-primary' />
+        </div>
+      }
+    >
+      <ExpenseCreateFormContent />
+    </React.Suspense>
+  )
+}
