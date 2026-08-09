@@ -8,7 +8,7 @@ tại.
 1. [README chính](../README.md): tính năng, công nghệ và cách chạy nhanh.
 2. [Kiến trúc](ARCHITECTURE.md): các lớp của hệ thống và dữ liệu đi qua đâu.
 3. [Hướng dẫn đọc file](FILE_GUIDE.md): vai trò của từng thư mục/file quan trọng.
-4. [Cài đặt và vận hành](SETUP_AND_OPERATIONS.md): Supabase, migration, OCR và Tailscale.
+4. [Cài đặt và vận hành](SETUP_AND_OPERATIONS.md): Supabase local, migration, OCR và Tailscale.
 5. [Danh sách API](API_REFERENCE.md): endpoint frontend đang gọi.
 6. [SRS gốc](SRS_Room_Expense_Manager_v1.0.docx): yêu cầu nghiệp vụ ban đầu.
 

@@ -10,6 +10,9 @@ từ trên xuống.
 | `README.md`        | Tổng quan, cấu hình và cách chạy                                |
 | `backend/`         | API, database, OCR và test Python                               |
 | `frontend/`        | Web app Next.js                                                 |
+| `infra/`           | Supabase CLI được pin phiên bản và lock dependency              |
+| `scripts/`         | Start/stop/status, Tailscale Serve và Windows startup task      |
+| `supabase/`        | Cấu hình Auth, Database, Storage local và các cổng Docker        |
 | `docs/`            | SRS, sơ đồ và tài liệu kỹ thuật                                 |
 | `.agents/`         | Quy ước/skill dành cho coding agent, không tham gia runtime     |
 | `.stitch/`         | Metadata thiết kế được đồng bộ từ Google Stitch                 |
@@ -22,6 +25,7 @@ từ trên xuống.
 | File                        | Đọc để hiểu                                            |
 | --------------------------- | ------------------------------------------------------ |
 | `backend/src/main.py`       | Tạo FastAPI app, CORS và đăng ký toàn bộ router        |
+| `backend/src/server.py`     | Chạy Uvicorn với event loop tương thích psycopg/Windows |
 | `backend/src/config.py`     | Tất cả biến môi trường backend và cấu hình OCR         |
 | `backend/src/api.py`        | Request ID và định dạng lỗi chung                      |
 | `backend/src/database.py`   | Engine PostgreSQL async và một session cho mỗi request |

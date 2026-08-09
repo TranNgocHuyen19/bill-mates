@@ -1,193 +1,252 @@
-# Cài đặt và vận hành
+# Cài đặt và vận hành local
 
-## 1. Chuẩn bị Supabase
+## 1. Mô hình triển khai
 
-Tạo một project Supabase rồi lấy các giá trị sau:
+BillMates chạy hoàn toàn trên máy Windows:
 
-- Project URL.
-- Publishable/anon key cho frontend.
-- Service-role key cho backend.
-- JWT secret hoặc JWKS tương ứng với cấu hình token.
-- Chuỗi kết nối PostgreSQL.
+| Thành phần | Cách chạy | Cổng local |
+| --- | --- | --- |
+| Next.js production | Node.js | `3000` |
+| FastAPI + PaddleOCR | Python | `8000` |
+| Supabase API (Kong) | Docker | `55421` |
+| PostgreSQL | Docker | `55422` |
+| Supabase Studio | Docker | `55423` |
+| Mailpit | Docker | `55424` |
 
-Nếu mạng không hỗ trợ IPv6, mở **Connect > Transaction Pooler** trong Supabase và dùng
-host pooler cổng `6543`.
+Các cổng Supabase dùng dải `5542x` vì Windows/Hyper-V có thể dành riêng dải mặc định
+`54321-54324`. Người dùng không cần nhớ các cổng này: Tailscale Serve gom ứng dụng về
+`https://msi.tail41bfb8.ts.net`.
 
-## 2. Biến môi trường
-
-### Backend
-
-File `backend/.env`:
-
-```dotenv
-PROJECT_NAME=BillMates
-API_V1_STR=/api/v1
-ENVIRONMENT=local
-FRONTEND_URL=http://localhost:3000
-DATABASE_URL=postgresql+psycopg://postgres.PROJECT_REF:PASSWORD@POOLER_HOST:6543/postgres
-SUPABASE_URL=https://PROJECT_REF.supabase.co
-SUPABASE_JWT_SECRET=YOUR_JWT_SECRET
-SUPABASE_SERVICE_ROLE_KEY=YOUR_SERVICE_ROLE_KEY
-SUPABASE_JWT_AUDIENCE=authenticated
-OCR_ENABLED=true
-OCR_LANGUAGE=vi
-OCR_VERSION=PP-OCRv5
-OCR_DEVICE=cpu
-OCR_CPU_THREADS=4
-OCR_ENABLE_MKLDNN=false
-OCR_TEXT_DETECTION_MODEL=PP-OCRv5_mobile_det
-OCR_TEXT_RECOGNITION_MODEL=latin_PP-OCRv5_mobile_rec
+```text
+/                 -> http://127.0.0.1:3000
+/api/*            -> http://127.0.0.1:8000/api/*
+/auth/*           -> http://127.0.0.1:55421/auth/*
+/storage/*        -> http://127.0.0.1:55421/storage/*
+/rest/*           -> http://127.0.0.1:55421/rest/*
 ```
 
-### Frontend
+Không bật Tailscale Funnel. Studio, Mailpit và PostgreSQL không được gắn route Tailscale.
 
-File `frontend/.env`:
+## 2. Chuẩn bị máy
 
-```dotenv
-NEXT_PUBLIC_API_ENDPOINT=http://127.0.0.1:8000
-NEXT_PUBLIC_URL=http://localhost:3000
-NEXT_PUBLIC_SUPABASE_URL=https://PROJECT_REF.supabase.co
-NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=YOUR_PUBLISHABLE_KEY
-```
-
-Mọi biến bắt đầu bằng `NEXT_PUBLIC_` có thể xuất hiện trong bundle browser. Tuyệt đối
-không đặt service-role key hoặc database password ở frontend.
-
-## 3. Tạo database
-
-Từ thư mục backend:
-
-```powershell
-python -m alembic upgrade head
-python -m alembic current
-```
-
-Migration đầu tạo các enum, bảng và index. Migration tiếp theo tạo bucket Storage private
-`receipts` với:
-
-- loại ảnh: JPEG, PNG, WebP;
-- dung lượng tối đa: 10 MB;
-- public access: tắt.
-
-Không sửa migration đã chạy trên Supabase. Khi đổi schema, tạo migration mới.
-
-## 4. Chạy backend
-
-```powershell
-cd backend
-python -m venv .venv
-.\.venv\Scripts\Activate.ps1
-python -m pip install --upgrade pip
-python -m pip install -r requirements-dev.txt
-python -m uvicorn src.main:app --reload --host 127.0.0.1 --port 8000
-```
+1. Cài Docker Desktop và mở một lần để hoàn tất thiết lập WSL/Hyper-V.
+2. Cài Tailscale, đăng nhập và bật MagicDNS.
+3. Trong Tailscale Admin, cho phép HTTPS/Serve cho tailnet.
+4. Cài Node.js 20+, Python 3.12+ và Git.
+5. Nên đặt Windows không sleep khi đang cắm điện.
 
 Kiểm tra:
 
 ```powershell
-Invoke-RestMethod http://127.0.0.1:8000/api/v1/health
+docker info
+tailscale status
+node --version
+python --version
 ```
 
-Swagger chỉ bật khi `ENVIRONMENT` là `local`, `development` hoặc `staging`.
+## 3. Cài dependency
 
-## 5. Chạy frontend
+Từ thư mục gốc:
 
 ```powershell
-cd frontend
-npm install
-npm run dev
+npm install --prefix infra
+npm install --prefix frontend
+
+python -m venv backend\.venv
+backend\.venv\Scripts\python.exe -m pip install --upgrade pip
+backend\.venv\Scripts\python.exe -m pip install -r backend\requirements-dev.txt
 ```
 
-Nếu đổi biến môi trường, dừng và chạy lại Next.js. Các biến `NEXT_PUBLIC_` được đọc khi
-build/chạy ứng dụng.
+`infra/package-lock.json` giữ Supabase CLI ở đúng phiên bản đã kiểm thử. Không cần cài
+`supabase` global.
 
-## 6. PaddleOCR
+## 4. Khởi động
 
-PaddleOCR được khởi tạo lazy, chỉ khi có yêu cầu scan đầu tiên. Điều này giúp backend
-khởi động nhanh nhưng lần scan đầu có thể chậm vì tải model và warm-up.
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts\start-local.ps1
+```
 
-Luồng kiểm tra:
+Nếu frontend đã được build và source không đổi:
 
-1. Đăng nhập và chọn một phòng.
-2. Tạo khoản chi mới.
-3. Chọn ảnh bill rõ nét, chụp thẳng, đủ sáng.
-4. Lưu nháp để ảnh được upload.
-5. Chờ trạng thái `processing`.
-6. Sửa tên món/số tiền OCR đọc sai.
-7. Chọn người cho từng món rồi xác nhận hóa đơn.
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts\start-local.ps1 -SkipBuild
+```
 
-Khi OCR lỗi:
+Chỉ để chẩn đoán trên máy chủ khi tailnet chưa bật Serve:
 
-- kiểm tra backend còn chạy;
-- xem log Uvicorn;
-- xác nhận `OCR_ENABLED=true`;
-- kiểm tra máy có đủ RAM;
-- thử ảnh JPEG/PNG/WebP dưới 10 MB;
-- giữ `OCR_ENABLE_MKLDNN=false` trên Windows nếu gặp lỗi oneDNN;
-- xác nhận máy có Internet ở lần tải model đầu.
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts\start-local.ps1 -SkipBuild -SkipTailscale
+```
 
-PaddleOCR chạy trên backend, không chạy trên Vercel/Netlify Functions. Không tự động ghi
-nợ từ dữ liệu OCR chưa được người dùng duyệt.
+Script thực hiện theo thứ tự:
 
-## 7. Dùng trong phòng với Tailscale
+1. bảo đảm Docker Desktop sẵn sàng;
+2. chạy Supabase local tối giản;
+3. đọc key local trong bộ nhớ và tạo file env bị ignore;
+4. chạy Alembic vào PostgreSQL local;
+5. build frontend khi cần;
+6. chạy backend với `SelectorEventLoop` tương thích psycopg trên Windows;
+7. chạy Next.js production;
+8. cấu hình và kiểm tra Tailscale Serve.
 
-Mô hình đề xuất:
+Nếu health check thất bại, script dừng frontend/backend vừa tạo nhưng giữ Supabase và dữ liệu để
+điều tra.
+
+## 5. Biến môi trường
+
+`scripts/start-local.ps1` tự tạo:
+
+- `backend/.env.local`;
+- `frontend/.env.local`.
+
+Hai file đều bị Git ignore. `.env.local` được ưu tiên hơn `.env`, nên cấu hình cloud cũ (nếu có)
+không bị ghi đè.
+
+Backend local gồm:
+
+```dotenv
+FRONTEND_URL=https://msi.tail41bfb8.ts.net
+DATABASE_URL=postgresql+psycopg://...@127.0.0.1:55422/postgres
+SUPABASE_URL=https://msi.tail41bfb8.ts.net
+SUPABASE_INTERNAL_URL=http://127.0.0.1:55421
+SUPABASE_JWT_SECRET=...
+SUPABASE_SERVICE_ROLE_KEY=...
+```
+
+Frontend chỉ nhận URL và publishable key:
+
+```dotenv
+NEXT_PUBLIC_API_ENDPOINT=https://msi.tail41bfb8.ts.net
+NEXT_PUBLIC_URL=https://msi.tail41bfb8.ts.net
+NEXT_PUBLIC_SUPABASE_URL=https://msi.tail41bfb8.ts.net
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=...
+```
+
+Không đưa database password, JWT secret hoặc service-role key vào biến `NEXT_PUBLIC_*`.
+
+## 6. Database và Storage
+
+Alembic tạo schema nghiệp vụ và bucket private `receipts`:
+
+- tối đa 10 MiB;
+- chỉ nhận JPEG, PNG và WebP;
+- không public;
+- metadata OCR nằm trong bảng `expense_receipts`.
+
+Kiểm tra revision:
+
+```powershell
+cd backend
+.\.venv\Scripts\python.exe -m alembic current
+```
+
+Supabase Studio chỉ mở trên máy chủ tại
+[http://127.0.0.1:55423](http://127.0.0.1:55423).
+
+## 7. PaddleOCR
+
+PaddleOCR khởi tạo lazy khi scan bill lần đầu. Lần đầu có thể mất vài phút để tải model và
+warm-up CPU.
+
+Luồng sử dụng:
+
+1. đăng nhập và tạo/chọn phòng;
+2. tạo khoản chi ở trạng thái nháp;
+3. tải ảnh JPEG/PNG/WebP dưới 10 MiB;
+4. lưu nháp để ảnh vào Storage;
+5. chạy OCR và chờ `completed`;
+6. kiểm tra, sửa merchant, tổng tiền và từng món;
+7. chọn người cho từng món rồi mới ghi nhận.
+
+OCR không tự động ghi công nợ khi người dùng chưa duyệt. Trên Windows giữ
+`OCR_ENABLE_MKLDNN=false` nếu gặp lỗi oneDNN.
+
+## 8. Trạng thái và log
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts\status-local.ps1
+```
+
+PID và log nằm trong `.local/`, bị Git ignore:
 
 ```text
-Máy luôn bật trong phòng
-  ├── Next.js :3000
-  ├── FastAPI :8000
-  └── Tailscale Serve (HTTPS riêng)
-         |
-         └── Điện thoại thành viên đã tham gia tailnet
-
-Supabase vẫn nằm trên cloud
+.local/
+├── backend.pid
+├── frontend.pid
+└── logs/
+    ├── backend.log
+    ├── backend-error.log
+    ├── frontend.log
+    └── frontend-error.log
 ```
 
-Các bước vận hành:
+Không gửi file `.env.local` hoặc log có dữ liệu nhạy cảm cho người khác.
 
-1. Cài Tailscale trên máy chạy BillMates và đăng nhập.
-2. Cài Tailscale trên từng điện thoại, mời đúng tài khoản vào tailnet.
-3. Bật MagicDNS trong Tailscale.
-4. Dùng `tailscale serve` để reverse proxy ứng dụng qua HTTPS.
-5. Đặt `NEXT_PUBLIC_URL`, `NEXT_PUBLIC_API_ENDPOINT` và `FRONTEND_URL` theo hostname
-   HTTPS của máy trong tailnet.
-6. Build/chạy lại frontend và backend sau khi đổi biến môi trường.
-7. Kiểm tra đăng nhập, upload ảnh và OCR từ một điện thoại dùng 4G để chắc chắn truy cập
-   đi qua Tailscale.
+## 9. Dừng và khởi động lại
 
-Không dùng Funnel cho nhu cầu trong phòng vì Funnel công khai service ra Internet. Chỉ
-người có quyền vào tailnet mới nên truy cập ứng dụng.
+Dừng toàn bộ, vẫn giữ database và ảnh:
 
-Lưu ý:
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts\stop-local.ps1
+```
 
-- Máy chủ tắt hoặc sleep thì web và OCR không truy cập được.
-- Cần cấu hình Windows không sleep khi cắm điện.
-- Nên tự khởi động frontend/backend sau khi máy reboot.
-- Service-role key vẫn phải ở máy chủ, không chia sẻ cho thành viên.
-- Nếu frontend và backend dùng hai origin khác nhau, `FRONTEND_URL` phải đúng origin
-  frontend để CORS cho phép.
+Chỉ dừng app, giữ Supabase chạy:
 
-## 8. Backup và khôi phục
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts\stop-local.ps1 -KeepSupabase
+```
 
-Dữ liệu nghiệp vụ nằm trong Supabase nên cần bật/chọn phương án backup phù hợp với gói
-Supabase. Ảnh nằm trong Storage và cần backup riêng nếu hóa đơn quan trọng.
+Giữ cả cấu hình Tailscale Serve:
 
-Trước khi chạy migration production:
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts\stop-local.ps1 -KeepTailscale
+```
 
-1. kiểm tra `python -m alembic current`;
-2. xem nội dung migration sắp chạy;
-3. backup database;
-4. chạy `python -m alembic upgrade head`;
-5. kiểm tra health endpoint và một luồng tạo đơn nháp.
+Stop script dừng cả cây tiến trình Node/Python. Nó không dùng reset database, không xóa Docker
+volume và không gọi `supabase stop --no-backup`.
 
-## 9. Các lệnh kiểm tra
+## 10. Tự chạy khi đăng nhập Windows
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts\install-startup-task.ps1
+```
+
+Script tạo một task tên `BillMates Local`, chạy ẩn khi tài khoản hiện tại đăng nhập. Chạy lại
+installer sẽ cập nhật cùng task, không tạo task trùng.
+
+Gỡ task nếu không muốn tự chạy:
+
+```powershell
+Unregister-ScheduledTask -TaskName "BillMates Local" -Confirm:$false
+```
+
+## 11. Backup
+
+Supabase local giữ dữ liệu trong Docker volumes. Normal stop/start không xóa volume, nhưng đây
+không thay thế backup.
+
+Nên định kỳ:
+
+- dump PostgreSQL bằng `pg_dump`;
+- sao lưu object trong bucket `receipts`;
+- giữ bản backup ngoài ổ đĩa máy chủ.
+
+Tuyệt đối tránh khi chưa có backup:
+
+```text
+supabase db reset
+supabase stop --no-backup
+docker volume rm ...
+docker compose down -v
+```
+
+## 12. Kiểm thử
 
 ```powershell
 # Backend
 cd backend
-python -m pytest
-python -m ruff check src tests
+.\.venv\Scripts\python.exe -m pytest
+.\.venv\Scripts\python.exe -m ruff check src tests
 
 # Frontend
 cd ..\frontend
@@ -197,15 +256,31 @@ npm test
 npm run build
 ```
 
-## 10. Sự cố thường gặp
+Kiểm tra runtime:
 
-| Hiện tượng                                | Nguyên nhân thường gặp                          | Cách kiểm tra                                    |
-| ----------------------------------------- | ----------------------------------------------- | ------------------------------------------------ |
-| Frontend báo biến môi trường không hợp lệ | Thiếu một biến `NEXT_PUBLIC_`                   | Xem `frontend/lib/config.ts`, restart dev server |
-| API trả 401                               | JWT hết hạn hoặc cấu hình Supabase lệch project | Đăng nhập lại, kiểm tra URL/audience/JWT         |
-| API không kết nối database                | Sai pooler host/password/driver                 | Kiểm tra `DATABASE_URL`, chạy `alembic current`  |
-| Trình duyệt báo CORS                      | `FRONTEND_URL` không đúng origin                | Cập nhật backend `.env`, restart Uvicorn         |
-| Ảnh upload lỗi                            | Sai service-role key, loại file hoặc quá 10 MB  | Kiểm tra log backend và bucket `receipts`        |
-| OCR đứng lâu ở lần đầu                    | Đang tải/warm-up model                          | Theo dõi log và chờ model hoàn tất               |
-| OCR lỗi trên Windows                      | oneDNN/MKL-DNN không tương thích                | Giữ `OCR_ENABLE_MKLDNN=false`                    |
-| Điện thoại không mở được app              | Chưa vào tailnet hoặc máy chủ sleep             | Kiểm tra Tailscale và trạng thái máy chủ         |
+```powershell
+Invoke-RestMethod http://127.0.0.1:8000/api/v1/health
+Invoke-WebRequest http://127.0.0.1:3000
+tailscale serve status
+```
+
+Sau khi Serve bật, thử trên điện thoại dùng 4G:
+
+1. bật Tailscale và mở `https://msi.tail41bfb8.ts.net`;
+2. đăng ký/đăng nhập;
+3. tạo phòng và một khoản chi nháp;
+4. upload bill, chạy OCR và tải lại ảnh;
+5. tắt Tailscale trên điện thoại và xác nhận URL không truy cập được.
+
+## 13. Sự cố thường gặp
+
+| Hiện tượng | Nguyên nhân | Cách xử lý |
+| --- | --- | --- |
+| `ports are not available` ở `54321-54324` | Windows dành riêng dải cổng | Giữ cấu hình `55421-55424` hiện tại |
+| `Serve is not enabled on your tailnet` | Tailnet chưa cho phép Serve | Bật HTTPS/Serve trong Tailscale Admin |
+| API health trả `database_unavailable` | Sai event loop hoặc DB chưa ready | Chạy bằng `python -m src.server`, xem Docker health |
+| API trả 401 sau login | JWT issuer/JWKS không khớp | Giữ issuer public và `SUPABASE_INTERNAL_URL` trỏ Kong local |
+| Upload ảnh lỗi | Sai key, MIME hoặc quá 10 MiB | Xem backend log và bucket `receipts` |
+| OCR lần đầu lâu | Đang tải/warm-up model | Chờ vài phút và xem backend log |
+| Điện thoại không mở app | Chưa vào tailnet, Serve tắt hoặc máy sleep | Kiểm tra Tailscale và trạng thái máy |
+| Start báo cổng `3000/8000` bận | Một instance cũ còn chạy | Chạy `scripts\stop-local.ps1`, rồi start lại |

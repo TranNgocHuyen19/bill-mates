@@ -2,16 +2,20 @@
 
 ## 1. Thành phần hệ thống
 
-BillMates tách frontend và backend nhưng dùng chung Supabase:
+BillMates tách frontend và backend nhưng dùng chung Supabase chạy local:
 
 | Thành phần | Công nghệ                                      | Trách nhiệm                                           |
 | ---------- | ---------------------------------------------- | ----------------------------------------------------- |
 | Frontend   | Next.js 16, React 19, TypeScript, Tailwind CSS | Giao diện, form, cache dữ liệu và điều hướng          |
 | Backend    | FastAPI, Pydantic, SQLAlchemy async            | Phân quyền, nghiệp vụ, tính chia tiền, báo cáo và OCR |
-| Auth       | Supabase Auth                                  | Đăng ký, đăng nhập, reset mật khẩu và phát JWT        |
-| Database   | Supabase PostgreSQL                            | Lưu dữ liệu nghiệp vụ lâu dài                         |
-| Storage    | Supabase Storage                               | Lưu ảnh bill và bằng chứng thanh toán                 |
+| Auth       | Supabase Auth local                            | Đăng ký, đăng nhập, reset mật khẩu và phát JWT        |
+| Database   | Supabase PostgreSQL local                      | Lưu dữ liệu nghiệp vụ trong Docker volume             |
+| Storage    | Supabase Storage local                         | Lưu ảnh bill và bằng chứng trong Docker volume        |
 | OCR        | PaddleOCR                                      | Đọc dòng chữ và gợi ý món từ ảnh bill                 |
+
+Tất cả thành phần chạy trên cùng máy Windows. Tailscale Serve cung cấp HTTPS riêng và định
+tuyến `/` vào Next.js, `/api` vào FastAPI, còn `/auth`, `/storage`, `/rest` vào Supabase local.
+Không có route cho PostgreSQL hoặc Supabase Studio, và Tailscale Funnel luôn tắt.
 
 ## 2. Một request đi qua hệ thống như thế nào?
 
@@ -32,8 +36,8 @@ Frontend đăng nhập trực tiếp với Supabase Auth. Với API nghiệp v�
 `session.access_token` và gắn `Authorization: Bearer <token>`. Backend kiểm chữ ký JWT,
 `audience`, `issuer`, thời hạn và lấy `sub` làm ID người dùng.
 
-Backend dùng `AsyncSession` và `DATABASE_URL` để đọc/ghi PostgreSQL. Service-role key chỉ
-dùng khi backend cần thao tác Supabase Storage hoặc API quản trị của Supabase.
+Backend dùng `AsyncSession` và `DATABASE_URL` để đọc/ghi PostgreSQL local. Service-role key
+local chỉ dùng khi backend cần thao tác Supabase Storage; key không đi vào frontend hoặc Git.
 
 ## 3. Cấu trúc một module backend
 
