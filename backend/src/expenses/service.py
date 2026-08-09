@@ -6,6 +6,7 @@ from uuid import UUID, uuid4
 
 import httpx
 from fastapi import status
+from fastapi.concurrency import run_in_threadpool
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -15,13 +16,18 @@ from src.exceptions import AppError
 from src.expenses import repository
 from src.expenses.calculations import calculate_split
 from src.expenses.models import Expense, ExpenseItem, ExpenseItemSplit, ExpenseReceipt
+from src.expenses.ocr import (
+    OcrProcessingError,
+    OcrUnavailableError,
+    process_receipt_image,
+)
 from src.expenses.schemas import (
     ExpenseDraftCreate,
     ExpenseDraftUpdate,
     ExpenseItemCreate,
     SplitUpdate,
 )
-from src.models import ExpenseStatus, MembershipStatus, RoomRole
+from src.models import ExpenseStatus, MembershipStatus, OcrStatus, RoomRole
 from src.rooms.models import Category, Room, RoomMember
 from src.rooms.service import MANAGER_ROLES, require_room_member
 from src.users.dependencies import AuthenticatedUser
@@ -513,8 +519,150 @@ class ExpenseService:
             filename=filename,
             mime_type=mime_type,
             size_bytes=len(content),
+            ocr_status=OcrStatus.NOT_REQUESTED,
         )
         session.add(receipt)
         await session.commit()
         await session.refresh(receipt)
         return receipt
+
+    @staticmethod
+    async def list_receipts(
+        session: AsyncSession,
+        user: AuthenticatedUser,
+        expense_id: UUID,
+    ) -> list[ExpenseReceipt]:
+        expense = await repository.get_expense(session, expense_id)
+        if expense is None:
+            raise AppError(
+                code="expense_not_found",
+                message="Không tìm thấy khoản chi.",
+                status_code=status.HTTP_404_NOT_FOUND,
+            )
+        await require_room_member(session, expense.room_id, user.id)
+        return await repository.list_receipts(session, expense_id)
+
+    @staticmethod
+    async def get_receipt(
+        session: AsyncSession,
+        user: AuthenticatedUser,
+        receipt_id: UUID,
+    ) -> ExpenseReceipt:
+        receipt = await repository.get_receipt(session, receipt_id)
+        if receipt is None:
+            raise AppError(
+                code="receipt_not_found",
+                message="Không tìm thấy ảnh hóa đơn.",
+                status_code=status.HTTP_404_NOT_FOUND,
+            )
+        expense = await repository.get_expense(session, receipt.expense_id)
+        if expense is None:
+            raise AppError(
+                code="expense_not_found",
+                message="Không tìm thấy khoản chi.",
+                status_code=status.HTTP_404_NOT_FOUND,
+            )
+        await require_room_member(session, expense.room_id, user.id)
+        return receipt
+
+    @staticmethod
+    async def scan_receipt(
+        session: AsyncSession,
+        user: AuthenticatedUser,
+        receipt_id: UUID,
+        *,
+        force: bool = False,
+    ) -> ExpenseReceipt:
+        receipt = await repository.get_receipt(session, receipt_id, for_update=True)
+        if receipt is None:
+            raise AppError(
+                code="receipt_not_found",
+                message="Không tìm thấy ảnh hóa đơn.",
+                status_code=status.HTTP_404_NOT_FOUND,
+            )
+        await _editable_expense(session, user, receipt.expense_id)
+        if receipt.ocr_status == OcrStatus.COMPLETED and not force:
+            return receipt
+        if (
+            receipt.ocr_status in {OcrStatus.PENDING, OcrStatus.PROCESSING}
+            and not force
+        ):
+            raise AppError(
+                code="ocr_already_processing",
+                message="Ảnh hóa đơn này đang được quét.",
+                status_code=status.HTTP_409_CONFLICT,
+            )
+
+        receipt.ocr_status = OcrStatus.PENDING
+        receipt.ocr_data = None
+        await session.commit()
+        receipt.ocr_status = OcrStatus.PROCESSING
+        await session.commit()
+
+        try:
+            image_content = await ExpenseService._download_receipt(receipt)
+            receipt.ocr_data = await run_in_threadpool(
+                process_receipt_image,
+                image_content,
+            )
+        except AppError as error:
+            await ExpenseService._mark_ocr_failed(session, receipt, error.message)
+            raise
+        except OcrUnavailableError as error:
+            await ExpenseService._mark_ocr_failed(session, receipt, str(error))
+            raise AppError(
+                code="ocr_unavailable",
+                message=str(error),
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            ) from error
+        except OcrProcessingError as error:
+            await ExpenseService._mark_ocr_failed(session, receipt, str(error))
+            raise AppError(
+                code="ocr_processing_failed",
+                message=str(error),
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            ) from error
+
+        receipt.ocr_status = OcrStatus.COMPLETED
+        await session.commit()
+        await session.refresh(receipt)
+        return receipt
+
+    @staticmethod
+    async def _download_receipt(receipt: ExpenseReceipt) -> bytes:
+        headers = {
+            "apikey": settings.SUPABASE_SERVICE_ROLE_KEY,
+            "authorization": f"Bearer {settings.SUPABASE_SERVICE_ROLE_KEY}",
+        }
+        storage_url = (
+            f"{settings.SUPABASE_URL.rstrip('/')}/storage/v1/object/authenticated/"
+            f"{receipt.bucket}/{receipt.storage_path}"
+        )
+        try:
+            async with httpx.AsyncClient(timeout=60) as client:
+                response = await client.get(storage_url, headers=headers)
+        except httpx.HTTPError as error:
+            raise AppError(
+                code="receipt_download_failed",
+                message="Không thể kết nối Supabase Storage để tải ảnh hóa đơn.",
+                status_code=status.HTTP_502_BAD_GATEWAY,
+            ) from error
+        if response.is_error:
+            raise AppError(
+                code="receipt_download_failed",
+                message="Không thể tải ảnh hóa đơn từ Supabase Storage để quét.",
+                status_code=status.HTTP_502_BAD_GATEWAY,
+                details={"storage_status": response.status_code},
+            )
+        return response.content
+
+    @staticmethod
+    async def _mark_ocr_failed(
+        session: AsyncSession,
+        receipt: ExpenseReceipt,
+        message: str,
+    ) -> None:
+        receipt.ocr_status = OcrStatus.FAILED
+        receipt.ocr_data = {"error": {"message": message}}
+        await session.commit()
+        await session.refresh(receipt)

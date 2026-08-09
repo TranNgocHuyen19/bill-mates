@@ -5,3 +5,5 @@ pydantic-settings>=2.0.0
 pyjwt[crypto]>=2.9.0
 alembic>=1.10.0
 xlsxwriter>=3.2.0
+paddleocr==3.7.0
+paddlepaddle==3.3.1

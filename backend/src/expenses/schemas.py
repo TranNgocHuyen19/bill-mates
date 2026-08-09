@@ -1,11 +1,11 @@
 from datetime import date, datetime
 from decimal import Decimal
-from typing import Annotated, Literal
+from typing import Annotated, Any, Literal
 from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field, StringConstraints, model_validator
 
-from src.models import ExpenseStatus, SplitMethod
+from src.models import ExpenseStatus, OcrStatus, SplitMethod
 
 Money = Annotated[Decimal, Field(gt=0, max_digits=14, decimal_places=2)]
 NonNegativeMoney = Annotated[Decimal, Field(ge=0, max_digits=14, decimal_places=2)]
@@ -152,3 +152,7 @@ class ExpenseReceiptResponse(BaseModel):
     filename: str
     mime_type: str
     size_bytes: int
+    ocr_status: OcrStatus
+    ocr_data: dict[str, Any] | None
+    created_at: datetime
+    updated_at: datetime

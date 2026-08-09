@@ -122,6 +122,15 @@ Backend API chạy tại: `http://localhost:8000` (API Docs tại `http://localh
 > - Sử dụng driver `postgresql+psycopg://` trong `DATABASE_URL` của `backend/.env`.
 > - Nếu sử dụng mạng IPv4, hãy chọn **Transaction Pooler** (`aws-1-...pooler.supabase.com:6543`) trong Supabase Connect settings.
 
+### PaddleOCR quét hóa đơn
+
+- Backend dùng PaddleOCR `3.7.0` và PaddlePaddle CPU `3.3.1`.
+- Migration tạo bucket Supabase Storage private `receipts`, giới hạn 10 MB và chỉ nhận JPEG, PNG, WebP.
+- Model `PP-OCRv5_mobile_det` và `latin_PP-OCRv5_mobile_rec` được tải vào cache ở lần quét đầu tiên.
+- Có thể tắt OCR bằng `OCR_ENABLED=false` hoặc đổi thiết bị bằng `OCR_DEVICE`.
+
+PaddleOCR không phù hợp với Vercel/Netlify Functions do package, RAM và thời gian cold start lớn. Khi deploy nên dùng backend container chạy lâu dài và giữ được cache model; các gói free bị sleep hoặc không có persistent disk có thể phải tải lại model sau mỗi cold start.
+
 ### Khởi Động Frontend (Next.js)
 
 ```bash

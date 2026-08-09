@@ -18,6 +18,14 @@ class Settings(BaseSettings):
     SUPABASE_JWT_SECRET: str
     SUPABASE_SERVICE_ROLE_KEY: str
     SUPABASE_JWT_AUDIENCE: str = "authenticated"
+    OCR_ENABLED: bool = True
+    OCR_LANGUAGE: str = "vi"
+    OCR_VERSION: str = "PP-OCRv5"
+    OCR_DEVICE: str = "cpu"
+    OCR_CPU_THREADS: int = 4
+    OCR_ENABLE_MKLDNN: bool = False
+    OCR_TEXT_DETECTION_MODEL: str = "PP-OCRv5_mobile_det"
+    OCR_TEXT_RECOGNITION_MODEL: str = "latin_PP-OCRv5_mobile_rec"
 
 
 settings = Settings()

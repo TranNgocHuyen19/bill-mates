@@ -151,3 +151,53 @@ async def upload_expense_receipt(
         mime_type=file.content_type or "application/octet-stream",
         content=content,
     )
+
+
+@router.get(
+    "/expenses/{expense_id}/receipts",
+    response_model=list[ExpenseReceiptResponse],
+)
+async def list_expense_receipts(
+    expense_id: UUID,
+    current_user: CurrentUser,
+    session: DatabaseSession,
+) -> object:
+    return await ExpenseService.list_receipts(
+        session,
+        current_user,
+        expense_id,
+    )
+
+
+@router.get(
+    "/expense-receipts/{receipt_id}",
+    response_model=ExpenseReceiptResponse,
+)
+async def get_expense_receipt(
+    receipt_id: UUID,
+    current_user: CurrentUser,
+    session: DatabaseSession,
+) -> object:
+    return await ExpenseService.get_receipt(
+        session,
+        current_user,
+        receipt_id,
+    )
+
+
+@router.post(
+    "/expense-receipts/{receipt_id}/ocr",
+    response_model=ExpenseReceiptResponse,
+)
+async def scan_expense_receipt(
+    receipt_id: UUID,
+    current_user: CurrentUser,
+    session: DatabaseSession,
+    force: bool = False,
+) -> object:
+    return await ExpenseService.scan_receipt(
+        session,
+        current_user,
+        receipt_id,
+        force=force,
+    )

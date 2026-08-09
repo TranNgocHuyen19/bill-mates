@@ -3,7 +3,7 @@ from uuid import UUID
 from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.expenses.models import Expense, ExpenseItem, ExpenseItemSplit
+from src.expenses.models import Expense, ExpenseItem, ExpenseItemSplit, ExpenseReceipt
 from src.models import ExpenseStatus
 
 
@@ -34,6 +34,30 @@ async def list_expenses(
         query.order_by(Expense.expense_date.desc(), Expense.created_at.desc())
         .limit(limit)
         .offset(offset)
+    )
+    return list(result)
+
+
+async def get_receipt(
+    session: AsyncSession,
+    receipt_id: UUID,
+    *,
+    for_update: bool = False,
+) -> ExpenseReceipt | None:
+    query = select(ExpenseReceipt).where(ExpenseReceipt.id == receipt_id)
+    if for_update:
+        query = query.with_for_update()
+    return await session.scalar(query)
+
+
+async def list_receipts(
+    session: AsyncSession,
+    expense_id: UUID,
+) -> list[ExpenseReceipt]:
+    result = await session.scalars(
+        select(ExpenseReceipt)
+        .where(ExpenseReceipt.expense_id == expense_id)
+        .order_by(ExpenseReceipt.created_at.desc())
     )
     return list(result)
 
