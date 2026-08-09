@@ -107,6 +107,17 @@ def test_when_lotte_receipt_uses_column_rows_then_each_price_is_extracted() -> N
         {"text": "0.310", "confidence": 0.99, "box": [636, 551, 790, 589]},
         {"text": "36,890", "confidence": 0.99, "box": [885, 549, 1042, 592]},
         {
+            "text": "009 MONG TOI BABY 300G",
+            "confidence": 0.99,
+            "box": [37, 1320, 592, 1363],
+        },
+        {"text": "31500", "confidence": 0.99, "box": [483, 1376, 616, 1418]},
+        {"text": "1", "confidence": 0.99, "box": [712, 1379, 741, 1414]},
+        {"text": "31,500", "confidence": 0.99, "box": [883, 1375, 1043, 1421]},
+        {"text": "[STIKER]", "confidence": 0.99, "box": [39, 1430, 238, 1476]},
+        {"text": "20%", "confidence": 0.99, "box": [434, 1432, 519, 1474]},
+        {"text": "-6,300", "confidence": 0.99, "box": [888, 1430, 1043, 1477]},
+        {
             "text": "010 TUI NYLON SIZE 35-60",
             "confidence": 0.99,
             "box": [36, 1485, 639, 1529],
@@ -116,6 +127,12 @@ def test_when_lotte_receipt_uses_column_rows_then_each_price_is_extracted() -> N
         {"text": "300", "confidence": 0.99, "box": [959, 1539, 1044, 1584]},
         {"text": "Tong cong", "confidence": 0.99, "box": [31, 1761, 268, 1814]},
         {"text": "294,844", "confidence": 0.99, "box": [861, 1764, 1042, 1806]},
+        {"text": "giam gia san pham", "confidence": 0.99, "box": [31, 1818, 300, 1860]},
+        {"text": "-6,300", "confidence": 0.99, "box": [861, 1818, 1042, 1860]},
+        {"text": "Giam gia don so", "confidence": 0.99, "box": [31, 1864, 300, 1906]},
+        {"text": "-44", "confidence": 0.99, "box": [961, 1864, 1042, 1906]},
+        {"text": "Tien nhan", "confidence": 0.99, "box": [31, 1950, 250, 1990]},
+        {"text": "288,500", "confidence": 0.99, "box": [861, 1950, 1042, 1990]},
         {
             "text": "Scode:22043620036890003101",
             "confidence": 0.99,
@@ -128,11 +145,18 @@ def test_when_lotte_receipt_uses_column_rows_then_each_price_is_extracted() -> N
     assert [(item["name"], item["total_amount"]) for item in result["items"]] == [
         ("SCA TH MILK DUA 100G*4", 35_500),
         ("THIT HEO XAY", 36_890),
+        ("MONG TOI BABY 300G", 25_200),
         ("TUI NYLON SIZE 35-60", 300),
     ]
     assert result["items"][1]["quantity"] == 0.31
     assert result["items"][1]["unit_price"] == 119_000
-    assert result["total_amount"] == 294_844
+    assert result["items"][2]["original_total_amount"] == 31_500
+    assert result["items"][2]["discount_amount"] == 6_300
+    assert result["items"][2]["discount_percent"] == 20
+    assert result["total_amount"] == 288_500
+    assert result["subtotal_amount"] == 294_844
+    assert result["discount_amount"] == 6_344
+    assert result["order_discount_amount"] == 44
 
 
 def test_when_bach_hoa_xanh_receipt_uses_multiline_products_then_weighted_prices_are_extracted() -> (

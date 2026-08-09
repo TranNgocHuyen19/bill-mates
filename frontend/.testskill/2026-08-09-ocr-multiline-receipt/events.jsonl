@@ -5,3 +5,7 @@
 {"event":"frontend_quality","status":"passed","result":"typecheck, lint, build"}
 {"event":"real_receipt_smoke","status":"passed","result":"Lotte 10 items / 294844; BHX merged 21 items / 724447"}
 {"event":"receipt_image_gallery","status":"passed","result":"authenticated image preview and multi-image switching"}
+{"event":"receipt_discount_parser","status":"passed","result":"MONG TOI 31500 - 6300 = 25200; payable 288500; VAT excluded"}
+{"event":"frontend_tests","status":"passed","result":"7 passed"}
+{"event":"real_receipt_smoke","status":"passed","result":"Lotte discount 6344 / payable 288500; BHX merged 21 items / 724447 unchanged"}
+{"event":"test_verifier","status":"blocked","result":"configured provider has no active credentials"}

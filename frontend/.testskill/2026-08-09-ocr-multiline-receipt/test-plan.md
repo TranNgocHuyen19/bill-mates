@@ -18,11 +18,15 @@
 - Multiple receipt images can be switched from the review gallery.
 - An image download failure shows a retry action without hiding OCR suggestions.
 - The original image stays visible while the item list is scrolled.
+- Item-level discounts printed below a product reduce that product's OCR total and retain the original price, discount amount, and percentage.
+- Receipt-level VAT declarations are informational and are never added to item totals.
+- The payable amount after product and order discounts is selected as the receipt total.
 
 ## Receipt Fixture
 
 - Ten products from the user-provided supermarket receipt.
-- Expected total: `294844`.
+- Expected subtotal: `294844`.
+- Expected payable total after discounts: `288500`.
 - Representative weighted products:
   - `THIT HEO XAY`: `119000 x 0.310 = 36890`.
   - `CA BA SA PHI LE TAM UOP`: `139000 x 0.346 = 48094`.
@@ -36,7 +40,8 @@
 - Run Ruff lint and formatting checks on changed backend files.
 - Reprocess the exact uploaded image and compare item count and total.
 - Reprocess all three user images:
-  - Lotte Mart: 10 items, item sum and receipt total `294844`.
-  - Bach Hoa Xanh: 21 unique merged items, item sum and receipt total `724447`.
+  - Lotte Mart: 10 items, net item sum `288544`, order discount `44`, and payable total `288500`.
+- Bach Hoa Xanh: 21 unique merged items, item sum and receipt total `724447`.
+- Lotte discount case: `MONG TOI BABY 300G` changes from `31500` to `25200` after a `20%` / `-6300` discount, while final payable is `288500`.
 - Add component tests for multiple previews, removing one image, merging suggestions, and overlap deduplication.
 - Add a component test that displays the original receipt image and switches between multiple images.

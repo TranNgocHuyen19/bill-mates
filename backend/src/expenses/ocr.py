@@ -14,6 +14,7 @@ NUMBER_TOKEN_PATTERN = re.compile(r"(?<![\w])\d+(?:[.,]\d+)*(?![\w])")
 QUANTITY_PATTERN = re.compile(r"(?<!\d)(\d+(?:[.,]\d+)?)\s*[xX*]\s*")
 ITEM_HEADER_PATTERN = re.compile(r"^\s*(\d{1,3})\s+(.+?)\s*$")
 TOTAL_KEYWORDS = (
+    "tien nhan",
     "tong cong",
     "tong tien",
     "thanh tien",
@@ -120,6 +121,25 @@ def _money_matches(text: str) -> list[tuple[re.Match[str], int]]:
         if amount is not None:
             matches.append((match, amount))
     return matches
+
+
+def _signed_money_matches(text: str) -> list[int]:
+    amounts: list[int] = []
+    for match in NUMBER_TOKEN_PATTERN.finditer(text):
+        amount = _parse_money_token(match.group())
+        if amount is None:
+            continue
+        amounts.append(
+            -amount if text[: match.start()].rstrip().endswith("-") else amount
+        )
+    return amounts
+
+
+def _percentage_values(text: str) -> list[float]:
+    values: list[float] = []
+    for match in re.finditer(r"(?<!\d)(\d+(?:[.,]\d+)?)\s*%", text):
+        values.append(float(match.group(1).replace(",", ".")))
+    return values
 
 
 def _box_values(line: dict[str, Any]) -> tuple[float, float, float, float] | None:
@@ -327,6 +347,8 @@ def _select_column_item(
         "quantity": quantity,
         "unit_price": unit_price,
         "total_amount": total_amount,
+        "_name_line_index": name_index,
+        "_line_index": total_index,
         "confidence": round(
             min(
                 float(lines[name_index].get("confidence", 0)),
@@ -357,6 +379,49 @@ def _column_item_suggestions(lines: list[dict[str, Any]]) -> list[dict[str, Any]
         )
         if suggestion is not None:
             suggestions.append(suggestion)
+    for suggestion_index, suggestion in enumerate(suggestions):
+        start_index = int(suggestion["_line_index"]) + 1
+        end_index = (
+            int(suggestions[suggestion_index + 1]["_name_line_index"])
+            if suggestion_index + 1 < len(suggestions)
+            else len(lines)
+        )
+        discount_lines = [
+            str(line.get("text", ""))
+            for line in lines[start_index:end_index]
+            if not any(
+                keyword in _ascii_fold(str(line.get("text", "")))
+                for keyword in ("giam gia", "discount")
+            )
+        ]
+        has_item_discount_marker = any(
+            "stiker" in _ascii_fold(text)
+            or ("%" in text and "vat" not in _ascii_fold(text))
+            for text in discount_lines
+        )
+        discount_amount = (
+            sum(
+                abs(amount)
+                for text in discount_lines
+                for amount in _signed_money_matches(text)
+                if amount < 0
+            )
+            if has_item_discount_marker
+            else 0
+        )
+        if discount_amount:
+            original_total = suggestion["total_amount"]
+            applied_discount = min(discount_amount, original_total)
+            suggestion["original_total_amount"] = original_total
+            suggestion["discount_amount"] = applied_discount
+            percentages = [
+                value for text in discount_lines for value in _percentage_values(text)
+            ]
+            if percentages:
+                suggestion["discount_percent"] = percentages[-1]
+            suggestion["total_amount"] = original_total - applied_discount
+        suggestion.pop("_name_line_index", None)
+        suggestion.pop("_line_index", None)
     return suggestions
 
 
@@ -400,6 +465,51 @@ def _total_from_lines(lines: list[dict[str, Any]]) -> int | None:
             key=lambda candidate: (candidate[0], candidate[1]),
         )[1]
     return None
+
+
+def _subtotal_from_lines(lines: list[dict[str, Any]]) -> int | None:
+    for line_index, line in enumerate(lines):
+        if "tong cong" not in _ascii_fold(str(line.get("text", ""))):
+            continue
+        amounts = [amount for _, amount in _money_matches(str(line.get("text", "")))]
+        if not amounts:
+            for next_line in lines[line_index + 1 : line_index + 4]:
+                amounts = [
+                    amount
+                    for _, amount in _money_matches(str(next_line.get("text", "")))
+                ]
+                if amounts:
+                    break
+        if amounts:
+            return amounts[-1]
+    return None
+
+
+def _discount_summary(lines: list[dict[str, Any]]) -> tuple[int | None, int | None]:
+    total_discount = 0
+    order_discount = 0
+    for line_index, line in enumerate(lines):
+        text = str(line.get("text", ""))
+        normalized = _ascii_fold(text)
+        if "giam gia" not in normalized and "discount" not in normalized:
+            continue
+        amounts = _signed_money_matches(text)
+        if not amounts:
+            for next_line in lines[line_index + 1 : line_index + 3]:
+                amounts = _signed_money_matches(str(next_line.get("text", "")))
+                if amounts:
+                    break
+        for amount in amounts:
+            if amount >= 0:
+                continue
+            discount = abs(amount)
+            total_discount += discount
+            if "don" in normalized:
+                order_discount += discount
+    return (
+        total_discount or None,
+        order_discount or None,
+    )
 
 
 def _inline_item_suggestions(lines: list[dict[str, Any]]) -> list[dict[str, Any]]:
@@ -463,12 +573,16 @@ def parse_receipt_lines(
         if str(line.get("text", "")).strip()
     ]
     confidences = [line["confidence"] for line in cleaned_lines]
+    discount_amount, order_discount_amount = _discount_summary(cleaned_lines)
     return {
         "provider": "paddleocr",
         "model": model,
         "language": language,
         "merchant": _merchant_from_lines(cleaned_lines),
         "total_amount": _total_from_lines(cleaned_lines),
+        "subtotal_amount": _subtotal_from_lines(cleaned_lines),
+        "discount_amount": discount_amount,
+        "order_discount_amount": order_discount_amount,
         "average_confidence": (
             round(sum(confidences) / len(confidences), 4) if confidences else 0
         ),

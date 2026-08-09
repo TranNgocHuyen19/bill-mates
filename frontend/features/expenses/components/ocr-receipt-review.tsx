@@ -68,6 +68,14 @@ export function OcrReceiptReview({
   )
   const detectedTotal =
     completedReceipts.find((receipt) => receipt.ocr_data?.total_amount != null)?.ocr_data?.total_amount ?? null
+  const summaryData = completedReceipts.find(
+    (receipt) =>
+      receipt.ocr_data?.total_amount != null ||
+      receipt.ocr_data?.subtotal_amount != null ||
+      receipt.ocr_data?.discount_amount != null
+  )?.ocr_data
+  const detectedSubtotal = summaryData?.subtotal_amount ?? null
+  const detectedDiscount = summaryData?.discount_amount ?? null
   const merchant = completedReceipts.find((receipt) => receipt.ocr_data?.merchant)?.ocr_data?.merchant
   const rawText = completedReceipts
     .map((receipt) => `[${receipt.filename}]\n${receipt.ocr_data?.raw_text ?? ''}`)
@@ -146,18 +154,44 @@ export function OcrReceiptReview({
           <Sparkles className='size-4 shrink-0 text-amber-500' aria-hidden='true' />
         </div>
 
-        <div className='relative mt-3 grid grid-cols-2 gap-2'>
-          <div className='rounded-xl bg-background/75 px-3 py-2 backdrop-blur'>
-            <p className='text-[10px] font-semibold text-muted-foreground uppercase'>OCR đọc được</p>
-            <p className='mt-0.5 truncate text-sm font-bold tabular-nums'>
-              {detectedTotal === null ? 'Chưa rõ' : formatVnd(detectedTotal)}
+        {detectedDiscount ? (
+          <div className='relative mt-3 overflow-hidden rounded-xl border border-background/60 bg-background/75 backdrop-blur'>
+            <div className='grid grid-cols-3 divide-x divide-border/60'>
+              <div className='min-w-0 px-2.5 py-2'>
+                <p className='text-[9px] font-semibold text-muted-foreground uppercase'>Tạm tính</p>
+                <p className='mt-0.5 truncate text-xs font-bold tabular-nums'>
+                  {detectedSubtotal === null ? 'Chưa rõ' : formatVnd(detectedSubtotal)}
+                </p>
+              </div>
+              <div className='min-w-0 px-2.5 py-2 text-emerald-700'>
+                <p className='text-[9px] font-semibold uppercase'>Giảm giá</p>
+                <p className='mt-0.5 truncate text-xs font-bold tabular-nums'>-{formatVnd(detectedDiscount)}</p>
+              </div>
+              <div className='min-w-0 px-2.5 py-2'>
+                <p className='text-[9px] font-semibold text-muted-foreground uppercase'>Phải trả</p>
+                <p className='mt-0.5 truncate text-xs font-extrabold text-primary tabular-nums'>
+                  {detectedTotal === null ? 'Chưa rõ' : formatVnd(detectedTotal)}
+                </p>
+              </div>
+            </div>
+            <p className='border-t border-border/60 px-2.5 py-1.5 text-[10px] text-muted-foreground'>
+              Đơn nháp {formatVnd(expenseTotal)} · VAT trên bill chỉ để kê khai, không cộng thêm.
             </p>
           </div>
-          <div className='rounded-xl bg-background/75 px-3 py-2 backdrop-blur'>
-            <p className='text-[10px] font-semibold text-muted-foreground uppercase'>Tổng đơn nháp</p>
-            <p className='mt-0.5 truncate text-sm font-bold tabular-nums'>{formatVnd(expenseTotal)}</p>
+        ) : (
+          <div className='relative mt-3 grid grid-cols-2 gap-2'>
+            <div className='rounded-xl bg-background/75 px-3 py-2 backdrop-blur'>
+              <p className='text-[10px] font-semibold text-muted-foreground uppercase'>OCR đọc được</p>
+              <p className='mt-0.5 truncate text-sm font-bold tabular-nums'>
+                {detectedTotal === null ? 'Chưa rõ' : formatVnd(detectedTotal)}
+              </p>
+            </div>
+            <div className='rounded-xl bg-background/75 px-3 py-2 backdrop-blur'>
+              <p className='text-[10px] font-semibold text-muted-foreground uppercase'>Tổng đơn nháp</p>
+              <p className='mt-0.5 truncate text-sm font-bold tabular-nums'>{formatVnd(expenseTotal)}</p>
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
       {hasTotalMismatch ? (
@@ -225,11 +259,24 @@ export function OcrReceiptReview({
                     />
                   </div>
                   <div className='mt-2 flex items-center justify-between gap-2'>
-                    <span className='truncate text-[11px] text-muted-foreground'>
-                      {suggestion.quantity !== 1
-                        ? `${suggestion.quantity} × ${formatVnd(suggestion.unit_price)}`
-                        : `Tin cậy ${Math.round(suggestion.confidence * 100)}%`}
-                    </span>
+                    <div className='min-w-0'>
+                      {suggestion.discount_amount ? (
+                        <p className='truncate text-[11px] font-medium text-emerald-700'>
+                          <span className='text-muted-foreground line-through'>
+                            {formatVnd(suggestion.original_total_amount ?? suggestion.total_amount)}
+                          </span>
+                          {' · Giảm '}
+                          {suggestion.discount_percent ? `${suggestion.discount_percent}% ` : ''}
+                          (-{formatVnd(suggestion.discount_amount)}) · còn {formatVnd(suggestion.total_amount)}
+                        </p>
+                      ) : (
+                        <p className='truncate text-[11px] text-muted-foreground'>
+                          {suggestion.quantity !== 1
+                            ? `${suggestion.quantity} × ${formatVnd(suggestion.unit_price)}`
+                            : `Tin cậy ${Math.round(suggestion.confidence * 100)}%`}
+                        </p>
+                      )}
+                    </div>
                     <Button
                       type='button'
                       size='sm'

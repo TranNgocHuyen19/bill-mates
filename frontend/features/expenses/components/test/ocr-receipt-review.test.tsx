@@ -124,3 +124,41 @@ test('When receipt screenshots overlap, then duplicate items are merged and uniq
   expect(screen.getByText('PaddleOCR tìm thấy 3 món từ 2 ảnh')).toBeVisible()
   expect(screen.getByDisplayValue('Cà chua')).toBeVisible()
 })
+
+test('When a receipt item has a discount, then original, discount, net, and payable totals are visible', async () => {
+  const receipt = buildCompletedReceipt({
+    ocr_data: {
+      total_amount: 288_500,
+      subtotal_amount: 294_844,
+      discount_amount: 6_344,
+      order_discount_amount: 44,
+      items: [
+        {
+          name: 'MONG TOI BABY 300G',
+          quantity: 1,
+          unit_price: 31_500,
+          original_total_amount: 31_500,
+          discount_amount: 6_300,
+          discount_percent: 20,
+          total_amount: 25_200,
+          confidence: 0.99
+        }
+      ]
+    }
+  })
+
+  render(
+    <OcrReceiptReview
+      receipts={[receipt]}
+      expenseTotal={288_500}
+      selectedIndex={null}
+      importedIndexes={[]}
+      isRetrying={false}
+      onRetry={vi.fn()}
+      onUseSuggestion={vi.fn()}
+    />
+  )
+
+  expect(screen.getByText(/Giảm 20%.*6.300.*còn 25.200/)).toBeVisible()
+  expect(screen.getByText(/VAT trên bill chỉ để kê khai, không cộng thêm/)).toBeVisible()
+})

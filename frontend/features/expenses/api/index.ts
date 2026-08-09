@@ -15,6 +15,9 @@ export interface OcrItemSuggestion {
   quantity: number
   unit_price: number
   total_amount: number
+  original_total_amount?: number
+  discount_amount?: number
+  discount_percent?: number
   confidence: number
 }
 
@@ -24,6 +27,9 @@ export interface ReceiptOcrData {
   language?: string
   merchant?: string | null
   total_amount?: number | null
+  subtotal_amount?: number | null
+  discount_amount?: number | null
+  order_discount_amount?: number | null
   average_confidence?: number
   items?: OcrItemSuggestion[]
   lines?: OcrLine[]

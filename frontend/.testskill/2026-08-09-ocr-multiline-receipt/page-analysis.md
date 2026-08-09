@@ -22,6 +22,9 @@
 - Select the rightmost numeric box as line total.
 - Read unit price and quantity from the middle columns.
 - Keep the existing same-line parser as a fallback for receipts without positional boxes.
+- Associate a sticker/percentage/negative amount block with the preceding product row.
+- Preserve VAT summary rows only in raw OCR text.
+- Distinguish subtotal, total discount, order discount, and final payable amount.
 
 ## Multi-Image Upload Elements
 
