@@ -142,6 +142,13 @@ test('When a receipt item has a discount, then original, discount, net, and paya
           discount_percent: 20,
           total_amount: 25_200,
           confidence: 0.99
+        },
+        {
+          name: 'THIT HEO',
+          quantity: 1,
+          unit_price: 263_344,
+          total_amount: 263_344,
+          confidence: 0.98
         }
       ]
     }
@@ -160,5 +167,6 @@ test('When a receipt item has a discount, then original, discount, net, and paya
   )
 
   expect(screen.getByText(/Giảm 20%.*6.300.*còn 25.200/)).toBeVisible()
+  expect(screen.getByText(/Phân bổ giảm toàn đơn.*44.*còn 263.300/)).toBeVisible()
   expect(screen.getByText(/VAT trên bill chỉ để kê khai, không cộng thêm/)).toBeVisible()
 })

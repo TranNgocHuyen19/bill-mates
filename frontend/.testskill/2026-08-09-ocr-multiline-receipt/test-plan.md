@@ -21,6 +21,7 @@
 - Item-level discounts printed below a product reduce that product's OCR total and retain the original price, discount amount, and percentage.
 - Receipt-level VAT declarations are informational and are never added to item totals.
 - The payable amount after product and order discounts is selected as the receipt total.
+- A receipt-level order discount is visibly allocated to one eligible OCR item so imported item totals match the payable amount.
 
 ## Receipt Fixture
 

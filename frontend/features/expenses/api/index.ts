@@ -18,6 +18,7 @@ export interface OcrItemSuggestion {
   original_total_amount?: number
   discount_amount?: number
   discount_percent?: number
+  order_discount_amount?: number
   confidence: number
 }
 

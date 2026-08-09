@@ -32,6 +32,7 @@
 - Protected original images are displayed inline and can be switched without leaving the OCR review.
 - Discounted items display the original amount, percentage, discount amount, and net amount.
 - The compact receipt summary displays subtotal, discount, and payable total.
+- The `44` order discount is visibly allocated to an eligible non-discounted item, making imported OCR items total `288500`.
 
 ## Residual Risk
 

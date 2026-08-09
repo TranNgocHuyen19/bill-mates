@@ -48,7 +48,37 @@ function buildSuggestions(receipts: ExpenseReceipt[]): EditableSuggestion[] {
     })
   })
 
-  return suggestions
+  const summaryData = receipts.find(
+    (receipt) => receipt.ocr_data?.total_amount != null && receipt.ocr_data?.order_discount_amount
+  )?.ocr_data
+  const orderDiscount = summaryData?.order_discount_amount ?? 0
+  const detectedTotal = summaryData?.total_amount ?? 0
+  const suggestionsTotal = suggestions.reduce((sum, item) => sum + item.total_amount, 0)
+  const unallocatedDiscount = suggestionsTotal - detectedTotal
+  const adjustment = Math.min(orderDiscount, unallocatedDiscount)
+  if (adjustment <= 0) return suggestions
+
+  const preferredIndexes = suggestions
+    .map((item, index) => ({ item, index }))
+    .filter(({ item }) => !item.discount_amount && item.total_amount > adjustment)
+  const candidates = preferredIndexes.length
+    ? preferredIndexes
+    : suggestions.map((item, index) => ({ item, index })).filter(({ item }) => item.total_amount > adjustment)
+  const target = candidates.reduce(
+    (largest, candidate) => (candidate.item.total_amount > largest.item.total_amount ? candidate : largest),
+    candidates[0]
+  )
+  if (!target) return suggestions
+
+  return suggestions.map((item, index) =>
+    index === target.index
+      ? {
+          ...item,
+          total_amount: item.total_amount - adjustment,
+          order_discount_amount: adjustment
+        }
+      : item
+  )
 }
 
 export function OcrReceiptReview({
@@ -260,15 +290,26 @@ export function OcrReceiptReview({
                   </div>
                   <div className='mt-2 flex items-center justify-between gap-2'>
                     <div className='min-w-0'>
-                      {suggestion.discount_amount ? (
-                        <p className='truncate text-[11px] font-medium text-emerald-700'>
-                          <span className='text-muted-foreground line-through'>
-                            {formatVnd(suggestion.original_total_amount ?? suggestion.total_amount)}
-                          </span>
-                          {' · Giảm '}
-                          {suggestion.discount_percent ? `${suggestion.discount_percent}% ` : ''}
-                          (-{formatVnd(suggestion.discount_amount)}) · còn {formatVnd(suggestion.total_amount)}
-                        </p>
+                      {suggestion.discount_amount || suggestion.order_discount_amount ? (
+                        <div className='space-y-0.5 text-[11px] font-medium text-emerald-700'>
+                          {suggestion.discount_amount ? (
+                            <p className='truncate'>
+                              <span className='text-muted-foreground line-through'>
+                                {formatVnd(suggestion.original_total_amount ?? suggestion.total_amount)}
+                              </span>
+                              {' · Giảm '}
+                              {suggestion.discount_percent ? `${suggestion.discount_percent}% ` : ''}
+                              (-{formatVnd(suggestion.discount_amount)}) · còn{' '}
+                              {formatVnd(suggestion.total_amount + (suggestion.order_discount_amount ?? 0))}
+                            </p>
+                          ) : null}
+                          {suggestion.order_discount_amount ? (
+                            <p className='truncate'>
+                              Phân bổ giảm toàn đơn -{formatVnd(suggestion.order_discount_amount)} · còn{' '}
+                              {formatVnd(suggestion.total_amount)}
+                            </p>
+                          ) : null}
+                        </div>
                       ) : (
                         <p className='truncate text-[11px] text-muted-foreground'>
                           {suggestion.quantity !== 1

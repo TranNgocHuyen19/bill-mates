@@ -25,6 +25,7 @@
 - Associate a sticker/percentage/negative amount block with the preceding product row.
 - Preserve VAT summary rows only in raw OCR text.
 - Distinguish subtotal, total discount, order discount, and final payable amount.
+- Reconcile an order-level discount against the combined OCR item total before the user imports items for splitting.
 
 ## Multi-Image Upload Elements
 

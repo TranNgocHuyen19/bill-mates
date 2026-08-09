@@ -9,3 +9,4 @@
 {"event":"frontend_tests","status":"passed","result":"7 passed"}
 {"event":"real_receipt_smoke","status":"passed","result":"Lotte discount 6344 / payable 288500; BHX merged 21 items / 724447 unchanged"}
 {"event":"test_verifier","status":"blocked","result":"configured provider has no active credentials"}
+{"event":"order_discount_reconciliation","status":"passed","result":"44 allocated visibly; OCR suggestions total 288500"}
