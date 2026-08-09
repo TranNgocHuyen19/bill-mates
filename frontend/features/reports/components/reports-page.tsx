@@ -36,6 +36,7 @@ import type {
   CategoryReport,
   MemberReport,
   MonthlyReport,
+  ReportExpense,
   ReportExport,
   ReportFilters,
   ReportSettlement,
@@ -46,6 +47,14 @@ import type {
 const ISO_DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/
 const monthFormatter = new Intl.DateTimeFormat('vi-VN', { month: 'short', year: '2-digit' })
 const dateFormatter = new Intl.DateTimeFormat('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' })
+const shortDateFormatter = new Intl.DateTimeFormat('vi-VN', { day: '2-digit', month: '2-digit' })
+const categoryFallbackColors = [
+  'var(--primary)',
+  'var(--secondary)',
+  'var(--tertiary)',
+  'var(--primary-container)',
+  'var(--secondary-container)'
+] as const
 
 const settlementStatusContent: Record<
   ReportSettlementStatus,
@@ -118,6 +127,15 @@ function formatReportDate(value: string): string {
   return Number.isNaN(date.getTime()) ? value : dateFormatter.format(date)
 }
 
+function formatShortDate(value: string): string {
+  const date = new Date(`${value}T00:00:00`)
+  return Number.isNaN(date.getTime()) ? value : shortDateFormatter.format(date)
+}
+
+function getCategoryColor(color: string | null, index: number): string {
+  return color && /^#[0-9a-f]{6}$/i.test(color) ? color : categoryFallbackColors[index % categoryFallbackColors.length]
+}
+
 function saveReportFile({ blob, filename }: ReportExport): void {
   const objectUrl = URL.createObjectURL(blob)
   const anchor = document.createElement('a')
@@ -154,6 +172,154 @@ function SummaryMetric({
           <Icon className='size-5' />
         </span>
       </div>
+    </Card>
+  )
+}
+
+function DailyExpenseChart({ data }: { data: ReportExpense[] }) {
+  const dailyTotals = new Map<string, { total: number; count: number }>()
+  for (const expense of data) {
+    const current = dailyTotals.get(expense.expense_date) ?? { total: 0, count: 0 }
+    current.total += Number(expense.total)
+    current.count += 1
+    dailyTotals.set(expense.expense_date, current)
+  }
+
+  const trend = [...dailyTotals.entries()]
+    .sort(([firstDate], [secondDate]) => firstDate.localeCompare(secondDate))
+    .map(([date, values]) => ({ date, ...values }))
+  const maxTotal = Math.max(1, ...trend.map((item) => item.total))
+  const chartWidth = 400
+  const chartHeight = 180
+  const chartTop = 14
+  const chartBottom = 160
+  const chartLeft = 18
+  const chartRight = 382
+  const points = trend.map((item, index) => {
+    const x =
+      trend.length === 1
+        ? chartWidth / 2
+        : chartLeft + (index / Math.max(1, trend.length - 1)) * (chartRight - chartLeft)
+    const y = chartBottom - (item.total / maxTotal) * (chartBottom - chartTop)
+    return { ...item, x, y }
+  })
+  const linePath = points.map((point, index) => `${index === 0 ? 'M' : 'L'} ${point.x} ${point.y}`).join(' ')
+  const areaPath =
+    points.length > 1
+      ? `M ${points[0].x} ${chartBottom} ${points.map((point) => `L ${point.x} ${point.y}`).join(' ')} L ${points.at(-1)?.x ?? chartRight} ${chartBottom} Z`
+      : ''
+  const peak = trend.reduce<(typeof trend)[number] | null>(
+    (currentPeak, item) => (!currentPeak || item.total > currentPeak.total ? item : currentPeak),
+    null
+  )
+
+  return (
+    <Card className='overflow-hidden rounded-3xl p-0'>
+      <div className='flex items-start justify-between gap-3 border-b px-4 py-4 sm:px-5'>
+        <div>
+          <h2 className='flex items-center gap-2 font-bold'>
+            <TrendingUp className='size-5 text-primary' />
+            Nhịp chi theo ngày
+          </h2>
+          <p className='mt-1 text-xs text-muted-foreground'>Nhìn nhanh ngày nào phát sinh nhiều nhất.</p>
+        </div>
+        <Badge variant='outline' className='shrink-0 rounded-full'>
+          {trend.length} ngày có chi
+        </Badge>
+      </div>
+
+      {points.length > 0 ? (
+        <div className='px-4 py-4 sm:px-5'>
+          <div className='mb-3 flex items-end justify-between gap-3'>
+            <div>
+              <p className='text-[11px] font-semibold text-muted-foreground uppercase'>Cao nhất</p>
+              <p className='mt-1 text-lg font-bold tabular-nums'>{formatVnd(peak?.total ?? 0)}</p>
+            </div>
+            <p className='text-right text-xs text-muted-foreground'>
+              {peak ? formatShortDate(peak.date) : ''}
+              <br />
+              {peak?.count ?? 0} khoản chi
+            </p>
+          </div>
+
+          <div
+            role='img'
+            aria-label={`Xu hướng chi theo ngày. Cao nhất ${formatVnd(peak?.total ?? 0)} vào ${peak ? formatShortDate(peak.date) : ''}.`}
+            className='rounded-2xl bg-[linear-gradient(180deg,color-mix(in_oklch,var(--primary)_8%,transparent),transparent)] px-1 pt-2'
+          >
+            <svg viewBox={`0 0 ${chartWidth} ${chartHeight}`} className='h-48 w-full' aria-hidden='true'>
+              <defs>
+                <linearGradient id='daily-expense-area' x1='0' y1='0' x2='0' y2='1'>
+                  <stop offset='0%' stopColor='var(--primary)' stopOpacity='0.28' />
+                  <stop offset='100%' stopColor='var(--primary)' stopOpacity='0.02' />
+                </linearGradient>
+              </defs>
+              {[0.25, 0.5, 0.75, 1].map((ratio) => {
+                const y = chartBottom - ratio * (chartBottom - chartTop)
+                return (
+                  <line
+                    key={ratio}
+                    x1={chartLeft}
+                    x2={chartRight}
+                    y1={y}
+                    y2={y}
+                    stroke='var(--border)'
+                    strokeDasharray='4 7'
+                    strokeOpacity='0.7'
+                  />
+                )
+              })}
+              {points.length === 1 ? (
+                <rect
+                  x={points[0].x - 24}
+                  y={points[0].y}
+                  width='48'
+                  height={chartBottom - points[0].y}
+                  rx='12'
+                  fill='url(#daily-expense-area)'
+                  stroke='var(--primary)'
+                  strokeWidth='3'
+                />
+              ) : (
+                <>
+                  <path d={areaPath} fill='url(#daily-expense-area)' />
+                  <path
+                    d={linePath}
+                    fill='none'
+                    stroke='var(--primary)'
+                    strokeWidth='4'
+                    strokeLinecap='round'
+                    strokeLinejoin='round'
+                  />
+                </>
+              )}
+              {points.map((point) => (
+                <circle
+                  key={point.date}
+                  cx={point.x}
+                  cy={point.y}
+                  r='5'
+                  fill='var(--card)'
+                  stroke='var(--primary)'
+                  strokeWidth='3'
+                >
+                  <title>
+                    {formatShortDate(point.date)}: {formatVnd(point.total)}
+                  </title>
+                </circle>
+              ))}
+            </svg>
+          </div>
+
+          <div className='mt-1 flex justify-between text-[11px] font-semibold text-muted-foreground'>
+            <span>{formatShortDate(trend[0].date)}</span>
+            <span>{trend.length > 2 ? formatShortDate(trend[Math.floor(trend.length / 2)].date) : ''}</span>
+            <span>{formatShortDate(trend.at(-1)?.date ?? '')}</span>
+          </div>
+        </div>
+      ) : (
+        <div className='px-5 py-8 text-center text-sm text-muted-foreground'>Chưa có khoản chi để vẽ xu hướng.</div>
+      )}
     </Card>
   )
 }
@@ -209,54 +375,82 @@ function MonthlyChart({ data }: { data: MonthlyReport[] }) {
 
 function CategoryBreakdown({ data, totalExpenses }: { data: CategoryReport[]; totalExpenses: string }) {
   const reportTotal = Number(totalExpenses)
+  const categorySegments = data.reduce<
+    Array<CategoryReport & { percentage: number; color: string; start: number; end: number }>
+  >((segments, item, index) => {
+    const percentage = reportTotal > 0 ? Math.max(0, (Number(item.total) / reportTotal) * 100) : 0
+    const start = segments.at(-1)?.end ?? 0
+    const segment = {
+      ...item,
+      percentage,
+      color: getCategoryColor(item.color, index),
+      start,
+      end: start + percentage
+    }
+    return [...segments, segment]
+  }, [])
+  const donutBackground =
+    categorySegments.length > 0
+      ? `conic-gradient(from -90deg, ${categorySegments
+          .map((item) => `${item.color} ${item.start}% ${item.end}%`)
+          .join(', ')})`
+      : 'var(--muted)'
 
   return (
-    <Card className='rounded-3xl p-4 sm:p-5'>
-      <h2 className='flex items-center gap-2 font-bold'>
-        <PieChart className='size-5 text-primary' />
-        Chi theo danh mục
-      </h2>
-      <p className='mt-1 text-xs text-muted-foreground'>Tỷ trọng từng nhóm trong tổng chi đã chốt.</p>
+    <Card className='overflow-hidden rounded-3xl p-0'>
+      <div className='border-b px-4 py-4 sm:px-5'>
+        <h2 className='flex items-center gap-2 font-bold'>
+          <PieChart className='size-5 text-primary' />
+          Cơ cấu danh mục
+        </h2>
+        <p className='mt-1 text-xs text-muted-foreground'>Khoản nào đang chiếm nhiều ngân sách nhất.</p>
+      </div>
 
       {data.length > 0 ? (
-        <div className='mt-5 space-y-4'>
-          {data.map((item) => {
-            const percentage =
-              reportTotal > 0 ? Math.min(100, Math.max(0, (Number(item.total) / reportTotal) * 100)) : 0
-            return (
-              <div key={item.category_id ?? item.name} className='space-y-2'>
-                <div className='flex min-w-0 items-baseline justify-between gap-3'>
-                  <span className='flex min-w-0 items-center gap-2 truncate text-sm font-semibold'>
-                    <span
-                      className='size-2.5 shrink-0 rounded-full bg-secondary'
-                      style={item.color ? { backgroundColor: item.color } : undefined}
-                    />
-                    <span className='truncate'>{item.name || 'Chưa phân loại'}</span>
-                  </span>
-                  <span className='shrink-0 text-sm font-bold tabular-nums'>{formatVnd(item.total)}</span>
-                </div>
-                <div className='flex items-center gap-3'>
-                  <div className='h-2.5 min-w-0 flex-1 overflow-hidden rounded-full bg-muted'>
-                    <div className='h-full rounded-full bg-secondary' style={{ width: `${percentage}%` }} />
+        <div className='grid items-center gap-5 p-4 sm:grid-cols-[176px_1fr] sm:p-5'>
+          <div
+            role='img'
+            aria-label={`Cơ cấu chi theo danh mục: ${categorySegments
+              .map((item) => `${item.name} ${item.percentage.toFixed(1)}%`)
+              .join(', ')}`}
+            className='relative mx-auto aspect-square w-40 rounded-full shadow-inner sm:w-44'
+            style={{ background: donutBackground }}
+          >
+            <div className='absolute inset-[21%] grid place-items-center rounded-full bg-card text-center shadow-sm'>
+              <div>
+                <p className='text-[10px] font-semibold text-muted-foreground uppercase'>Tổng chi</p>
+                <p className='mt-1 text-sm font-bold tabular-nums'>{formatVnd(totalExpenses)}</p>
+              </div>
+            </div>
+          </div>
+
+          <div className='space-y-3'>
+            {categorySegments.map((item) => (
+              <div key={item.category_id ?? item.name} className='flex min-w-0 items-center gap-2.5'>
+                <span className='size-3 shrink-0 rounded-full' style={{ backgroundColor: item.color }} />
+                <div className='min-w-0 flex-1'>
+                  <div className='flex items-baseline justify-between gap-2'>
+                    <span className='truncate text-xs font-semibold'>{item.name || 'Chưa phân loại'}</span>
+                    <span className='shrink-0 text-xs font-bold tabular-nums'>
+                      {item.percentage.toLocaleString('vi-VN', { maximumFractionDigits: 1 })}%
+                    </span>
                   </div>
-                  <span className='w-11 text-right text-xs font-bold text-secondary tabular-nums'>
-                    {percentage.toLocaleString('vi-VN', { maximumFractionDigits: 1 })}%
-                  </span>
+                  <p className='mt-0.5 text-[11px] text-muted-foreground tabular-nums'>{formatVnd(item.total)}</p>
                 </div>
               </div>
-            )
-          })}
+            ))}
+          </div>
         </div>
       ) : (
-        <p className='mt-5 rounded-2xl bg-muted/60 p-5 text-center text-sm text-muted-foreground'>
-          Chưa có danh mục phát sinh trong kỳ.
-        </p>
+        <p className='p-8 text-center text-sm text-muted-foreground'>Chưa có danh mục phát sinh trong kỳ.</p>
       )}
     </Card>
   )
 }
 
 function MemberBreakdown({ data }: { data: MemberReport[] }) {
+  const maxAmount = Math.max(1, ...data.flatMap((member) => [Number(member.paid), Number(member.owed)]))
+
   return (
     <Card className='rounded-3xl p-4 sm:p-5'>
       <h2 className='flex items-center gap-2 font-bold'>
@@ -269,6 +463,8 @@ function MemberBreakdown({ data }: { data: MemberReport[] }) {
         <div className='mt-4 space-y-3'>
           {data.map((member) => {
             const balance = Number(member.balance)
+            const paidPercentage = Math.max(0, (Number(member.paid) / maxAmount) * 100)
+            const owedPercentage = Math.max(0, (Number(member.owed) / maxAmount) * 100)
             return (
               <div key={member.member_id} className='rounded-2xl border bg-muted/30 p-3.5'>
                 <div className='flex min-w-0 items-center gap-3'>
@@ -277,9 +473,7 @@ function MemberBreakdown({ data }: { data: MemberReport[] }) {
                   </span>
                   <div className='min-w-0 flex-1'>
                     <p className='truncate text-sm font-bold'>{member.display_name}</p>
-                    <p className='mt-0.5 text-xs text-muted-foreground'>
-                      Đã trả {formatVnd(member.paid)} · Được chia {formatVnd(member.owed)}
-                    </p>
+                    <p className='mt-0.5 text-xs text-muted-foreground'>So sánh trên cùng một thang đo</p>
                   </div>
                   <div className='shrink-0 text-right'>
                     <p
@@ -292,6 +486,33 @@ function MemberBreakdown({ data }: { data: MemberReport[] }) {
                       {formatVnd(member.balance)}
                     </p>
                     <p className='text-[10px] text-muted-foreground'>{balance >= 0 ? 'số dư dương' : 'số dư âm'}</p>
+                  </div>
+                </div>
+
+                <div
+                  className='mt-3 space-y-2.5 border-t pt-3'
+                  role='img'
+                  aria-label={`${member.display_name}: đã trả ${formatVnd(member.paid)}, phải chịu ${formatVnd(member.owed)}`}
+                >
+                  <div className='grid grid-cols-[64px_1fr_auto] items-center gap-2'>
+                    <span className='text-[11px] font-semibold text-primary'>Đã trả</span>
+                    <div className='h-2.5 overflow-hidden rounded-full bg-muted'>
+                      <div
+                        className='h-full rounded-full bg-primary'
+                        style={{ width: `${Number(member.paid) > 0 ? Math.max(3, paidPercentage) : 0}%` }}
+                      />
+                    </div>
+                    <span className='w-20 text-right text-[11px] font-bold tabular-nums'>{formatVnd(member.paid)}</span>
+                  </div>
+                  <div className='grid grid-cols-[64px_1fr_auto] items-center gap-2'>
+                    <span className='text-[11px] font-semibold text-tertiary'>Phải chịu</span>
+                    <div className='h-2.5 overflow-hidden rounded-full bg-muted'>
+                      <div
+                        className='h-full rounded-full bg-tertiary'
+                        style={{ width: `${Number(member.owed) > 0 ? Math.max(3, owedPercentage) : 0}%` }}
+                      />
+                    </div>
+                    <span className='w-20 text-right text-[11px] font-bold tabular-nums'>{formatVnd(member.owed)}</span>
                   </div>
                 </div>
               </div>
@@ -460,10 +681,11 @@ function ReportContent({ report }: { report: RoomReport }) {
       ) : null}
 
       <div className='grid gap-5 lg:grid-cols-[1.15fr_0.85fr]'>
-        <MonthlyChart data={report.monthly} />
+        <DailyExpenseChart data={report.expenses} />
         <CategoryBreakdown data={report.categories} totalExpenses={report.summary.total_expenses} />
       </div>
 
+      {report.monthly.length > 1 ? <MonthlyChart data={report.monthly} /> : null}
       <MemberBreakdown data={report.members} />
       <BalanceList data={report.members} />
       <SettlementList data={report.settlements} />
