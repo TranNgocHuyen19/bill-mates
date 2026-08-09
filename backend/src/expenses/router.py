@@ -185,6 +185,24 @@ async def get_expense_receipt(
     )
 
 
+@router.get("/expense-receipts/{receipt_id}/image")
+async def get_expense_receipt_image(
+    receipt_id: UUID,
+    current_user: CurrentUser,
+    session: DatabaseSession,
+) -> Response:
+    receipt, content = await ExpenseService.get_receipt_image(
+        session,
+        current_user,
+        receipt_id,
+    )
+    return Response(
+        content=content,
+        media_type=receipt.mime_type,
+        headers={"Cache-Control": "private, max-age=300"},
+    )
+
+
 @router.post(
     "/expense-receipts/{receipt_id}/ocr",
     response_model=ExpenseReceiptResponse,

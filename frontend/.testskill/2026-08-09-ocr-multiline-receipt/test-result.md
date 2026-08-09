@@ -7,7 +7,7 @@
 - Backend Ruff check: passed.
 - Backend Ruff format check: passed.
 - Frontend typecheck: passed.
-- Frontend Vitest: `5 passed`.
+- Frontend Vitest: `6 passed`.
 - Frontend ESLint: passed with no warnings.
 - Frontend production build: passed.
 
@@ -25,3 +25,4 @@
 - Multiple images can be selected, previewed, appended, and removed.
 - Receipt images are uploaded and scanned sequentially.
 - Overlapping screenshot rows are deduplicated by normalized name and line total.
+- Protected original images are displayed inline and can be switched without leaving the OCR review.

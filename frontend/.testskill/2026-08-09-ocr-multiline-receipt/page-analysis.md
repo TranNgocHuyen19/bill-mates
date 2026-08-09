@@ -38,3 +38,11 @@
 - Suggestions are flattened in image order and duplicate overlap rows are removed.
 - Failed images produce a warning without hiding successful suggestions from other images.
 - Retrying scans all images and refreshes the receipt collection.
+
+## Original Image Gallery
+
+- The review card contains an accessible original-image section.
+- The active image is loaded through the authenticated backend image endpoint.
+- Previous/next controls and numbered image buttons switch between receipt images.
+- The image is constrained inside the review card so it does not cover the entire mobile screen.
+- A failed image fetch shows an inline retry action.

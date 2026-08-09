@@ -10,6 +10,7 @@ import { formatVnd } from '@/lib/money'
 import { cn } from '@/lib/utils'
 import type { ExpenseReceipt, OcrItemSuggestion } from '../api'
 import { MoneyInput } from './money-input'
+import { ReceiptImageGallery } from './receipt-image-gallery'
 
 interface EditableSuggestion extends OcrItemSuggestion {
   sourceIndex: number
@@ -174,6 +175,8 @@ export function OcrReceiptReview({
       ) : null}
 
       <div className='space-y-3 p-4'>
+        <ReceiptImageGallery receipts={receipts} />
+
         <div>
           <p className='text-sm font-bold'>Kiểm tra từng món</p>
           <p className='mt-0.5 text-xs text-muted-foreground'>

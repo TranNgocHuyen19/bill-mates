@@ -566,6 +566,16 @@ class ExpenseService:
         return receipt
 
     @staticmethod
+    async def get_receipt_image(
+        session: AsyncSession,
+        user: AuthenticatedUser,
+        receipt_id: UUID,
+    ) -> tuple[ExpenseReceipt, bytes]:
+        """Tải ảnh receipt sau khi kiểm tra quyền truy cập của thành viên phòng."""
+        receipt = await ExpenseService.get_receipt(session, user, receipt_id)
+        return receipt, await ExpenseService._download_receipt(receipt)
+
+    @staticmethod
     async def scan_receipt(
         session: AsyncSession,
         user: AuthenticatedUser,

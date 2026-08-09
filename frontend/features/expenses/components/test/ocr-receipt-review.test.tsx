@@ -1,9 +1,22 @@
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { expect, test, vi } from 'vitest'
+import { afterEach, beforeEach, expect, test, vi } from 'vitest'
 
 import { OcrReceiptReview } from '../ocr-receipt-review'
 import { buildCompletedReceipt } from './factories'
+
+vi.mock('../../api', () => ({
+  getExpenseReceiptImageApi: vi.fn().mockResolvedValue(new Blob(['receipt'], { type: 'image/jpeg' }))
+}))
+
+beforeEach(() => {
+  vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:receipt')
+  vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => undefined)
+})
+
+afterEach(() => {
+  vi.restoreAllMocks()
+})
 
 test('When editing an OCR suggestion, then the reviewed item is selected for splitting', async () => {
   const receipt = buildCompletedReceipt()
@@ -21,6 +34,7 @@ test('When editing an OCR suggestion, then the reviewed item is selected for spl
     />
   )
 
+  await screen.findByRole('img', { name: 'Ảnh bill gốc 1' })
   await user.clear(screen.getByLabelText('Tên món OCR 1'))
   await user.type(screen.getByLabelText('Tên món OCR 1'), 'Coca không đường')
   await user.clear(screen.getByLabelText('Thành tiền món OCR 1'))
@@ -63,7 +77,7 @@ test('When OCR failed, then an actionable error and retry are available', async 
   expect(onRetry).toHaveBeenCalledOnce()
 })
 
-test('When receipt screenshots overlap, then duplicate items are merged and unique items remain', () => {
+test('When receipt screenshots overlap, then duplicate items are merged and unique items remain', async () => {
   const sharedItem = {
     name: 'Khoai mỡ',
     quantity: 0.406,
@@ -106,6 +120,7 @@ test('When receipt screenshots overlap, then duplicate items are merged and uniq
     />
   )
 
+  await screen.findByRole('img', { name: 'Ảnh bill gốc 1' })
   expect(screen.getByText('PaddleOCR tìm thấy 3 món từ 2 ảnh')).toBeVisible()
   expect(screen.getByDisplayValue('Cà chua')).toBeVisible()
 })

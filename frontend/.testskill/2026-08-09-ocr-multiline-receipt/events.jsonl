@@ -4,3 +4,4 @@
 {"event":"frontend_tests","status":"passed","result":"5 passed"}
 {"event":"frontend_quality","status":"passed","result":"typecheck, lint, build"}
 {"event":"real_receipt_smoke","status":"passed","result":"Lotte 10 items / 294844; BHX merged 21 items / 724447"}
+{"event":"receipt_image_gallery","status":"passed","result":"authenticated image preview and multi-image switching"}

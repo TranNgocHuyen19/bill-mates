@@ -14,6 +14,9 @@
 - OCR suggestions from all images are shown in one review list.
 - Overlapping screenshots are deduplicated by normalized item name and line total.
 - A total found only in the final image is used as the combined receipt total.
+- The OCR review displays the protected original receipt image for visual comparison.
+- Multiple receipt images can be switched from the review gallery.
+- An image download failure shows a retry action without hiding OCR suggestions.
 
 ## Receipt Fixture
 
@@ -35,3 +38,4 @@
   - Lotte Mart: 10 items, item sum and receipt total `294844`.
   - Bach Hoa Xanh: 21 unique merged items, item sum and receipt total `724447`.
 - Add component tests for multiple previews, removing one image, merging suggestions, and overlap deduplication.
+- Add a component test that displays the original receipt image and switches between multiple images.

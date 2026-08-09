@@ -182,6 +182,14 @@ export const getExpenseReceiptsApi = async (expenseId: string): Promise<ExpenseR
   return response.data
 }
 
+export const getExpenseReceiptImageApi = async (receiptId: string): Promise<Blob> => {
+  const response = await http.get<Blob>(`/api/v1/expense-receipts/${receiptId}/image`, {
+    responseType: 'blob',
+    timeout: 30_000
+  })
+  return response.data
+}
+
 export const scanExpenseReceiptApi = async (receiptId: string, force = false): Promise<ExpenseReceipt> => {
   const response = await http.post<ExpenseReceipt>(`/api/v1/expense-receipts/${receiptId}/ocr`, undefined, {
     params: { force },
