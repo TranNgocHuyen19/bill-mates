@@ -8,7 +8,7 @@ const moneyNumberFormatter = new Intl.NumberFormat('vi-VN', {
   maximumFractionDigits: 0
 })
 
-const defaultQuickAmounts = [10_000, 50_000, 100_000, 500_000] as const
+const defaultQuickZeroCounts = [3, 4, 5, 6] as const
 const defaultMaxAmount = 999_999_999_999
 
 function normalizeMoneyValue(value: number | string | undefined, max: number): number {
@@ -29,8 +29,7 @@ interface MoneyInputProps {
   value?: number
   defaultValue?: number
   onValueChange?: (value: number) => void
-  quickAmounts?: readonly number[] | false
-  showHint?: boolean
+  quickZeroCounts?: readonly number[] | false
   required?: boolean
   disabled?: boolean
   max?: number
@@ -48,8 +47,7 @@ export function MoneyInput({
   value,
   defaultValue = 0,
   onValueChange,
-  quickAmounts = defaultQuickAmounts,
-  showHint = true,
+  quickZeroCounts = defaultQuickZeroCounts,
   required = false,
   disabled = false,
   max = defaultMaxAmount,
@@ -62,7 +60,6 @@ export function MoneyInput({
 }: MoneyInputProps) {
   const generatedId = React.useId()
   const inputId = id ?? generatedId
-  const hintId = `${inputId}-hint`
   const isControlled = value !== undefined
   const [internalValue, setInternalValue] = React.useState(() => normalizeMoneyValue(defaultValue, max))
   const moneyValue = isControlled ? normalizeMoneyValue(value, max) : internalValue
@@ -93,7 +90,6 @@ export function MoneyInput({
           disabled={disabled}
           autoFocus={autoFocus}
           aria-label={ariaLabel}
-          aria-describedby={showHint ? hintId : undefined}
           className={cn(
             'h-12 w-full rounded-xl border border-input bg-background px-3 pr-11 text-base font-semibold tabular-nums shadow-sm transition-all placeholder:font-normal placeholder:text-muted-foreground/60 focus-visible:border-primary focus-visible:ring-3 focus-visible:ring-primary/20 focus-visible:outline-hidden disabled:cursor-not-allowed disabled:opacity-50',
             inputClassName
@@ -106,36 +102,20 @@ export function MoneyInput({
         {name ? <input type='hidden' name={name} value={moneyValue || ''} disabled={disabled} /> : null}
       </div>
 
-      {showHint ? (
-        <p id={hintId} className='text-[11px] leading-4 text-muted-foreground'>
-          Nhập số, hệ thống tự thêm dấu phân cách.
-        </p>
-      ) : null}
-
-      {quickAmounts && quickAmounts.length > 0 ? (
-        <div className='flex flex-wrap gap-2' aria-label='Nhập nhanh số tiền'>
-          {quickAmounts.map((amount) => (
+      {quickZeroCounts && quickZeroCounts.length > 0 ? (
+        <div className='grid grid-cols-4 gap-2' aria-label='Thêm nhanh số 0'>
+          {quickZeroCounts.map((zeroCount) => (
             <button
-              key={amount}
+              key={zeroCount}
               type='button'
-              disabled={disabled}
-              className='min-h-11 rounded-xl border border-primary/15 bg-primary/5 px-3 text-xs font-bold text-primary transition-colors hover:border-primary/35 hover:bg-primary/10 disabled:cursor-not-allowed disabled:opacity-50'
-              aria-label={`Cộng ${moneyNumberFormatter.format(amount)} đồng`}
-              onClick={() => updateValue(moneyValue + amount)}
+              disabled={disabled || moneyValue === 0}
+              className='min-h-11 rounded-xl border border-primary/15 bg-primary/5 px-2 text-xs font-bold tracking-wide text-primary transition-colors hover:border-primary/35 hover:bg-primary/10 disabled:cursor-not-allowed disabled:opacity-40'
+              aria-label={`Thêm ${zeroCount} số 0`}
+              onClick={() => updateValue(moneyValue * 10 ** zeroCount)}
             >
-              +{amount >= 1_000_000 ? `${amount / 1_000_000} triệu` : `${amount / 1_000}K`}
+              {'0'.repeat(zeroCount)}
             </button>
           ))}
-          {moneyValue > 0 ? (
-            <button
-              type='button'
-              disabled={disabled}
-              className='min-h-11 rounded-xl px-3 text-xs font-semibold text-muted-foreground transition-colors hover:bg-muted hover:text-foreground'
-              onClick={() => updateValue(0)}
-            >
-              Xóa số
-            </button>
-          ) : null}
         </div>
       ) : null}
     </div>

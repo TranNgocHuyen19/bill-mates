@@ -4,7 +4,7 @@
 
 Cover the mobile-first expense workflow requested for Bill Mates:
 
-- VND inputs format digit groups while typing and expose quick-add amounts.
+- VND inputs format digit groups while typing and expose flexible zero-appending controls.
 - A user can explicitly save an expense as a server-backed draft.
 - Drafts have a dedicated, room-scoped list and can be resumed.
 - Expense items show the members selected for each item and the amount owed by each member.
@@ -18,7 +18,9 @@ Browser-only storage is not accepted as draft persistence.
 
 - Typing `100000` displays `100.000` and submits numeric value `100000`.
 - Pasted punctuation or currency text is normalized to digits without producing `NaN`.
-- Quick-add controls add the advertised amount and keep the formatted display in sync.
+- Entering `25` and choosing `000` renders `25.000` while keeping the submitted value numeric.
+- Zero-appending controls support `000`, `0000`, `00000`, and `000000` instead of fixed denominations.
+- The field does not render instructional helper copy or fixed `+10K`/`+50K` suggestions.
 - Empty and zero values cannot submit a required positive-money field.
 - The field keeps an accessible label, numeric mobile keyboard hint, VND suffix, and 44px touch targets.
 - The compact exact-split variant formats VND without rendering quick-add controls.
@@ -55,8 +57,8 @@ Browser-only storage is not accepted as draft persistence.
 File: `features/expenses/components/money-input.test.tsx`
 
 1. When typing a VND amount, then formatted display and submitted raw value agree.
-2. When using a quick-add amount, then the visible and submitted values increase together.
-3. When quick amounts are disabled, then no quick-add controls are rendered.
+2. When appending zeros, then the visible and submitted values update together.
+3. When zero controls are disabled, then no quick-entry controls are rendered.
 
 ### Page-level behavior
 

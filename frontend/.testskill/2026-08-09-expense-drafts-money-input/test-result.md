@@ -24,11 +24,10 @@ project configuration sets `stop_when_no_page_analysis = true`.
 
 Viewport: `390x844`
 
-- Typing `1234567` rendered `1.234.567`.
-- The submitted hidden value remained `1234567`.
-- Activating `+50K` rendered `1.284.567` and submitted `1284567`.
-- Compact exact-split input rendered `250000` as `250.000`.
-- Compact input did not render its own quick-add controls.
+- Entering `25` and choosing `000` rendered `25.000` and submitted `25000`.
+- Entering `12` and choosing `00000` rendered `1.200.000` and submitted `1200000`.
+- The field rendered `000`, `0000`, `00000`, and `000000` instead of fixed denominations.
+- The instructional helper line and fixed `+10K`/`+50K` controls were absent.
 - Page width matched viewport width with no horizontal overflow.
 
 The authenticated draft/list/split pages could not be opened in the available browser

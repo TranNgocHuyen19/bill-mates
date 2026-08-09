@@ -117,15 +117,7 @@ export function ExpenseItemEditor({
       >
         <div className='grid gap-3 sm:grid-cols-[1fr_220px]'>
           <Input name='name' label='Tên món' placeholder='Ví dụ: Gà rán' defaultValue={defaultName} required />
-          <MoneyInput
-            name='amount'
-            label='Thành tiền'
-            value={amount}
-            onValueChange={setAmount}
-            quickAmounts={[10_000, 20_000, 50_000, 100_000]}
-            showHint={false}
-            required
-          />
+          <MoneyInput name='amount' label='Thành tiền' value={amount} onValueChange={setAmount} required />
         </div>
 
         <div>
@@ -213,8 +205,7 @@ export function ExpenseItemEditor({
                           [member.id]: String(nextValue || '')
                         }))
                       }
-                      quickAmounts={false}
-                      showHint={false}
+                      quickZeroCounts={false}
                       ariaLabel={`Số tiền của ${member.display_name}`}
                       className='w-32 shrink-0'
                       inputClassName='h-10 px-2 pr-8 text-right text-sm'
