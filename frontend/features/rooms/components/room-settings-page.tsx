@@ -87,16 +87,8 @@ export function RoomSettingsPage() {
                   placeholder='Mục đích và quy ước của phòng'
                 />
               </label>
-              <label className='grid gap-1.5 text-sm font-semibold'>
-                Đơn vị tiền
-                <select
-                  name='currency'
-                  defaultValue={room.currency}
-                  className='h-11 rounded-xl border bg-card px-3 text-sm outline-none focus:ring-2 focus:ring-primary/30'
-                >
-                  <option value='VND'>VND · Việt Nam đồng</option>
-                </select>
-              </label>
+              <Input label='Đơn vị tiền' value='VND · Việt Nam đồng' readOnly />
+              <input type='hidden' name='currency' value={room.currency} />
               <Button className='h-11 w-full rounded-xl' disabled={updateRoom.isPending}>
                 {updateRoom.isPending ? <Loader2 className='size-4 animate-spin' /> : <Save className='size-4' />}
                 Lưu thay đổi

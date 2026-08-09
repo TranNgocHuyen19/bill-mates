@@ -81,16 +81,18 @@ function ConfirmExpenseContent() {
         <Card className='overflow-hidden rounded-3xl p-0'>
           <div className='bg-primary p-5 text-white sm:p-6'>
             <div className='flex items-start justify-between gap-4'>
-              <div>
+              <div className='min-w-0'>
                 <Badge className='border-white/20 bg-white/15 text-white hover:bg-white/15'>
                   {isPosted ? 'Đã chốt' : 'Đơn nháp'}
                 </Badge>
-                <h2 className='mt-3 text-xl font-bold'>{expense.title}</h2>
-                <p className='mt-1 text-sm text-white/70'>{room.name}</p>
+                <h2 className='mt-3 truncate text-xl font-bold'>{expense.title}</h2>
+                <p className='mt-1 truncate text-sm text-white/70'>{room.name}</p>
               </div>
               <ReceiptText className='size-8 text-white/60' />
             </div>
-            <p className='mt-6 text-3xl font-bold'>{formatVnd(expense.total_amount)}</p>
+            <p className='mt-6 truncate text-2xl font-bold tabular-nums sm:text-3xl'>
+              {formatVnd(expense.total_amount)}
+            </p>
           </div>
           <div className='grid grid-cols-2 gap-4 p-5 text-sm'>
             <div>
@@ -114,11 +116,11 @@ function ConfirmExpenseContent() {
           {expense.items.map((item) => (
             <Card key={item.id} className='rounded-2xl p-4'>
               <div className='flex items-start justify-between gap-3'>
-                <div>
-                  <p className='font-bold'>{item.name}</p>
+                <div className='min-w-0'>
+                  <p className='truncate font-bold'>{item.name}</p>
                   <p className='mt-0.5 text-xs text-muted-foreground'>{item.splits.length} người tham gia</p>
                 </div>
-                <p className='font-bold'>{formatVnd(item.total_amount)}</p>
+                <p className='shrink-0 font-bold tabular-nums'>{formatVnd(item.total_amount)}</p>
               </div>
               <div className='mt-3 space-y-2 border-t pt-3'>
                 {item.splits.map((split) => {

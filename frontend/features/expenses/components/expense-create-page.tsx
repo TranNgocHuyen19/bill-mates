@@ -19,6 +19,7 @@ import { Navbar } from '@/components/navbar'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { PATHS } from '@/constants'
 import { uploadExpenseReceiptApi, useCreateExpenseDraftMutation } from '../index'
 import { useRoomDetailQuery, useRoomsQuery } from '@/features/rooms'
@@ -32,6 +33,7 @@ function ExpenseCreateFormContent() {
   const requestedRoomId = searchParams.get('roomId') ?? ''
   const roomsQuery = useRoomsQuery()
   const [selectedRoomId, setSelectedRoomId] = React.useState(requestedRoomId)
+  const [selectedPayerId, setSelectedPayerId] = React.useState('')
   const roomId = selectedRoomId || requestedRoomId || roomsQuery.data?.[0]?.id || ''
   const roomQuery = useRoomDetailQuery(roomId)
   const createDraft = useCreateExpenseDraftMutation()
@@ -103,27 +105,31 @@ function ExpenseCreateFormContent() {
               )
             }}
           >
-            <label className='block space-y-1.5 text-xs font-semibold text-muted-foreground'>
-              Phòng
-              <div className='relative'>
-                <UsersRound className='text-outline pointer-events-none absolute top-3.5 left-3 size-4' />
-                <select
-                  className='h-12 w-full appearance-none rounded-xl border bg-background pr-3 pl-10 text-sm outline-none focus:border-primary focus:ring-3 focus:ring-primary/20'
-                  value={roomId}
-                  onChange={(event) => setSelectedRoomId(event.target.value)}
-                  required
-                >
-                  <option value='' disabled>
-                    Chọn phòng
-                  </option>
+            <div className='min-w-0 space-y-1.5'>
+              <label className='block text-xs font-semibold text-muted-foreground' htmlFor='expense-room'>
+                Phòng
+              </label>
+              <Select
+                value={roomId}
+                onValueChange={(value) => {
+                  setSelectedRoomId(value)
+                  setSelectedPayerId('')
+                }}
+                required
+              >
+                <SelectTrigger id='expense-room' className='w-full'>
+                  <UsersRound className='size-4 text-muted-foreground' />
+                  <SelectValue placeholder='Chọn phòng' />
+                </SelectTrigger>
+                <SelectContent>
                   {roomsQuery.data?.map((room) => (
-                    <option key={room.id} value={room.id}>
-                      {room.name}
-                    </option>
+                    <SelectItem key={room.id} value={room.id}>
+                      <span className='block min-w-0 truncate'>{room.name}</span>
+                    </SelectItem>
                   ))}
-                </select>
-              </div>
-            </label>
+                </SelectContent>
+              </Select>
+            </div>
 
             <Input
               name='title'
@@ -136,21 +142,23 @@ function ExpenseCreateFormContent() {
             <MoneyInput name='total_amount' label='Tổng tiền (VND)' placeholder='0' required />
 
             <div className='grid gap-4 sm:grid-cols-2'>
-              <label className='block space-y-1.5 text-xs font-semibold text-muted-foreground'>
-                Người đã trả
-                <select
-                  name='paid_by_member_id'
-                  className='h-12 w-full rounded-xl border bg-background px-3 text-sm outline-none focus:border-primary focus:ring-3 focus:ring-primary/20'
-                  required
-                >
-                  <option value=''>Chọn người trả</option>
-                  {activeMembers.map((member) => (
-                    <option key={member.id} value={member.id}>
-                      {member.nickname || member.display_name}
-                    </option>
-                  ))}
-                </select>
-              </label>
+              <div className='min-w-0 space-y-1.5'>
+                <label className='block text-xs font-semibold text-muted-foreground' htmlFor='expense-payer'>
+                  Người đã trả
+                </label>
+                <Select name='paid_by_member_id' value={selectedPayerId} onValueChange={setSelectedPayerId} required>
+                  <SelectTrigger id='expense-payer' className='w-full'>
+                    <SelectValue placeholder='Chọn người trả' />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {activeMembers.map((member) => (
+                      <SelectItem key={member.id} value={member.id}>
+                        <span className='block min-w-0 truncate'>{member.nickname || member.display_name}</span>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
               <Input
                 name='expense_date'
                 type='date'

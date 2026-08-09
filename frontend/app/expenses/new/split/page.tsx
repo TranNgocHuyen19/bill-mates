@@ -101,23 +101,23 @@ function SplitExpenseContent() {
           <div className='h-1.5 rounded-full bg-primary/15' />
         </div>
 
-        <Card className='grid grid-cols-3 gap-3 rounded-2xl p-4'>
-          <div>
+        <Card className='grid grid-cols-2 gap-3 rounded-2xl p-4 sm:grid-cols-3'>
+          <div className='min-w-0'>
             <p className='text-[11px] text-muted-foreground uppercase'>Đã nhập</p>
-            <p className='mt-1 font-bold'>{formatVnd(itemsTotal)}</p>
+            <p className='mt-1 truncate text-sm font-bold tabular-nums sm:text-base'>{formatVnd(itemsTotal)}</p>
           </div>
-          <div>
+          <div className='min-w-0'>
             <p className='text-[11px] text-muted-foreground uppercase'>{overBy ? 'Vượt quá' : 'Còn lại'}</p>
             <p
               className={cn(
-                'mt-1 font-bold',
+                'mt-1 truncate text-sm font-bold tabular-nums sm:text-base',
                 overBy ? 'text-destructive' : remaining ? 'text-tertiary' : 'text-secondary'
               )}
             >
               {formatVnd(overBy || remaining)}
             </p>
           </div>
-          <div>
+          <div className='col-span-2 min-w-0 sm:col-span-1'>
             <p className='text-[11px] text-muted-foreground uppercase'>Số món</p>
             <p className='mt-1 font-bold'>{expense.items.length}</p>
           </div>
@@ -139,7 +139,7 @@ function SplitExpenseContent() {
                       {item.splits[0] ? methodLabels[item.splits[0].split_method] : 'Chưa chia'}
                     </p>
                   </div>
-                  <div className='text-right'>
+                  <div className='shrink-0 text-right'>
                     <p className='text-sm font-bold'>{formatVnd(item.total_amount)}</p>
                     <button
                       type='button'

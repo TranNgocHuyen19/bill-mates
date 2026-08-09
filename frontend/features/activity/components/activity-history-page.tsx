@@ -18,6 +18,7 @@ import { useSearchParams } from 'next/navigation'
 import { Navbar } from '@/components/navbar'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { useRoomActivityQuery, type Activity } from '../index'
 import { useRoomsQuery } from '@/features/rooms'
 import { formatVnd } from '@/lib/money'
@@ -86,18 +87,18 @@ function HistoryContent() {
             <p className='mt-1 text-sm text-muted-foreground'>Mọi thay đổi quan trọng trong phòng đều được ghi lại.</p>
           </div>
           {roomsQuery.data?.length ? (
-            <select
-              value={activeRoomId}
-              onChange={(event) => setSelectedRoomId(event.target.value)}
-              aria-label='Chọn phòng'
-              className='h-11 rounded-xl border bg-card px-3 text-sm font-semibold outline-none focus:ring-2 focus:ring-primary/30'
-            >
-              {roomsQuery.data.map((room) => (
-                <option key={room.id} value={room.id}>
-                  {room.name}
-                </option>
-              ))}
-            </select>
+            <Select value={activeRoomId} onValueChange={setSelectedRoomId}>
+              <SelectTrigger size='sm' className='w-full bg-card font-semibold sm:w-56' aria-label='Chọn phòng'>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {roomsQuery.data.map((room) => (
+                  <SelectItem key={room.id} value={room.id}>
+                    <span className='block min-w-0 truncate'>{room.name}</span>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           ) : null}
         </header>
 

@@ -20,6 +20,7 @@ import { Navbar } from '@/components/navbar'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { PATHS } from '@/constants'
 import { useRoomDetailQuery, useRoomsQuery } from '@/features/rooms'
 import { formatVnd } from '@/lib/money'
@@ -106,25 +107,26 @@ function ExpensesListContent() {
               Lưu trước, chia từng món sau. Chỉ khoản đã chốt mới tính vào công nợ.
             </p>
           </div>
-          <label className='grid gap-1 text-xs font-semibold text-muted-foreground'>
-            Phòng đang xem
-            <select
-              value={activeRoomId}
-              onChange={(event) => setSelectedRoomId(event.target.value)}
-              className='h-11 min-w-56 rounded-xl border bg-card px-3 text-sm font-semibold text-foreground outline-none focus:ring-2 focus:ring-primary/30'
-            >
-              {roomsQuery.data.map((room) => (
-                <option key={room.id} value={room.id}>
-                  {room.name}
-                </option>
-              ))}
-            </select>
-          </label>
+          <div className='grid min-w-0 gap-1 text-xs font-semibold text-muted-foreground sm:w-56'>
+            <label htmlFor='expenses-room'>Phòng đang xem</label>
+            <Select value={activeRoomId} onValueChange={setSelectedRoomId}>
+              <SelectTrigger id='expenses-room' size='sm' className='w-full bg-card font-semibold text-foreground'>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {roomsQuery.data.map((room) => (
+                  <SelectItem key={room.id} value={room.id}>
+                    <span className='block min-w-0 truncate'>{room.name}</span>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </header>
 
         <Card className='relative overflow-hidden rounded-3xl border-0 bg-[linear-gradient(135deg,#24389c,#3448aa_58%,#006c49)] p-5 text-white shadow-xl shadow-primary/15 sm:p-6'>
           <div className='absolute -top-16 -right-14 size-44 rounded-full border-[28px] border-white/5' />
-          <div className='relative flex items-start justify-between gap-3'>
+          <div className='relative flex flex-col items-start justify-between gap-4 min-[400px]:flex-row'>
             <div>
               <p className='text-sm text-white/70'>Tổng đã chốt trong phòng</p>
               <p className='mt-1 text-3xl font-bold tabular-nums'>{formatVnd(postedTotal)}</p>

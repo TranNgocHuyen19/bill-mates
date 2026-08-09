@@ -72,11 +72,13 @@ export function Navbar() {
       <header className='sticky top-0 z-40 border-b border-border bg-card/80 backdrop-blur-lg transition-colors'>
         <div className='mx-auto flex h-14 max-w-7xl items-center justify-between gap-2 px-4 sm:h-16 sm:px-6'>
           {/* Logo */}
-          <Link href='/' className='flex shrink-0 items-center gap-2'>
+          <Link href='/' className='flex shrink-0 items-center gap-1.5 min-[340px]:gap-2'>
             <div className='flex size-8 items-center justify-center rounded-xl border border-primary/20 bg-primary/10 shadow-xs sm:size-9'>
               <Wallet className='size-4 text-primary sm:size-5' />
             </div>
-            <span className='text-lg font-bold tracking-tight text-primary sm:text-xl'>BillMates</span>
+            <span className='hidden text-lg font-bold tracking-tight text-primary min-[340px]:inline sm:text-xl'>
+              BillMates
+            </span>
           </Link>
 
           {/* Desktop Links */}
@@ -107,7 +109,7 @@ export function Navbar() {
                   <div className='flex size-6 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground shadow-xs'>
                     {userName.charAt(0).toUpperCase()}
                   </div>
-                  <span className='max-w-[100px] truncate sm:max-w-[140px]'>{userName}</span>
+                  <span className='max-w-[82px] truncate min-[360px]:max-w-[100px] sm:max-w-[140px]'>{userName}</span>
                   <ChevronDown
                     className={cn('size-3.5 transition-transform duration-200', isMenuOpen && 'rotate-180')}
                   />

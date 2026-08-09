@@ -19,6 +19,7 @@ import { Navbar } from '@/components/navbar'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { PATHS } from '@/constants'
 import {
   useBalancesQuery,
@@ -91,20 +92,21 @@ function DebtsContent() {
               Chỉ đơn đã chốt và thanh toán đã xác nhận mới được tính.
             </p>
           </div>
-          <label className='grid gap-1 text-xs font-semibold text-muted-foreground'>
-            Phòng đang xem
-            <select
-              value={activeRoomId}
-              onChange={(event) => setSelectedRoomId(event.target.value)}
-              className='h-11 min-w-56 rounded-xl border bg-card px-3 text-sm font-semibold text-foreground outline-none focus:ring-2 focus:ring-primary/30'
-            >
-              {roomsQuery.data.map((room) => (
-                <option key={room.id} value={room.id}>
-                  {room.name}
-                </option>
-              ))}
-            </select>
-          </label>
+          <div className='grid min-w-0 gap-1 text-xs font-semibold text-muted-foreground sm:w-56'>
+            <label htmlFor='debts-room'>Phòng đang xem</label>
+            <Select value={activeRoomId} onValueChange={setSelectedRoomId}>
+              <SelectTrigger id='debts-room' size='sm' className='w-full bg-card font-semibold text-foreground'>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {roomsQuery.data.map((room) => (
+                  <SelectItem key={room.id} value={room.id}>
+                    <span className='block min-w-0 truncate'>{room.name}</span>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </header>
 
         {balancesQuery.isPending ? (
