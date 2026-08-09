@@ -27,6 +27,13 @@ import { getErrorMessage } from '@/lib/error-handler'
 import { showErrorToast } from '@/lib/toast'
 import { MoneyInput } from './money-input'
 
+function toLocalIsoDate(date: Date): string {
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
+}
+
 function ExpenseCreateFormContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -163,8 +170,9 @@ function ExpenseCreateFormContent() {
                 name='expense_date'
                 type='date'
                 label='Ngày chi'
-                icon={<CalendarDays className='size-4' />}
-                defaultValue={new Date().toISOString().slice(0, 10)}
+                trailingIcon={<CalendarDays className='size-4 text-primary' />}
+                defaultValue={toLocalIsoDate(new Date())}
+                className='cursor-pointer pr-12 text-base font-medium tabular-nums [color-scheme:light] dark:[color-scheme:dark] [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:inset-0 [&::-webkit-calendar-picker-indicator]:m-0 [&::-webkit-calendar-picker-indicator]:h-full [&::-webkit-calendar-picker-indicator]:w-full [&::-webkit-calendar-picker-indicator]:cursor-pointer [&::-webkit-calendar-picker-indicator]:opacity-0'
                 required
               />
             </div>

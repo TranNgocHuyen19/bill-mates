@@ -1,6 +1,7 @@
 'use client'
 
 import * as React from 'react'
+import { Delete } from 'lucide-react'
 
 import { cn } from '@/lib/utils'
 
@@ -10,6 +11,11 @@ const moneyNumberFormatter = new Intl.NumberFormat('vi-VN', {
 
 const defaultQuickZeroCounts = [3, 4, 5, 6] as const
 const defaultMaxAmount = 999_999_999_999
+
+function formatQuickZeros(zeroCount: number): string {
+  const groupedZeros = '0'.repeat(zeroCount).replace(/\B(?=(\d{3})+(?!\d))/g, '.')
+  return zeroCount === 3 ? `.${groupedZeros}` : groupedZeros
+}
 
 function normalizeMoneyValue(value: number | string | undefined, max: number): number {
   if (typeof value === 'number') {
@@ -91,11 +97,21 @@ export function MoneyInput({
           autoFocus={autoFocus}
           aria-label={ariaLabel}
           className={cn(
-            'h-12 w-full rounded-xl border border-input bg-background px-3 pr-11 text-base font-semibold tabular-nums shadow-sm transition-all placeholder:font-normal placeholder:text-muted-foreground/60 focus-visible:border-primary focus-visible:ring-3 focus-visible:ring-primary/20 focus-visible:outline-hidden disabled:cursor-not-allowed disabled:opacity-50',
+            'h-12 w-full rounded-xl border border-input bg-background px-3 pr-24 text-base font-semibold tabular-nums shadow-sm transition-all placeholder:font-normal placeholder:text-muted-foreground/60 focus-visible:border-primary focus-visible:ring-3 focus-visible:ring-primary/20 focus-visible:outline-hidden disabled:cursor-not-allowed disabled:opacity-50',
             inputClassName
           )}
           onChange={(event) => updateValue(normalizeMoneyValue(event.target.value, max))}
         />
+        <button
+          type='button'
+          disabled={disabled || moneyValue === 0}
+          className='absolute top-1/2 right-8 grid size-11 -translate-y-1/2 place-items-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none disabled:pointer-events-none disabled:opacity-30'
+          aria-label='Xóa một chữ số'
+          title='Xóa một chữ số'
+          onClick={() => updateValue(Math.floor(moneyValue / 10))}
+        >
+          <Delete className='size-4' aria-hidden='true' />
+        </button>
         <span className='pointer-events-none absolute inset-y-0 right-3 flex items-center text-sm font-bold text-muted-foreground'>
           ₫
         </span>
@@ -113,7 +129,7 @@ export function MoneyInput({
               aria-label={`Thêm ${zeroCount} số 0`}
               onClick={() => updateValue(moneyValue * 10 ** zeroCount)}
             >
-              {'0'.repeat(zeroCount)}
+              {formatQuickZeros(zeroCount)}
             </button>
           ))}
         </div>

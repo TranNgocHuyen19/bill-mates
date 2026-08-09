@@ -115,27 +115,49 @@ function DebtsContent() {
           </Card>
         ) : balances ? (
           <>
-            <section className='grid gap-3 sm:grid-cols-3'>
-              <Card className='rounded-3xl border-primary/20 bg-primary p-5 text-primary-foreground shadow-lg sm:col-span-1'>
-                <p className='text-xs font-semibold uppercase opacity-75'>Số dư của bạn</p>
-                <p className='mt-2 text-2xl font-bold'>{formatVnd(Math.abs(Number(balances.current_balance)))}</p>
-                <p className='mt-2 text-xs opacity-80'>
-                  {Number(balances.current_balance) > 0
-                    ? 'Bạn đang được nhận lại'
-                    : Number(balances.current_balance) < 0
-                      ? 'Bạn đang cần thanh toán'
-                      : 'Bạn đã sòng phẳng'}
+            <section className='grid grid-cols-2 gap-3 sm:grid-cols-3' aria-label='Tổng quan công nợ của bạn'>
+              <Card className='relative col-span-2 min-h-28 overflow-hidden rounded-3xl border-primary/20 bg-primary p-4 text-primary-foreground shadow-lg shadow-primary/15 sm:col-span-1'>
+                <div className='pointer-events-none absolute -top-12 -right-10 size-32 rounded-full border-[22px] border-primary-foreground/5' />
+                <div className='relative flex h-full items-center justify-between gap-4'>
+                  <div className='min-w-0'>
+                    <p className='text-[11px] font-bold tracking-[0.08em] uppercase opacity-70'>Số dư của bạn</p>
+                    <p className='mt-1 text-2xl font-bold tracking-tight break-words tabular-nums'>
+                      {formatVnd(Math.abs(Number(balances.current_balance)))}
+                    </p>
+                    <p className='mt-1 text-xs opacity-80'>
+                      {Number(balances.current_balance) > 0
+                        ? 'Bạn đang được nhận lại'
+                        : Number(balances.current_balance) < 0
+                          ? 'Bạn đang cần thanh toán'
+                          : 'Bạn đã sòng phẳng'}
+                    </p>
+                  </div>
+                  <span className='grid size-11 shrink-0 place-items-center rounded-2xl bg-primary-foreground/12'>
+                    <CreditCard className='size-5' />
+                  </span>
+                </div>
+              </Card>
+              <Card className='min-w-0 rounded-2xl border-secondary/20 bg-secondary/5 p-3.5 sm:rounded-3xl sm:p-4'>
+                <div className='flex items-center gap-2'>
+                  <span className='grid size-8 shrink-0 place-items-center rounded-xl bg-secondary/10 text-secondary'>
+                    <ArrowDownLeft className='size-4' />
+                  </span>
+                  <p className='text-xs font-semibold text-muted-foreground'>Cần thu</p>
+                </div>
+                <p className='mt-3 text-lg font-bold tracking-tight break-all text-secondary tabular-nums'>
+                  {formatVnd(balances.total_to_receive)}
                 </p>
               </Card>
-              <Card className='rounded-3xl border-secondary/20 bg-secondary/5 p-5'>
-                <ArrowDownLeft className='size-5 text-secondary' />
-                <p className='mt-3 text-xs font-semibold text-muted-foreground'>Cần thu</p>
-                <p className='mt-1 text-xl font-bold text-secondary'>{formatVnd(balances.total_to_receive)}</p>
-              </Card>
-              <Card className='rounded-3xl border-destructive/20 bg-destructive/5 p-5'>
-                <ArrowUpRight className='size-5 text-destructive' />
-                <p className='mt-3 text-xs font-semibold text-muted-foreground'>Cần trả</p>
-                <p className='mt-1 text-xl font-bold text-destructive'>{formatVnd(balances.total_to_pay)}</p>
+              <Card className='min-w-0 rounded-2xl border-destructive/20 bg-destructive/5 p-3.5 sm:rounded-3xl sm:p-4'>
+                <div className='flex items-center gap-2'>
+                  <span className='grid size-8 shrink-0 place-items-center rounded-xl bg-destructive/10 text-destructive'>
+                    <ArrowUpRight className='size-4' />
+                  </span>
+                  <p className='text-xs font-semibold text-muted-foreground'>Cần trả</p>
+                </div>
+                <p className='mt-3 text-lg font-bold tracking-tight break-all text-destructive tabular-nums'>
+                  {formatVnd(balances.total_to_pay)}
+                </p>
               </Card>
             </section>
 
