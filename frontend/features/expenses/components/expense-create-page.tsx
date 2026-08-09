@@ -1,17 +1,7 @@
 'use client'
 
 import * as React from 'react'
-import {
-  ArrowLeft,
-  ArrowRight,
-  CalendarDays,
-  Camera,
-  FileText,
-  Loader2,
-  ReceiptText,
-  Save,
-  UsersRound
-} from 'lucide-react'
+import { ArrowLeft, ArrowRight, CalendarDays, FileText, Loader2, ReceiptText, Save, UsersRound } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 
@@ -21,11 +11,12 @@ import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { PATHS } from '@/constants'
-import { uploadExpenseReceiptApi, useCreateExpenseDraftMutation } from '../index'
+import { scanExpenseReceiptApi, uploadExpenseReceiptApi, useCreateExpenseDraftMutation } from '../index'
 import { useRoomDetailQuery, useRoomsQuery } from '@/features/rooms'
 import { getErrorMessage } from '@/lib/error-handler'
 import { showErrorToast } from '@/lib/toast'
 import { MoneyInput } from './money-input'
+import { OcrUploadCard, type ReceiptUploadStage } from './ocr-upload-card'
 
 function toLocalIsoDate(date: Date): string {
   const year = date.getFullYear()
@@ -41,10 +32,13 @@ function ExpenseCreateFormContent() {
   const roomsQuery = useRoomsQuery()
   const [selectedRoomId, setSelectedRoomId] = React.useState(requestedRoomId)
   const [selectedPayerId, setSelectedPayerId] = React.useState('')
+  const [receiptFile, setReceiptFile] = React.useState<File | null>(null)
+  const [receiptStage, setReceiptStage] = React.useState<ReceiptUploadStage>('idle')
   const roomId = selectedRoomId || requestedRoomId || roomsQuery.data?.[0]?.id || ''
   const roomQuery = useRoomDetailQuery(roomId)
   const createDraft = useCreateExpenseDraftMutation()
   const activeMembers = roomQuery.data?.members.filter((member) => member.status === 'active') ?? []
+  const isSaving = createDraft.isPending || receiptStage !== 'idle'
 
   return (
     <div className='min-h-screen bg-background pb-24 text-foreground'>
@@ -81,7 +75,6 @@ function ExpenseCreateFormContent() {
             onSubmit={(event) => {
               event.preventDefault()
               const form = new FormData(event.currentTarget)
-              const receipt = form.get('receipt')
               const submitter = (event.nativeEvent as SubmitEvent).submitter as HTMLButtonElement | null
               const shouldContinue = submitter?.value !== 'save'
               createDraft.mutate(
@@ -95,16 +88,24 @@ function ExpenseCreateFormContent() {
                 },
                 {
                   onSuccess: async (expense) => {
-                    if (receipt instanceof File && receipt.size > 0) {
+                    let receiptId = ''
+                    if (receiptFile) {
                       try {
-                        await uploadExpenseReceiptApi(expense.id, receipt)
+                        setReceiptStage('uploading')
+                        const receipt = await uploadExpenseReceiptApi(expense.id, receiptFile)
+                        receiptId = receipt.id
+                        setReceiptStage('scanning')
+                        await scanExpenseReceiptApi(receipt.id)
                       } catch (error) {
-                        showErrorToast(`Đơn nháp đã lưu nhưng ảnh tải lên thất bại: ${getErrorMessage(error)}`)
+                        const action = receiptId ? 'PaddleOCR chưa đọc được ảnh' : 'ảnh tải lên thất bại'
+                        showErrorToast(`Đơn nháp đã lưu nhưng ${action}: ${getErrorMessage(error)}`)
+                      } finally {
+                        setReceiptStage('idle')
                       }
                     }
                     router.push(
                       shouldContinue
-                        ? `${PATHS.EXPENSES.SPLIT}?expenseId=${expense.id}`
+                        ? `${PATHS.EXPENSES.SPLIT}?expenseId=${expense.id}${receiptId ? `&receiptId=${receiptId}` : ''}`
                         : `${PATHS.EXPENSES.INDEX}?roomId=${expense.room_id}`
                     )
                   }
@@ -184,23 +185,20 @@ function ExpenseCreateFormContent() {
               icon={<FileText className='size-4' />}
             />
 
-            <label className='border-outline-variant block cursor-pointer rounded-2xl border border-dashed bg-muted/40 p-4 transition hover:border-primary'>
-              <span className='flex items-center gap-3'>
-                <span className='grid size-10 place-items-center rounded-xl bg-primary/10 text-primary'>
-                  <Camera className='size-5' />
-                </span>
-                <span>
-                  <span className='block text-sm font-semibold'>Thêm ảnh hóa đơn</span>
-                  <span className='block text-xs text-muted-foreground'>JPEG, PNG hoặc WebP • tối đa 10 MB</span>
-                </span>
-              </span>
-              <input
-                name='receipt'
-                type='file'
-                accept='image/jpeg,image/png,image/webp'
-                className='mt-3 block w-full text-xs text-muted-foreground file:mr-3 file:rounded-lg file:border-0 file:bg-primary/10 file:px-3 file:py-2 file:font-semibold file:text-primary'
-              />
-            </label>
+            <OcrUploadCard
+              key={receiptFile ? `${receiptFile.name}-${receiptFile.lastModified}` : 'empty-receipt'}
+              file={receiptFile}
+              stage={receiptStage}
+              disabled={createDraft.isPending}
+              onFileChange={(file) => {
+                if (file && file.size > 10 * 1024 * 1024) {
+                  showErrorToast('Ảnh hóa đơn phải nhỏ hơn 10 MB.')
+                  setReceiptFile(null)
+                  return
+                }
+                setReceiptFile(file)
+              }}
+            />
 
             <div className='grid grid-cols-[0.85fr_1.15fr] gap-3'>
               <Button
@@ -209,7 +207,7 @@ function ExpenseCreateFormContent() {
                 value='save'
                 variant='outline'
                 className='h-12 rounded-xl font-semibold'
-                disabled={createDraft.isPending || !roomId || !activeMembers.length}
+                disabled={isSaving || !roomId || !activeMembers.length}
               >
                 <Save className='size-4' />
                 <span className='hidden min-[360px]:inline'>Lưu nháp</span>
@@ -220,14 +218,10 @@ function ExpenseCreateFormContent() {
                 name='intent'
                 value='continue'
                 className='h-12 rounded-xl font-semibold'
-                disabled={createDraft.isPending || !roomId || !activeMembers.length}
+                disabled={isSaving || !roomId || !activeMembers.length}
               >
-                {createDraft.isPending ? (
-                  <Loader2 className='size-4 animate-spin' />
-                ) : (
-                  <ArrowRight className='size-4' />
-                )}
-                {createDraft.isPending ? 'Đang lưu...' : 'Tiếp tục chia'}
+                {isSaving ? <Loader2 className='size-4 animate-spin' /> : <ArrowRight className='size-4' />}
+                {receiptStage === 'scanning' ? 'Đang quét...' : isSaving ? 'Đang lưu...' : 'Tiếp tục chia'}
               </Button>
             </div>
           </form>

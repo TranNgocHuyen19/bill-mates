@@ -9,8 +9,11 @@ import {
   createExpenseDraftApi,
   deleteExpenseItemApi,
   getExpenseApi,
+  getExpenseReceiptApi,
+  getExpenseReceiptsApi,
   getExpensesApi,
   postExpenseApi,
+  scanExpenseReceiptApi,
   saveExpenseItemApi,
   type AddExpenseItemInput,
   type CreateExpenseDraftInput,
@@ -22,7 +25,9 @@ export const expenseKeys = {
   all: ['expenses'] as const,
   roomScope: (roomId: string) => [...expenseKeys.all, 'room', roomId] as const,
   room: (roomId: string, status?: ExpenseStatus) => [...expenseKeys.roomScope(roomId), status ?? 'all'] as const,
-  detail: (expenseId: string) => [...expenseKeys.all, expenseId] as const
+  detail: (expenseId: string) => [...expenseKeys.all, expenseId] as const,
+  receipts: (expenseId: string) => [...expenseKeys.detail(expenseId), 'receipts'] as const,
+  receipt: (receiptId: string) => [...expenseKeys.all, 'receipt', receiptId] as const
 }
 
 export const useExpensesQuery = (roomId: string, status?: ExpenseStatus) =>
@@ -38,6 +43,39 @@ export const useExpenseQuery = (expenseId: string) =>
     queryFn: () => getExpenseApi(expenseId),
     enabled: Boolean(expenseId)
   })
+
+export const useExpenseReceiptQuery = (receiptId: string) =>
+  useQuery({
+    queryKey: expenseKeys.receipt(receiptId),
+    queryFn: () => getExpenseReceiptApi(receiptId),
+    enabled: Boolean(receiptId),
+    refetchInterval: (query) => {
+      const status = query.state.data?.ocr_status
+      return status === 'pending' || status === 'processing' ? 2_000 : false
+    }
+  })
+
+export const useExpenseReceiptsQuery = (expenseId: string) =>
+  useQuery({
+    queryKey: expenseKeys.receipts(expenseId),
+    queryFn: () => getExpenseReceiptsApi(expenseId),
+    enabled: Boolean(expenseId)
+  })
+
+export const useScanExpenseReceiptMutation = (receiptId: string) => {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (force: boolean) => scanExpenseReceiptApi(receiptId, force),
+    onSuccess: (receipt) => {
+      queryClient.setQueryData(expenseKeys.receipt(receipt.id), receipt)
+      showSuccessToast('Đã đọc xong hóa đơn. Hãy kiểm tra lại từng món.')
+    },
+    onError: (error: unknown) => {
+      queryClient.invalidateQueries({ queryKey: expenseKeys.receipt(receiptId) })
+      showErrorToast(getErrorMessage(error))
+    }
+  })
+}
 
 export const useCreateExpenseDraftMutation = () => {
   const queryClient = useQueryClient()

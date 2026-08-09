@@ -12,9 +12,14 @@ import { Card } from '@/components/ui/card'
 import { PATHS } from '@/constants'
 import {
   ExpenseItemEditor,
+  OcrReceiptReview,
   useDeleteExpenseItemMutation,
   useExpenseQuery,
+  useExpenseReceiptQuery,
+  useExpenseReceiptsQuery,
   useSaveExpenseItemMutation,
+  useScanExpenseReceiptMutation,
+  type OcrItemSuggestion,
   type SplitMethod
 } from '@/features/expenses'
 import { useRoomDetailQuery } from '@/features/rooms'
@@ -32,11 +37,20 @@ function SplitExpenseContent() {
   const searchParams = useSearchParams()
   const router = useRouter()
   const expenseId = searchParams.get('expenseId') ?? ''
+  const requestedReceiptId = searchParams.get('receiptId') ?? ''
   const expenseQuery = useExpenseQuery(expenseId)
+  const receiptsQuery = useExpenseReceiptsQuery(expenseId)
+  const receiptId = requestedReceiptId || receiptsQuery.data?.[0]?.id || ''
+  const receiptQuery = useExpenseReceiptQuery(receiptId)
+  const scanReceipt = useScanExpenseReceiptMutation(receiptId)
+  const scanReceiptMutate = scanReceipt.mutate
   const roomQuery = useRoomDetailQuery(expenseQuery.data?.room_id ?? '')
   const saveItem = useSaveExpenseItemMutation(expenseId)
   const deleteItem = useDeleteExpenseItemMutation(expenseId)
   const [mode, setMode] = React.useState<'whole' | 'itemized'>('itemized')
+  const [ocrSuggestion, setOcrSuggestion] = React.useState<(OcrItemSuggestion & { sourceIndex: number }) | null>(null)
+  const [importedOcrIndexes, setImportedOcrIndexes] = React.useState<number[]>([])
+  const autoScanReceiptId = React.useRef('')
   const expense = expenseQuery.data
   const activeMembers = roomQuery.data?.members.filter((member) => member.status === 'active') ?? []
   const itemsTotal = expense?.items.reduce((sum, item) => sum + Number(item.total_amount), 0) ?? 0
@@ -48,6 +62,13 @@ function SplitExpenseContent() {
     Boolean(expense?.items.length) &&
     itemsTotal === expenseTotal &&
     expense?.items.every((item) => item.splits.length > 0)
+
+  React.useEffect(() => {
+    if (receiptId && receiptQuery.data?.ocr_status === 'not_requested' && autoScanReceiptId.current !== receiptId) {
+      autoScanReceiptId.current = receiptId
+      scanReceiptMutate(false)
+    }
+  }, [receiptId, receiptQuery.data?.ocr_status, scanReceiptMutate])
 
   if (expenseQuery.isPending || roomQuery.isPending) {
     return (
@@ -123,6 +144,51 @@ function SplitExpenseContent() {
           </div>
         </Card>
 
+        {receiptQuery.isPending && receiptId ? (
+          <Card className='flex items-center gap-3 rounded-2xl border-primary/20 bg-primary/5 p-4' role='status'>
+            <Loader2 className='size-5 animate-spin text-primary' />
+            <div>
+              <p className='text-sm font-bold'>Đang tải kết quả quét bill</p>
+              <p className='text-xs text-muted-foreground'>Kết quả đã được lưu cùng đơn nháp.</p>
+            </div>
+          </Card>
+        ) : null}
+
+        {receiptQuery.isError ? (
+          <Card className='rounded-2xl border-destructive/25 bg-destructive/5 p-4' role='alert'>
+            <p className='text-sm font-bold'>Không tải được kết quả OCR</p>
+            <button
+              type='button'
+              className='mt-2 min-h-10 text-xs font-semibold text-primary'
+              onClick={() => receiptQuery.refetch()}
+            >
+              Thử tải lại
+            </button>
+          </Card>
+        ) : null}
+
+        {receiptQuery.data ? (
+          <OcrReceiptReview
+            key={receiptQuery.data.updated_at}
+            receipt={receiptQuery.data}
+            expenseTotal={expenseTotal}
+            selectedIndex={ocrSuggestion?.sourceIndex ?? null}
+            importedIndexes={importedOcrIndexes}
+            isRetrying={scanReceipt.isPending}
+            onRetry={() => scanReceiptMutate(true)}
+            onUseSuggestion={(suggestion) => {
+              setMode('itemized')
+              setOcrSuggestion(suggestion)
+              requestAnimationFrame(() => {
+                document.getElementById('expense-item-editor')?.scrollIntoView({
+                  behavior: 'smooth',
+                  block: 'start'
+                })
+              })
+            }}
+          />
+        ) : null}
+
         {expense.items.length > 0 && (
           <section className='space-y-2'>
             <h2 className='font-bold'>Món đã lưu</h2>
@@ -188,7 +254,10 @@ function SplitExpenseContent() {
                   'min-h-11 rounded-xl text-sm font-semibold transition',
                   mode === 'itemized' && 'bg-card text-primary shadow-sm'
                 )}
-                onClick={() => setMode('itemized')}
+                onClick={() => {
+                  setMode('itemized')
+                  setOcrSuggestion(null)
+                }}
                 aria-pressed={mode === 'itemized'}
               >
                 Theo từng món
@@ -198,7 +267,10 @@ function SplitExpenseContent() {
                   'min-h-11 rounded-xl text-sm font-semibold transition',
                   mode === 'whole' && 'bg-card text-primary shadow-sm'
                 )}
-                onClick={() => setMode('whole')}
+                onClick={() => {
+                  setMode('whole')
+                  setOcrSuggestion(null)
+                }}
                 aria-pressed={mode === 'whole'}
               >
                 Chia nhanh toàn bill
@@ -211,34 +283,46 @@ function SplitExpenseContent() {
                 : 'Tạo một món đại diện cho toàn bộ số tiền còn lại của hóa đơn.'}
             </p>
 
-            <ExpenseItemEditor
-              key={`${mode}-${expense.items.length}`}
-              members={activeMembers}
-              defaultName={mode === 'whole' ? 'Toàn bộ hóa đơn' : ''}
-              defaultAmount={mode === 'whole' ? remaining : undefined}
-              isPending={saveItem.isPending}
-              onSave={({
-                name,
-                amount,
-                method,
-                participants
-              }: {
-                name: string
-                amount: number
-                method: SplitMethod
-                participants: Array<{ member_id: string; share_value?: number | null }>
-              }) =>
-                saveItem.mutate({
-                  item: {
-                    expenseId,
-                    name,
-                    unit_price: amount,
-                    position: expense.items.length
-                  },
-                  split: { method, splits: participants }
-                })
-              }
-            />
+            <div id='expense-item-editor'>
+              <ExpenseItemEditor
+                key={`${mode}-${expense.items.length}-${ocrSuggestion?.sourceIndex ?? 'manual'}`}
+                members={activeMembers}
+                defaultName={ocrSuggestion?.name ?? (mode === 'whole' ? 'Toàn bộ hóa đơn' : '')}
+                defaultAmount={ocrSuggestion?.total_amount ?? (mode === 'whole' ? remaining : undefined)}
+                isPending={saveItem.isPending}
+                onSave={({
+                  name,
+                  amount,
+                  method,
+                  participants
+                }: {
+                  name: string
+                  amount: number
+                  method: SplitMethod
+                  participants: Array<{ member_id: string; share_value?: number | null }>
+                }) =>
+                  saveItem.mutate(
+                    {
+                      item: {
+                        expenseId,
+                        name,
+                        unit_price: amount,
+                        position: expense.items.length
+                      },
+                      split: { method, splits: participants }
+                    },
+                    {
+                      onSuccess: () => {
+                        if (ocrSuggestion) {
+                          setImportedOcrIndexes((current) => [...current, ocrSuggestion.sourceIndex])
+                        }
+                        setOcrSuggestion(null)
+                      }
+                    }
+                  )
+                }
+              />
+            </div>
           </section>
         )}
 

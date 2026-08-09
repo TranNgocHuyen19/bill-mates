@@ -2,6 +2,50 @@ import http from '@/services/api'
 
 export type ExpenseStatus = 'draft' | 'posted' | 'cancelled'
 export type SplitMethod = 'equal' | 'exact' | 'percentage' | 'shares'
+export type OcrStatus = 'not_requested' | 'pending' | 'processing' | 'completed' | 'failed'
+
+export interface OcrLine {
+  text: string
+  confidence: number
+  box: number[] | null
+}
+
+export interface OcrItemSuggestion {
+  name: string
+  quantity: number
+  unit_price: number
+  total_amount: number
+  confidence: number
+}
+
+export interface ReceiptOcrData {
+  provider?: string
+  model?: string
+  language?: string
+  merchant?: string | null
+  total_amount?: number | null
+  average_confidence?: number
+  items?: OcrItemSuggestion[]
+  lines?: OcrLine[]
+  raw_text?: string
+  error?: {
+    message?: string
+  }
+}
+
+export interface ExpenseReceipt {
+  id: string
+  expense_id: string
+  bucket: string
+  storage_path: string
+  filename: string
+  mime_type: string
+  size_bytes: number
+  ocr_status: OcrStatus
+  ocr_data: ReceiptOcrData | null
+  created_at: string
+  updated_at: string
+}
 
 export interface ExpenseSplit {
   id: string
@@ -121,8 +165,27 @@ export const saveExpenseItemApi = async (
   return { ...created, splits }
 }
 
-export const uploadExpenseReceiptApi = async (expenseId: string, file: File): Promise<void> => {
+export const uploadExpenseReceiptApi = async (expenseId: string, file: File): Promise<ExpenseReceipt> => {
   const formData = new FormData()
   formData.append('file', file)
-  await http.post(`/api/v1/expenses/${expenseId}/receipts`, formData)
+  const response = await http.post<ExpenseReceipt>(`/api/v1/expenses/${expenseId}/receipts`, formData)
+  return response.data
+}
+
+export const getExpenseReceiptApi = async (receiptId: string): Promise<ExpenseReceipt> => {
+  const response = await http.get<ExpenseReceipt>(`/api/v1/expense-receipts/${receiptId}`)
+  return response.data
+}
+
+export const getExpenseReceiptsApi = async (expenseId: string): Promise<ExpenseReceipt[]> => {
+  const response = await http.get<ExpenseReceipt[]>(`/api/v1/expenses/${expenseId}/receipts`)
+  return response.data
+}
+
+export const scanExpenseReceiptApi = async (receiptId: string, force = false): Promise<ExpenseReceipt> => {
+  const response = await http.post<ExpenseReceipt>(`/api/v1/expense-receipts/${receiptId}/ocr`, undefined, {
+    params: { force },
+    timeout: 5 * 60_000
+  })
+  return response.data
 }
