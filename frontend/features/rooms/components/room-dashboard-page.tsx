@@ -50,7 +50,7 @@ export function RoomDashboardPage() {
   const params = useParams<{ id: string }>()
   const roomId = params.id
   const roomQuery = useRoomDetailQuery(roomId)
-  const expensesQuery = useExpensesQuery(roomId)
+  const expensesQuery = useExpensesQuery(roomId, 'posted')
   const categoriesQuery = useCategoriesQuery(roomId)
   const createInvite = useCreateInviteMutation(roomId)
   const createCategory = useCreateCategoryMutation(roomId)
@@ -155,7 +155,7 @@ export function RoomDashboardPage() {
             <div className='flex items-center justify-between'>
               <div>
                 <h2 className='font-bold'>Khoản chi gần đây</h2>
-                <p className='text-xs text-muted-foreground'>Đơn nháp sẽ không được cộng vào tổng chi.</p>
+                <p className='text-xs text-muted-foreground'>Chỉ hiển thị các khoản chi đã chốt.</p>
               </div>
               <Button asChild size='sm' className='rounded-xl'>
                 <Link href={`${PATHS.EXPENSES.NEW}?roomId=${room.id}`}>
@@ -188,8 +188,10 @@ export function RoomDashboardPage() {
                 <span className='mx-auto grid size-12 place-items-center rounded-2xl bg-primary/10 text-primary'>
                   <ReceiptText className='size-6' />
                 </span>
-                <p className='mt-3 font-semibold'>Chưa có khoản chi</p>
-                <p className='mt-1 text-xs text-muted-foreground'>Tạo đơn nháp đầu tiên để bắt đầu chia tiền.</p>
+                <p className='mt-3 font-semibold'>Chưa có khoản chi đã chốt</p>
+                <p className='mt-1 text-xs text-muted-foreground'>
+                  Đơn nháp được lưu riêng để bạn tiếp tục hoàn thiện.
+                </p>
               </Card>
             )}
             <Button variant='outline' className='h-11 w-full justify-between rounded-xl' asChild>

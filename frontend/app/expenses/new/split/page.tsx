@@ -36,7 +36,7 @@ function SplitExpenseContent() {
   const roomQuery = useRoomDetailQuery(expenseQuery.data?.room_id ?? '')
   const saveItem = useSaveExpenseItemMutation(expenseId)
   const deleteItem = useDeleteExpenseItemMutation(expenseId)
-  const [mode, setMode] = React.useState<'whole' | 'itemized'>('whole')
+  const [mode, setMode] = React.useState<'whole' | 'itemized'>('itemized')
   const expense = expenseQuery.data
   const activeMembers = roomQuery.data?.members.filter((member) => member.status === 'active') ?? []
   const itemsTotal = expense?.items.reduce((sum, item) => sum + Number(item.total_amount), 0) ?? 0
@@ -186,28 +186,36 @@ function SplitExpenseContent() {
               <button
                 className={cn(
                   'min-h-11 rounded-xl text-sm font-semibold transition',
-                  mode === 'whole' && 'bg-card text-primary shadow-sm'
+                  mode === 'itemized' && 'bg-card text-primary shadow-sm'
                 )}
-                onClick={() => setMode('whole')}
+                onClick={() => setMode('itemized')}
+                aria-pressed={mode === 'itemized'}
               >
-                Chia toàn hóa đơn
+                Theo từng món
               </button>
               <button
                 className={cn(
                   'min-h-11 rounded-xl text-sm font-semibold transition',
-                  mode === 'itemized' && 'bg-card text-primary shadow-sm'
+                  mode === 'whole' && 'bg-card text-primary shadow-sm'
                 )}
-                onClick={() => setMode('itemized')}
+                onClick={() => setMode('whole')}
+                aria-pressed={mode === 'whole'}
               >
-                Chia từng món
+                Chia nhanh toàn bill
               </button>
             </div>
+
+            <p className='rounded-xl bg-primary/5 px-3 py-2 text-xs leading-5 text-muted-foreground'>
+              {mode === 'itemized'
+                ? 'Thêm nhiều món; mỗi món chọn người dùng và cách chia riêng.'
+                : 'Tạo một món đại diện cho toàn bộ số tiền còn lại của hóa đơn.'}
+            </p>
 
             <ExpenseItemEditor
               key={`${mode}-${expense.items.length}`}
               members={activeMembers}
               defaultName={mode === 'whole' ? 'Toàn bộ hóa đơn' : ''}
-              defaultAmount={remaining}
+              defaultAmount={mode === 'whole' ? remaining : undefined}
               isPending={saveItem.isPending}
               onSave={({
                 name,
