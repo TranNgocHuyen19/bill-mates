@@ -103,12 +103,24 @@ bill-mates/
 ```bash
 cd backend
 python -m venv .venv
+
 # Windows PowerShell
 .\.venv\Scripts\Activate.ps1
+
+# Cài đặt thư viện
 pip install -r requirements.txt
-python -m uvicorn src.main:app --reload
+
+# Khởi tạo dữ liệu / Chạy Database Migration
+alembic upgrade head
+
+# Khởi chạy server FastAPI
+python -m uvicorn src.main:app --reload --port 8000
 ```
 Backend API chạy tại: `http://localhost:8000` (API Docs tại `http://localhost:8000/docs`).
+
+> **Lưu ý Cấu Hình Supabase (Windows & Connection Pooler)**:
+> - Sử dụng driver `postgresql+psycopg://` trong `DATABASE_URL` của `backend/.env`.
+> - Nếu sử dụng mạng IPv4, hãy chọn **Transaction Pooler** (`aws-1-...pooler.supabase.com:6543`) trong Supabase Connect settings.
 
 ### Khởi Động Frontend (Next.js)
 
