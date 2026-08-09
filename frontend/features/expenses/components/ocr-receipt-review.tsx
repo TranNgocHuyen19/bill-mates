@@ -28,6 +28,7 @@ interface OcrReceiptReviewProps {
 
 function normalizeSuggestionName(name: string): string {
   return name
+    .replace(/[đĐ]/g, 'd')
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
     .toLowerCase()
@@ -35,16 +36,63 @@ function normalizeSuggestionName(name: string): string {
     .trim()
 }
 
+function editDistance(left: string, right: string): number {
+  const previous = Array.from({ length: right.length + 1 }, (_, index) => index)
+  for (let leftIndex = 1; leftIndex <= left.length; leftIndex += 1) {
+    const current = [leftIndex]
+    for (let rightIndex = 1; rightIndex <= right.length; rightIndex += 1) {
+      current[rightIndex] =
+        left[leftIndex - 1] === right[rightIndex - 1]
+          ? previous[rightIndex - 1]
+          : Math.min(previous[rightIndex - 1], previous[rightIndex], current[rightIndex - 1]) + 1
+    }
+    previous.splice(0, previous.length, ...current)
+  }
+  return previous[right.length]
+}
+
+function areSameOcrItem(left: OcrItemSuggestion, right: OcrItemSuggestion): boolean {
+  const leftName = normalizeSuggestionName(left.name)
+  const rightName = normalizeSuggestionName(right.name)
+  if (!leftName || !rightName) return false
+
+  const amountDifference = Math.abs(left.total_amount - right.total_amount)
+  const amountTolerance = Math.max(100, Math.round(Math.max(left.total_amount, right.total_amount) * 0.005))
+  if (amountDifference > amountTolerance) return false
+
+  if (leftName === rightName) return true
+
+  const unitPriceDifference = Math.abs(left.unit_price - right.unit_price)
+  const unitPriceTolerance = Math.max(100, Math.round(Math.max(left.unit_price, right.unit_price) * 0.005))
+  const quantityTolerance = Math.max(0.01, Math.max(left.quantity, right.quantity) * 0.01)
+  if (unitPriceDifference > unitPriceTolerance || Math.abs(left.quantity - right.quantity) > quantityTolerance) {
+    return false
+  }
+
+  const leftTokens = new Set(leftName.split(' '))
+  const rightTokens = new Set(rightName.split(' '))
+  const sharedTokens = [...leftTokens].filter((token) => rightTokens.has(token)).length
+  const shortestTokenCount = Math.min(leftTokens.size, rightTokens.size)
+  if (shortestTokenCount >= 2 && sharedTokens === shortestTokenCount) return true
+
+  const compactLength = Math.max(leftName.length, rightName.length)
+  const similarity = 1 - editDistance(leftName, rightName) / compactLength
+  return similarity >= (compactLength <= 12 ? 0.84 : 0.78)
+}
+
 function buildSuggestions(receipts: ExpenseReceipt[]): EditableSuggestion[] {
   const suggestions: EditableSuggestion[] = []
-  const seen = new Set<string>()
+  const suggestionSources = new Map<number, number>()
 
-  receipts.forEach((receipt) => {
+  receipts.forEach((receipt, receiptIndex) => {
     receipt.ocr_data?.items?.forEach((item) => {
-      const key = `${normalizeSuggestionName(item.name)}:${item.total_amount}`
-      if (seen.has(key)) return
-      seen.add(key)
-      suggestions.push({ ...item, sourceIndex: suggestions.length })
+      const isDuplicate = suggestions.some(
+        (existing) => suggestionSources.get(existing.sourceIndex) !== receiptIndex && areSameOcrItem(existing, item)
+      )
+      if (isDuplicate) return
+      const sourceIndex = suggestions.length
+      suggestionSources.set(sourceIndex, receiptIndex)
+      suggestions.push({ ...item, sourceIndex })
     })
   })
 
@@ -91,6 +139,8 @@ export function OcrReceiptReview({
   onUseSuggestion
 }: OcrReceiptReviewProps) {
   const [suggestions, setSuggestions] = React.useState(() => buildSuggestions(receipts))
+  const rawSuggestionCount = receipts.reduce((sum, receipt) => sum + (receipt.ocr_data?.items?.length ?? 0), 0)
+  const duplicateSuggestionCount = Math.max(0, rawSuggestionCount - suggestions.length)
   const completedReceipts = receipts.filter((receipt) => receipt.ocr_status === 'completed')
   const failedReceipts = receipts.filter((receipt) => receipt.ocr_status === 'failed')
   const hasPendingReceipts = receipts.some((receipt) =>
@@ -179,7 +229,14 @@ export function OcrReceiptReview({
                 Tin cậy {confidence}%
               </span>
             </div>
-            <p className='mt-0.5 truncate text-xs text-muted-foreground'>{merchant || receipts[0]?.filename}</p>
+            <div className='mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground'>
+              <p className='truncate'>{merchant || receipts[0]?.filename}</p>
+              {duplicateSuggestionCount ? (
+                <span className='rounded-full bg-secondary/10 px-2 py-0.5 text-[10px] font-semibold text-secondary'>
+                  Đã lọc {duplicateSuggestionCount} dòng trùng
+                </span>
+              ) : null}
+            </div>
           </div>
           <Sparkles className='size-4 shrink-0 text-amber-500' aria-hidden='true' />
         </div>

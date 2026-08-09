@@ -13,6 +13,9 @@
 - Every uploaded image is scanned, while a failed image does not stop the remaining images.
 - OCR suggestions from all images are shown in one review list.
 - Overlapping screenshots are deduplicated by normalized item name and line total.
+- Small OCR differences in an overlapping row are deduplicated using near-name matching and a guarded amount tolerance.
+- Near-name rows with different quantities or unit prices remain separate to avoid merging distinct products.
+- Identical rows inside the same source image are preserved because overlap filtering only compares different images.
 - A total found only in the final image is used as the combined receipt total.
 - The OCR review displays the protected original receipt image for visual comparison.
 - Multiple receipt images can be switched from the review gallery.

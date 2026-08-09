@@ -102,7 +102,8 @@ test('When receipt screenshots overlap, then duplicate items are merged and uniq
       total_amount: 724_447,
       average_confidence: 0.97,
       items: [
-        { ...sharedItem, name: 'KHOAI MO' },
+        { ...sharedItem, name: 'KHOAI M0' },
+        { name: 'Khoai mỡ loại 2', quantity: 1, unit_price: 6_699, total_amount: 6_699, confidence: 0.96 },
         { name: 'Cà chua', quantity: 0.412, unit_price: 29_400, total_amount: 12_113, confidence: 0.99 }
       ]
     }
@@ -121,8 +122,9 @@ test('When receipt screenshots overlap, then duplicate items are merged and uniq
   )
 
   await screen.findByRole('img', { name: 'Ảnh bill gốc 1' })
-  expect(screen.getByText('PaddleOCR tìm thấy 3 món từ 2 ảnh')).toBeVisible()
-  expect(screen.getByDisplayValue('Cà chua')).toBeVisible()
+  expect(screen.getByText('PaddleOCR tìm thấy 4 món từ 2 ảnh')).toBeVisible()
+  expect(screen.getByText('Đã lọc 1 dòng trùng')).toBeVisible()
+  expect(screen.getByDisplayValue('Khoai mỡ loại 2')).toBeVisible()
 })
 
 test('When a receipt item has a discount, then original, discount, net, and payable totals are visible', async () => {

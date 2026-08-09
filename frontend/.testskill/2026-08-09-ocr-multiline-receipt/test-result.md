@@ -33,6 +33,9 @@
 - Discounted items display the original amount, percentage, discount amount, and net amount.
 - The compact receipt summary displays subtotal, discount, and payable total.
 - The `44` order discount is visibly allocated to an eligible non-discounted item, making imported OCR items total `288500`.
+- Overlapping rows with small OCR name drift are filtered across images, while duplicate-looking rows inside one image remain available.
+- Fuzzy-name candidates must also match total, unit price, and quantity tolerances before they are merged.
+- The review header reports how many overlapping rows were filtered.
 
 ## Residual Risk
 

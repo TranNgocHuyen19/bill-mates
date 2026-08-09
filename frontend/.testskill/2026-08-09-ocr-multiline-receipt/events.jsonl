@@ -10,3 +10,5 @@
 {"event":"real_receipt_smoke","status":"passed","result":"Lotte discount 6344 / payable 288500; BHX merged 21 items / 724447 unchanged"}
 {"event":"test_verifier","status":"blocked","result":"configured provider has no active credentials"}
 {"event":"order_discount_reconciliation","status":"passed","result":"44 allocated visibly; OCR suggestions total 288500"}
+{"event":"near_duplicate_filtering","status":"passed","result":"Khoai mỡ / KHOAI M0 overlap reduced to one row; UI reports 1 filtered duplicate"}
+{"event":"duplicate_false_positive_guard","status":"passed","result":"near-name row with different quantity and unit price remains separate"}

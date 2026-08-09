@@ -40,6 +40,7 @@
 - Receipts that have not been scanned are processed sequentially.
 - The review header reports both the unique item count and source image count.
 - Suggestions are flattened in image order and duplicate overlap rows are removed.
+- Overlap matching tolerates accents, `0`/`O`-style OCR errors, truncated name tokens, and small amount drift across different images.
 - Failed images produce a warning without hiding successful suggestions from other images.
 - Retrying scans all images and refreshes the receipt collection.
 
