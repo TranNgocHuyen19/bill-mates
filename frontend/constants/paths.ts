@@ -4,6 +4,7 @@ export const PATHS = {
   ROOM_DETAIL: (id: string) => `/rooms/${id}`,
   ROOM_SETTINGS: (id: string) => `/rooms/${id}/settings`,
   EXPENSES: {
+    INDEX: '/expenses',
     NEW: '/expenses/new',
     SPLIT: '/expenses/new/split',
     CONFIRM: '/expenses/new/confirm'

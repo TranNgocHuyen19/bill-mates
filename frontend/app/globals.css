@@ -30,6 +30,8 @@
   --color-muted: var(--muted);
   --color-secondary-foreground: var(--secondary-foreground);
   --color-secondary: var(--secondary);
+  --color-tertiary: var(--tertiary);
+  --color-tertiary-container: var(--tertiary-container);
   --color-primary-foreground: var(--primary-foreground);
   --color-primary: var(--primary);
   --color-popover-foreground: var(--popover-foreground);
@@ -74,7 +76,7 @@
   --input: #c5c5d4;
   --ring: #24389c;
   --radius: 0.75rem; /* 12px for inputs & buttons as per rounded-md */
-  --radius-lg: 1.0rem; /* 16px for cards as per rounded-lg */
+  --radius-lg: 1rem; /* 16px for cards as per rounded-lg */
 }
 
 .dark {

@@ -43,6 +43,7 @@ function SplitExpenseContent() {
   const expenseTotal = Number(expense?.total_amount ?? 0)
   const remaining = Math.max(0, expenseTotal - itemsTotal)
   const overBy = Math.max(0, itemsTotal - expenseTotal)
+  const membersById = new Map(roomQuery.data?.members.map((member) => [member.id, member]) ?? [])
   const canContinue =
     Boolean(expense?.items.length) &&
     itemsTotal === expenseTotal &&
@@ -75,11 +76,11 @@ function SplitExpenseContent() {
       <main className='mx-auto w-full max-w-3xl space-y-5 px-4 py-5 sm:py-8'>
         <div className='flex items-center justify-between'>
           <Link
-            href={`${PATHS.EXPENSES.NEW}?roomId=${expense.room_id}`}
+            href={`${PATHS.EXPENSES.INDEX}?roomId=${expense.room_id}`}
             className='inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-muted-foreground'
           >
             <ArrowLeft className='size-4' />
-            Bước 1
+            Đơn nháp
           </Link>
           <span className='rounded-full bg-primary/10 px-3 py-1.5 text-xs font-bold text-primary'>Bước 2 / 3</span>
         </div>
@@ -126,28 +127,54 @@ function SplitExpenseContent() {
           <section className='space-y-2'>
             <h2 className='font-bold'>Món đã lưu</h2>
             {expense.items.map((item) => (
-              <Card key={item.id} className='flex items-center gap-3 rounded-2xl p-4'>
-                <span className='grid size-11 shrink-0 place-items-center rounded-xl bg-secondary/10 text-secondary'>
-                  <CheckCircle2 className='size-5' />
-                </span>
-                <div className='min-w-0 flex-1'>
-                  <p className='truncate text-sm font-bold'>{item.name}</p>
-                  <p className='mt-0.5 text-xs text-muted-foreground'>
-                    {item.splits.length} người •{' '}
-                    {item.splits[0] ? methodLabels[item.splits[0].split_method] : 'Chưa chia'}
-                  </p>
+              <Card key={item.id} className='rounded-2xl p-4'>
+                <div className='flex items-center gap-3'>
+                  <span className='grid size-11 shrink-0 place-items-center rounded-xl bg-secondary/10 text-secondary'>
+                    <CheckCircle2 className='size-5' />
+                  </span>
+                  <div className='min-w-0 flex-1'>
+                    <p className='truncate text-sm font-bold'>{item.name}</p>
+                    <p className='mt-0.5 text-xs text-muted-foreground'>
+                      {item.splits.length} người •{' '}
+                      {item.splits[0] ? methodLabels[item.splits[0].split_method] : 'Chưa chia'}
+                    </p>
+                  </div>
+                  <div className='text-right'>
+                    <p className='text-sm font-bold'>{formatVnd(item.total_amount)}</p>
+                    <button
+                      type='button'
+                      className='mt-1 inline-flex min-h-8 items-center gap-1 text-xs text-destructive'
+                      onClick={() => deleteItem.mutate(item.id)}
+                      disabled={deleteItem.isPending}
+                    >
+                      <Trash2 className='size-3.5' />
+                      Xóa
+                    </button>
+                  </div>
                 </div>
-                <div className='text-right'>
-                  <p className='text-sm font-bold'>{formatVnd(item.total_amount)}</p>
-                  <button
-                    className='mt-1 inline-flex min-h-8 items-center gap-1 text-xs text-destructive'
-                    onClick={() => deleteItem.mutate(item.id)}
-                    disabled={deleteItem.isPending}
-                  >
-                    <Trash2 className='size-3.5' />
-                    Xóa
-                  </button>
-                </div>
+
+                {item.splits.length > 0 ? (
+                  <div className='mt-3 grid gap-2 border-t pt-3 sm:grid-cols-2'>
+                    {item.splits.map((split) => {
+                      const member = membersById.get(split.member_id)
+                      const memberName = member?.nickname || member?.display_name || 'Thành viên'
+                      return (
+                        <div
+                          key={split.id}
+                          className='flex items-center gap-2 rounded-xl bg-muted/55 px-3 py-2 text-xs'
+                        >
+                          <span className='grid size-7 shrink-0 place-items-center rounded-full bg-primary/10 font-bold text-primary'>
+                            {memberName.charAt(0).toUpperCase()}
+                          </span>
+                          <span className='min-w-0 flex-1 truncate font-semibold'>{memberName}</span>
+                          <span className='font-bold tabular-nums'>{formatVnd(split.amount_owed)}</span>
+                        </div>
+                      )
+                    })}
+                  </div>
+                ) : (
+                  <p className='mt-3 border-t pt-3 text-xs text-tertiary'>Món này chưa có người được chia.</p>
+                )}
               </Card>
             ))}
           </section>

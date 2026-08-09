@@ -151,9 +151,9 @@ function ConfirmExpenseContent() {
 
         <div className='sticky bottom-20 z-20 grid grid-cols-[0.8fr_1.2fr] gap-3 rounded-2xl border bg-card/95 p-3 shadow-xl backdrop-blur sm:bottom-4'>
           <Button variant='outline' className='h-12 rounded-xl' asChild>
-            <Link href={PATHS.ROOM_DETAIL(expense.room_id)}>
+            <Link href={`${PATHS.EXPENSES.INDEX}?roomId=${expense.room_id}`}>
               <Clock3 className='size-4' />
-              Để nháp
+              {isPosted ? 'Danh sách' : 'Để nháp'}
             </Link>
           </Button>
           <Button

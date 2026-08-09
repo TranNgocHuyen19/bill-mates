@@ -192,6 +192,12 @@ export function RoomDashboardPage() {
               </Card>
             )}
             <Button variant='outline' className='h-11 w-full justify-between rounded-xl' asChild>
+              <Link href={`${PATHS.EXPENSES.INDEX}?roomId=${room.id}`}>
+                Xem tất cả đơn nháp & khoản chi
+                <ChevronRight className='size-4' />
+              </Link>
+            </Button>
+            <Button variant='ghost' className='h-11 w-full justify-between rounded-xl' asChild>
               <Link href={`${PATHS.DEBTS.INDEX}?roomId=${room.id}`}>
                 Xem công nợ của phòng
                 <ChevronRight className='size-4' />

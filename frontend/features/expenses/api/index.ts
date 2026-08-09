@@ -108,6 +108,10 @@ export const postExpenseApi = async (expenseId: string): Promise<Expense> => {
   return response.data
 }
 
+export const cancelExpenseApi = async (expenseId: string): Promise<void> => {
+  await http.post(`/api/v1/expenses/${expenseId}/cancel`)
+}
+
 export const saveExpenseItemApi = async (
   item: AddExpenseItemInput,
   split: Omit<UpdateItemSplitsInput, 'itemId'>

@@ -5,6 +5,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { getErrorMessage } from '@/lib/error-handler'
 import { showErrorToast, showSuccessToast } from '@/lib/toast'
 import {
+  cancelExpenseApi,
   createExpenseDraftApi,
   deleteExpenseItemApi,
   getExpenseApi,
@@ -19,7 +20,8 @@ import {
 
 export const expenseKeys = {
   all: ['expenses'] as const,
-  room: (roomId: string, status?: ExpenseStatus) => [...expenseKeys.all, 'room', roomId, status ?? 'all'] as const,
+  roomScope: (roomId: string) => [...expenseKeys.all, 'room', roomId] as const,
+  room: (roomId: string, status?: ExpenseStatus) => [...expenseKeys.roomScope(roomId), status ?? 'all'] as const,
   detail: (expenseId: string) => [...expenseKeys.all, expenseId] as const
 }
 
@@ -37,12 +39,18 @@ export const useExpenseQuery = (expenseId: string) =>
     enabled: Boolean(expenseId)
   })
 
-export const useCreateExpenseDraftMutation = () =>
-  useMutation({
+export const useCreateExpenseDraftMutation = () => {
+  const queryClient = useQueryClient()
+  return useMutation({
     mutationFn: (data: CreateExpenseDraftInput) => createExpenseDraftApi(data),
-    onSuccess: () => showSuccessToast('Đã lưu đơn nháp.'),
+    onSuccess: (expense) => {
+      queryClient.setQueryData(expenseKeys.detail(expense.id), expense)
+      queryClient.invalidateQueries({ queryKey: expenseKeys.roomScope(expense.room_id) })
+      showSuccessToast('Đã lưu đơn nháp.')
+    },
     onError: (error: unknown) => showErrorToast(getErrorMessage(error))
   })
+}
 
 export const useSaveExpenseItemMutation = (expenseId: string) => {
   const queryClient = useQueryClient()
@@ -72,8 +80,20 @@ export const usePostExpenseMutation = (expenseId: string) => {
     mutationFn: () => postExpenseApi(expenseId),
     onSuccess: (expense) => {
       queryClient.setQueryData(expenseKeys.detail(expenseId), expense)
-      queryClient.invalidateQueries({ queryKey: expenseKeys.room(expense.room_id) })
+      queryClient.invalidateQueries({ queryKey: expenseKeys.roomScope(expense.room_id) })
       showSuccessToast('Khoản chi đã được chốt và tính vào công nợ.')
+    },
+    onError: (error: unknown) => showErrorToast(getErrorMessage(error))
+  })
+}
+
+export const useCancelExpenseMutation = (roomId: string) => {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: cancelExpenseApi,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: expenseKeys.roomScope(roomId) })
+      showSuccessToast('Đã bỏ đơn nháp.')
     },
     onError: (error: unknown) => showErrorToast(getErrorMessage(error))
   })

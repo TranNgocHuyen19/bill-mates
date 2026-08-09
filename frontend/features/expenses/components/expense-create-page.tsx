@@ -1,7 +1,17 @@
 'use client'
 
 import * as React from 'react'
-import { ArrowLeft, ArrowRight, CalendarDays, Camera, FileText, Loader2, ReceiptText, UsersRound } from 'lucide-react'
+import {
+  ArrowLeft,
+  ArrowRight,
+  CalendarDays,
+  Camera,
+  FileText,
+  Loader2,
+  ReceiptText,
+  Save,
+  UsersRound
+} from 'lucide-react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 
@@ -14,6 +24,7 @@ import { uploadExpenseReceiptApi, useCreateExpenseDraftMutation } from '../index
 import { useRoomDetailQuery, useRoomsQuery } from '@/features/rooms'
 import { getErrorMessage } from '@/lib/error-handler'
 import { showErrorToast } from '@/lib/toast'
+import { MoneyInput } from './money-input'
 
 function ExpenseCreateFormContent() {
   const router = useRouter()
@@ -62,6 +73,8 @@ function ExpenseCreateFormContent() {
               event.preventDefault()
               const form = new FormData(event.currentTarget)
               const receipt = form.get('receipt')
+              const submitter = (event.nativeEvent as SubmitEvent).submitter as HTMLButtonElement | null
+              const shouldContinue = submitter?.value !== 'save'
               createDraft.mutate(
                 {
                   roomId,
@@ -80,7 +93,11 @@ function ExpenseCreateFormContent() {
                         showErrorToast(`Đơn nháp đã lưu nhưng ảnh tải lên thất bại: ${getErrorMessage(error)}`)
                       }
                     }
-                    router.push(`${PATHS.EXPENSES.SPLIT}?expenseId=${expense.id}`)
+                    router.push(
+                      shouldContinue
+                        ? `${PATHS.EXPENSES.SPLIT}?expenseId=${expense.id}`
+                        : `${PATHS.EXPENSES.INDEX}?roomId=${expense.room_id}`
+                    )
                   }
                 }
               )
@@ -116,17 +133,7 @@ function ExpenseCreateFormContent() {
               minLength={1}
               required
             />
-            <Input
-              name='total_amount'
-              type='number'
-              inputMode='numeric'
-              min={1}
-              step={1}
-              label='Tổng tiền (VND)'
-              placeholder='0'
-              trailingIcon={<span className='text-xs font-semibold'>₫</span>}
-              required
-            />
+            <MoneyInput name='total_amount' label='Tổng tiền (VND)' placeholder='0' required />
 
             <div className='grid gap-4 sm:grid-cols-2'>
               <label className='block space-y-1.5 text-xs font-semibold text-muted-foreground'>
@@ -179,13 +186,34 @@ function ExpenseCreateFormContent() {
               />
             </label>
 
-            <Button
-              className='h-12 w-full rounded-xl font-semibold'
-              disabled={createDraft.isPending || !roomId || !activeMembers.length}
-            >
-              {createDraft.isPending ? <Loader2 className='size-4 animate-spin' /> : <ArrowRight className='size-4' />}
-              {createDraft.isPending ? 'Đang lưu đơn nháp...' : 'Lưu nháp & chia tiền'}
-            </Button>
+            <div className='grid grid-cols-[0.85fr_1.15fr] gap-3'>
+              <Button
+                type='submit'
+                name='intent'
+                value='save'
+                variant='outline'
+                className='h-12 rounded-xl font-semibold'
+                disabled={createDraft.isPending || !roomId || !activeMembers.length}
+              >
+                <Save className='size-4' />
+                <span className='hidden min-[360px]:inline'>Lưu nháp</span>
+                <span className='min-[360px]:hidden'>Lưu</span>
+              </Button>
+              <Button
+                type='submit'
+                name='intent'
+                value='continue'
+                className='h-12 rounded-xl font-semibold'
+                disabled={createDraft.isPending || !roomId || !activeMembers.length}
+              >
+                {createDraft.isPending ? (
+                  <Loader2 className='size-4 animate-spin' />
+                ) : (
+                  <ArrowRight className='size-4' />
+                )}
+                {createDraft.isPending ? 'Đang lưu...' : 'Tiếp tục chia'}
+              </Button>
+            </div>
           </form>
         </Card>
       </main>
