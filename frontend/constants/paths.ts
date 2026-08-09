@@ -13,6 +13,7 @@ export const PATHS = {
     INDEX: '/debts',
     SETTLE: '/debts/settle'
   },
+  REPORTS: '/reports',
   HISTORY: '/history',
   PROFILE: '/profile',
   ABOUT: '/about',

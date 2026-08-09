@@ -3,6 +3,7 @@
 import * as React from 'react'
 import {
   ArrowLeft,
+  BarChart3,
   ChevronRight,
   Crown,
   FolderPlus,
@@ -200,6 +201,15 @@ export function RoomDashboardPage() {
             <Button variant='ghost' className='h-11 w-full justify-between rounded-xl' asChild>
               <Link href={`${PATHS.DEBTS.INDEX}?roomId=${room.id}`}>
                 Xem công nợ của phòng
+                <ChevronRight className='size-4' />
+              </Link>
+            </Button>
+            <Button variant='ghost' className='h-11 w-full justify-between rounded-xl' asChild>
+              <Link href={`${PATHS.REPORTS}?roomId=${room.id}`}>
+                <span className='flex items-center gap-2'>
+                  <BarChart3 className='size-4 text-primary' />
+                  Báo cáo & xuất Excel
+                </span>
                 <ChevronRight className='size-4' />
               </Link>
             </Button>

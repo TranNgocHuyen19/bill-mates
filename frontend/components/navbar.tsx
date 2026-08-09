@@ -2,7 +2,19 @@
 
 import * as React from 'react'
 import Link from 'next/link'
-import { ChevronDown, Clock3, CreditCard, Home, Loader2, LogOut, ReceiptText, User, Wallet, X } from 'lucide-react'
+import {
+  BarChart3,
+  ChevronDown,
+  Clock3,
+  CreditCard,
+  Home,
+  Loader2,
+  LogOut,
+  ReceiptText,
+  User,
+  Wallet,
+  X
+} from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { useLogoutMutation } from '@/features/auth'
@@ -152,6 +164,15 @@ export function Navbar() {
                       </Link>
 
                       <Link
+                        href={PATHS.REPORTS}
+                        onClick={() => setIsMenuOpen(false)}
+                        className='flex items-center gap-2.5 px-4 py-2.5 text-xs font-semibold text-foreground transition-colors hover:bg-primary/10 hover:text-primary'
+                      >
+                        <BarChart3 className='size-4 text-primary' />
+                        <span>Báo cáo chi tiêu</span>
+                      </Link>
+
+                      <Link
                         href={PATHS.PROFILE}
                         onClick={() => setIsMenuOpen(false)}
                         className='flex items-center gap-2.5 px-4 py-2.5 text-xs font-semibold text-foreground transition-colors hover:bg-primary/10 hover:text-primary'
@@ -261,6 +282,15 @@ export function Navbar() {
               >
                 <CreditCard className='size-5 text-primary' />
                 <span>Quản lý công nợ</span>
+              </Link>
+
+              <Link
+                href={PATHS.REPORTS}
+                onClick={() => setIsMenuOpen(false)}
+                className='flex items-center gap-3 rounded-2xl bg-muted/40 p-3.5 text-sm font-semibold transition-colors hover:bg-primary/10 hover:text-primary'
+              >
+                <BarChart3 className='size-5 text-primary' />
+                <span>Báo cáo chi tiêu & xuất Excel</span>
               </Link>
 
               <Link

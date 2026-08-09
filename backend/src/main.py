@@ -14,6 +14,7 @@ from src.config import settings
 from src.debts.router import router as debts_router
 from src.expenses.router import router as expenses_router
 from src.health.router import router as health_router
+from src.reports.router import router as reports_router
 from src.rooms.router import router as rooms_router
 from src.users.router import router as users_router
 
@@ -55,3 +56,4 @@ app.include_router(rooms_router, prefix=settings.API_V1_STR)
 app.include_router(expenses_router, prefix=settings.API_V1_STR)
 app.include_router(debts_router, prefix=settings.API_V1_STR)
 app.include_router(activity_router, prefix=settings.API_V1_STR)
+app.include_router(reports_router, prefix=settings.API_V1_STR)

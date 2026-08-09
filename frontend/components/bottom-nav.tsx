@@ -3,7 +3,7 @@
 import * as React from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Clock3, CreditCard, Home, Plus, User } from 'lucide-react'
+import { BarChart3, CreditCard, Home, Plus, User } from 'lucide-react'
 import { PATHS } from '@/constants'
 import { cn } from '@/lib/utils'
 
@@ -36,10 +36,10 @@ export function BottomNav() {
       isActive: pathname.startsWith('/expenses')
     },
     {
-      label: 'Lịch sử',
-      href: PATHS.HISTORY,
-      icon: Clock3,
-      isActive: pathname.startsWith('/history')
+      label: 'Báo cáo',
+      href: PATHS.REPORTS,
+      icon: BarChart3,
+      isActive: pathname.startsWith('/reports')
     },
     {
       label: 'Cá nhân',
