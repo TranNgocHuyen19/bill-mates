@@ -1,0 +1,7 @@
+{
+  "name": "bill-mates-local-infra",
+  "private": true,
+  "devDependencies": {
+    "supabase": "2.113.0"
+  }
+}
