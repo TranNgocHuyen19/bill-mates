@@ -3,7 +3,7 @@
 import * as React from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Home, Plus, CreditCard, User } from 'lucide-react'
+import { Clock3, CreditCard, Home, Plus, User } from 'lucide-react'
 import { PATHS } from '@/constants'
 import { cn } from '@/lib/utils'
 
@@ -36,6 +36,12 @@ export function BottomNav() {
       isActive: pathname.startsWith('/expenses')
     },
     {
+      label: 'Lịch sử',
+      href: PATHS.HISTORY,
+      icon: Clock3,
+      isActive: pathname.startsWith('/history')
+    },
+    {
       label: 'Cá nhân',
       href: PATHS.PROFILE,
       icon: User,
@@ -44,8 +50,8 @@ export function BottomNav() {
   ]
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-40 bg-card/95 backdrop-blur-lg border-t border-border md:hidden shadow-lg">
-      <div className="grid grid-cols-4 items-center h-16 max-w-md mx-auto w-full px-1">
+    <nav className='fixed right-0 bottom-0 left-0 z-40 border-t border-border bg-card/95 shadow-lg backdrop-blur-lg md:hidden'>
+      <div className='mx-auto grid h-16 w-full max-w-md grid-cols-5 items-center px-1'>
         {navItems.map((item) => {
           const Icon = item.icon
 
@@ -54,14 +60,12 @@ export function BottomNav() {
               <Link
                 key={item.href}
                 href={item.href}
-                className="flex flex-col items-center justify-center -mt-5 group col-span-1"
+                className='group col-span-1 -mt-5 flex flex-col items-center justify-center'
               >
-                <div className="size-11 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-md shadow-primary/30 group-hover:scale-105 transition-transform">
-                  <Icon className="size-5" />
+                <div className='flex size-11 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-md shadow-primary/30 transition-transform group-hover:scale-105'>
+                  <Icon className='size-5' />
                 </div>
-                <span className="text-[10px] font-bold text-primary mt-1">
-                  {item.label}
-                </span>
+                <span className='mt-1 text-[10px] font-bold text-primary'>{item.label}</span>
               </Link>
             )
           }
@@ -71,14 +75,12 @@ export function BottomNav() {
               key={item.href}
               href={item.href}
               className={cn(
-                'flex flex-col items-center justify-center col-span-1 py-1 transition-colors h-full',
-                item.isActive
-                  ? 'text-primary font-bold'
-                  : 'text-muted-foreground hover:text-foreground'
+                'col-span-1 flex h-full flex-col items-center justify-center py-1 transition-colors',
+                item.isActive ? 'font-bold text-primary' : 'text-muted-foreground hover:text-foreground'
               )}
             >
-              <Icon className="size-5" />
-              <span className="text-[10px] font-semibold mt-1">{item.label}</span>
+              <Icon className='size-5' />
+              <span className='mt-1 text-[10px] font-semibold'>{item.label}</span>
             </Link>
           )
         })}

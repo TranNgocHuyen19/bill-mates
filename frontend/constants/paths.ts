@@ -2,6 +2,7 @@ export const PATHS = {
   HOME: '/',
   ROOMS: '/rooms',
   ROOM_DETAIL: (id: string) => `/rooms/${id}`,
+  ROOM_SETTINGS: (id: string) => `/rooms/${id}/settings`,
   EXPENSES: {
     NEW: '/expenses/new',
     SPLIT: '/expenses/new/split',
@@ -11,6 +12,7 @@ export const PATHS = {
     INDEX: '/debts',
     SETTLE: '/debts/settle'
   },
+  HISTORY: '/history',
   PROFILE: '/profile',
   ABOUT: '/about',
   AUTH: {

@@ -1,13 +1,19 @@
+import asyncio
+import sys
+
+if sys.platform == "win32":
+    asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from src.activity.router import router as activity_router
 from src.api import configure_api
-from src.config import settings
-from src.health.router import router as health_router
-
 from src.auth.router import router as auth_router
+from src.config import settings
 from src.debts.router import router as debts_router
 from src.expenses.router import router as expenses_router
+from src.health.router import router as health_router
 from src.rooms.router import router as rooms_router
 from src.users.router import router as users_router
 
@@ -48,3 +54,4 @@ app.include_router(users_router, prefix=settings.API_V1_STR)
 app.include_router(rooms_router, prefix=settings.API_V1_STR)
 app.include_router(expenses_router, prefix=settings.API_V1_STR)
 app.include_router(debts_router, prefix=settings.API_V1_STR)
+app.include_router(activity_router, prefix=settings.API_V1_STR)

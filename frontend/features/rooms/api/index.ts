@@ -36,6 +36,13 @@ export interface CreateRoomInput {
   currency?: string
 }
 
+export interface UpdateRoomInput {
+  roomId: string
+  name?: string
+  description?: string | null
+  currency?: string
+}
+
 export interface RoomInvite {
   id: string
   room_id: string
@@ -68,6 +75,15 @@ export const getRoomDetailApi = async (roomId: string): Promise<RoomDetail> => {
 export const createRoomApi = async (data: CreateRoomInput): Promise<RoomSummary> => {
   const response = await http.post<RoomSummary>('/api/v1/rooms', data)
   return response.data
+}
+
+export const updateRoomApi = async ({ roomId, ...data }: UpdateRoomInput): Promise<RoomDetail> => {
+  const response = await http.patch<RoomDetail>(`/api/v1/rooms/${roomId}`, data)
+  return response.data
+}
+
+export const archiveRoomApi = async (roomId: string): Promise<void> => {
+  await http.post(`/api/v1/rooms/${roomId}/archive`)
 }
 
 export const createInviteApi = async (roomId: string): Promise<RoomInvite> => {

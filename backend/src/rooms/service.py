@@ -311,6 +311,16 @@ class RoomService:
         invite.use_count += 1
         if invite.use_count >= invite.max_uses:
             invite.status = InviteStatus.EXPIRED
+        await session.flush()
+        session.add(
+            ActivityLog(
+                room_id=invite.room_id,
+                actor_profile_id=user.id,
+                action="member.joined",
+                entity_type="room_member",
+                entity_id=membership.id,
+            )
+        )
         await session.commit()
         await session.refresh(membership)
         return membership
@@ -345,7 +355,19 @@ class RoomService:
                 message="Chỉ chủ phòng được cấp quyền quản trị.",
                 status_code=status.HTTP_403_FORBIDDEN,
             )
+        old_role = member.role
         member.role = data.role
+        session.add(
+            ActivityLog(
+                room_id=room_id,
+                actor_profile_id=user.id,
+                action="member.role_updated",
+                entity_type="room_member",
+                entity_id=member.id,
+                old_values={"role": old_role.value},
+                new_values={"role": data.role.value},
+            )
+        )
         await session.commit()
 
     @staticmethod
@@ -426,8 +448,20 @@ class RoomService:
         category = Category(room_id=room_id, **data.model_dump())
         session.add(category)
         try:
+            await session.flush()
+            session.add(
+                ActivityLog(
+                    room_id=room_id,
+                    actor_profile_id=user.id,
+                    action="category.created",
+                    entity_type="category",
+                    entity_id=category.id,
+                    new_values={"name": category.name},
+                )
+            )
             await session.commit()
         except IntegrityError as exc:
+            await session.rollback()
             raise AppError(
                 code="category_name_exists",
                 message="Tên danh mục đã tồn tại trong phòng.",
@@ -452,8 +486,24 @@ class RoomService:
                 message="Không tìm thấy danh mục.",
                 status_code=status.HTTP_404_NOT_FOUND,
             )
-        for field, value in data.model_dump(exclude_unset=True).items():
+        old_values = {
+            "name": category.name,
+            "is_active": category.is_active,
+        }
+        new_values = data.model_dump(exclude_unset=True)
+        for field, value in new_values.items():
             setattr(category, field, value)
+        session.add(
+            ActivityLog(
+                room_id=room_id,
+                actor_profile_id=user.id,
+                action="category.updated",
+                entity_type="category",
+                entity_id=category.id,
+                old_values=old_values,
+                new_values=new_values,
+            )
+        )
         await session.commit()
         await session.refresh(category)
         return category

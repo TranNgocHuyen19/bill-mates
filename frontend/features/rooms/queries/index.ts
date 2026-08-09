@@ -5,6 +5,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { getErrorMessage } from '@/lib/error-handler'
 import { showErrorToast, showSuccessToast } from '@/lib/toast'
 import {
+  archiveRoomApi,
   createCategoryApi,
   createInviteApi,
   createRoomApi,
@@ -15,9 +16,11 @@ import {
   leaveRoomApi,
   removeMemberApi,
   updateMemberRoleApi,
+  updateRoomApi,
   type Category,
   type CreateRoomInput,
-  type RoomRole
+  type RoomRole,
+  type UpdateRoomInput
 } from '../api'
 
 export const roomKeys = {
@@ -54,6 +57,31 @@ export const useCreateRoomMutation = () => {
     onSuccess: (room) => {
       queryClient.setQueryData(roomKeys.list(), (rooms: unknown) => (Array.isArray(rooms) ? [room, ...rooms] : [room]))
       showSuccessToast('Đã tạo phòng mới.')
+    },
+    onError: (error: unknown) => showErrorToast(getErrorMessage(error))
+  })
+}
+
+export const useUpdateRoomMutation = (roomId: string) => {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (data: Omit<UpdateRoomInput, 'roomId'>) => updateRoomApi({ roomId, ...data }),
+    onSuccess: (room) => {
+      queryClient.setQueryData(roomKeys.detail(roomId), room)
+      queryClient.invalidateQueries({ queryKey: roomKeys.list() })
+      showSuccessToast('Đã cập nhật thông tin phòng.')
+    },
+    onError: (error: unknown) => showErrorToast(getErrorMessage(error))
+  })
+}
+
+export const useArchiveRoomMutation = (roomId: string) => {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: () => archiveRoomApi(roomId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: roomKeys.all })
+      showSuccessToast('Đã lưu trữ phòng.')
     },
     onError: (error: unknown) => showErrorToast(getErrorMessage(error))
   })

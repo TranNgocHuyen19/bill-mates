@@ -2,7 +2,7 @@
 
 import * as React from 'react'
 import Link from 'next/link'
-import { Wallet, LogOut, User, Loader2, Home, CreditCard, ChevronDown, X } from 'lucide-react'
+import { ChevronDown, Clock3, CreditCard, Home, Loader2, LogOut, User, Wallet, X } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { useLogoutMutation } from '@/features/auth'
@@ -132,6 +132,15 @@ export function Navbar() {
                         <User className='size-4 text-primary' />
                         <span>Tài khoản & Cài đặt</span>
                       </Link>
+
+                      <Link
+                        href={PATHS.HISTORY}
+                        onClick={() => setIsMenuOpen(false)}
+                        className='flex items-center gap-2.5 px-4 py-2.5 text-xs font-semibold text-foreground transition-colors hover:bg-primary/10 hover:text-primary'
+                      >
+                        <Clock3 className='size-4 text-primary' />
+                        <span>Lịch sử hoạt động</span>
+                      </Link>
                     </div>
 
                     <div className='border-t border-border pt-1'>
@@ -221,6 +230,15 @@ export function Navbar() {
               >
                 <User className='size-5 text-primary' />
                 <span>Tài khoản & Cài đặt</span>
+              </Link>
+
+              <Link
+                href={PATHS.HISTORY}
+                onClick={() => setIsMenuOpen(false)}
+                className='flex items-center gap-3 rounded-2xl bg-muted/40 p-3.5 text-sm font-semibold transition-colors hover:bg-primary/10 hover:text-primary'
+              >
+                <Clock3 className='size-5 text-primary' />
+                <span>Lịch sử hoạt động</span>
               </Link>
             </div>
 
