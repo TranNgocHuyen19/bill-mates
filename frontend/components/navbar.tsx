@@ -48,6 +48,22 @@ export function Navbar() {
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
 
+  React.useEffect(() => {
+    if (!isMenuOpen) return
+
+    const previousOverflow = document.body.style.overflow
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setIsMenuOpen(false)
+    }
+
+    document.body.style.overflow = 'hidden'
+    document.addEventListener('keydown', closeOnEscape)
+    return () => {
+      document.body.style.overflow = previousOverflow
+      document.removeEventListener('keydown', closeOnEscape)
+    }
+  }, [isMenuOpen])
+
   const userName =
     user?.user_metadata?.name || user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Thành viên'
 
@@ -173,27 +189,32 @@ export function Navbar() {
         </div>
       </header>
 
-      {/* Mobile-First Sliding Bottom Sheet Menu (Shown only on mobile screens md:hidden) */}
+      {/* Mobile navigation drawer */}
       {isMenuOpen && user && (
-        <div className='fixed inset-0 z-50 flex animate-in flex-col justify-end bg-black/60 backdrop-blur-xs duration-200 fade-in md:hidden'>
-          {/* Backdrop click to dismiss */}
-          <div className='flex-1' onClick={() => setIsMenuOpen(false)} />
+        <div className='fixed inset-0 z-50 animate-in bg-black/60 duration-200 fade-in md:hidden'>
+          <button
+            type='button'
+            className='absolute inset-0 cursor-default backdrop-blur-xs'
+            aria-label='Đóng menu'
+            onClick={() => setIsMenuOpen(false)}
+          />
 
-          {/* Bottom Sheet Drawer */}
-          <div className='relative animate-in space-y-5 rounded-t-3xl border-t border-border bg-card p-6 shadow-2xl duration-300 slide-in-from-bottom'>
-            {/* Drag Handle Indicator */}
-            <div className='mx-auto h-1.5 w-12 rounded-full bg-muted' />
-
-            {/* Close Button */}
+          <aside
+            role='dialog'
+            aria-modal='true'
+            aria-label='Menu tài khoản'
+            className='relative ml-auto flex h-dvh w-[min(88vw,390px)] animate-in flex-col overflow-y-auto rounded-l-3xl border-l border-border bg-card px-5 pt-[max(1.25rem,env(safe-area-inset-top))] pb-[max(1.25rem,env(safe-area-inset-bottom))] shadow-2xl duration-300 slide-in-from-right'
+          >
             <button
+              type='button'
               onClick={() => setIsMenuOpen(false)}
-              className='absolute top-5 right-5 rounded-full p-1 text-muted-foreground hover:text-foreground'
+              className='absolute top-[max(1rem,env(safe-area-inset-top))] right-4 grid size-10 place-items-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground'
+              aria-label='Đóng menu'
             >
               <X className='size-5' />
             </button>
 
-            {/* User Profile Header */}
-            <div className='flex items-center gap-3 border-b border-border pb-4'>
+            <div className='flex items-center gap-3 border-b border-border pt-8 pb-5'>
               <div className='flex size-12 shrink-0 items-center justify-center rounded-full bg-primary text-lg font-bold text-primary-foreground shadow-md'>
                 {userName.charAt(0).toUpperCase()}
               </div>
@@ -203,8 +224,7 @@ export function Navbar() {
               </div>
             </div>
 
-            {/* Menu Options */}
-            <div className='space-y-2'>
+            <nav className='mt-5 space-y-2' aria-label='Điều hướng tài khoản'>
               <Link
                 href={PATHS.ROOMS}
                 onClick={() => setIsMenuOpen(false)}
@@ -240,12 +260,11 @@ export function Navbar() {
                 <Clock3 className='size-5 text-primary' />
                 <span>Lịch sử hoạt động</span>
               </Link>
-            </div>
+            </nav>
 
-            {/* Logout Button */}
             <Button
               variant='destructive'
-              className='h-12 w-full gap-2 rounded-2xl text-sm font-semibold'
+              className='mt-auto h-12 w-full gap-2 rounded-2xl text-sm font-semibold'
               onClick={() => {
                 setIsMenuOpen(false)
                 logoutMutation.mutate()
@@ -254,7 +273,7 @@ export function Navbar() {
             >
               <LogOut className='size-4' /> Đăng xuất khỏi thiết bị
             </Button>
-          </div>
+          </aside>
         </div>
       )}
     </>
