@@ -16,7 +16,7 @@ interface EditableSuggestion extends OcrItemSuggestion {
 }
 
 interface OcrReceiptReviewProps {
-  receipt: ExpenseReceipt
+  receipts: ExpenseReceipt[]
   expenseTotal: number
   selectedIndex: number | null
   importedIndexes: number[]
@@ -25,15 +25,33 @@ interface OcrReceiptReviewProps {
   onUseSuggestion: (suggestion: EditableSuggestion) => void
 }
 
-function buildSuggestions(receipt: ExpenseReceipt): EditableSuggestion[] {
-  return (receipt.ocr_data?.items ?? []).map((item, sourceIndex) => ({
-    ...item,
-    sourceIndex
-  }))
+function normalizeSuggestionName(name: string): string {
+  return name
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, ' ')
+    .trim()
+}
+
+function buildSuggestions(receipts: ExpenseReceipt[]): EditableSuggestion[] {
+  const suggestions: EditableSuggestion[] = []
+  const seen = new Set<string>()
+
+  receipts.forEach((receipt) => {
+    receipt.ocr_data?.items?.forEach((item) => {
+      const key = `${normalizeSuggestionName(item.name)}:${item.total_amount}`
+      if (seen.has(key)) return
+      seen.add(key)
+      suggestions.push({ ...item, sourceIndex: suggestions.length })
+    })
+  })
+
+  return suggestions
 }
 
 export function OcrReceiptReview({
-  receipt,
+  receipts,
   expenseTotal,
   selectedIndex,
   importedIndexes,
@@ -41,17 +59,29 @@ export function OcrReceiptReview({
   onRetry,
   onUseSuggestion
 }: OcrReceiptReviewProps) {
-  const [suggestions, setSuggestions] = React.useState(() => buildSuggestions(receipt))
-  const ocrData = receipt.ocr_data
-  const detectedTotal = ocrData?.total_amount ?? null
+  const [suggestions, setSuggestions] = React.useState(() => buildSuggestions(receipts))
+  const completedReceipts = receipts.filter((receipt) => receipt.ocr_status === 'completed')
+  const failedReceipts = receipts.filter((receipt) => receipt.ocr_status === 'failed')
+  const hasPendingReceipts = receipts.some((receipt) =>
+    ['not_requested', 'pending', 'processing'].includes(receipt.ocr_status)
+  )
+  const detectedTotal =
+    completedReceipts.find((receipt) => receipt.ocr_data?.total_amount != null)?.ocr_data?.total_amount ?? null
+  const merchant = completedReceipts.find((receipt) => receipt.ocr_data?.merchant)?.ocr_data?.merchant
+  const rawText = completedReceipts
+    .map((receipt) => `[${receipt.filename}]\n${receipt.ocr_data?.raw_text ?? ''}`)
+    .join('\n\n')
+  const confidence =
+    completedReceipts.length > 0
+      ? Math.round(
+          (completedReceipts.reduce((sum, receipt) => sum + (receipt.ocr_data?.average_confidence ?? 0), 0) /
+            completedReceipts.length) *
+            100
+        )
+      : 0
   const hasTotalMismatch = detectedTotal !== null && detectedTotal !== expenseTotal
-  const confidence = Math.round((ocrData?.average_confidence ?? 0) * 100)
 
-  if (
-    receipt.ocr_status === 'not_requested' ||
-    receipt.ocr_status === 'pending' ||
-    receipt.ocr_status === 'processing'
-  ) {
+  if (hasPendingReceipts && completedReceipts.length === 0) {
     return (
       <Card className='flex items-center gap-3 rounded-2xl border-primary/20 bg-primary/5 p-4'>
         <span className='grid size-10 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary'>
@@ -60,14 +90,14 @@ export function OcrReceiptReview({
         <div role='status'>
           <p className='text-sm font-bold'>PaddleOCR đang đọc bill</p>
           <p className='mt-0.5 text-xs text-muted-foreground'>
-            Lần quét đầu có thể lâu hơn vì cần tải model tiếng Việt.
+            Đang xử lý {receipts.length} ảnh. Lần quét đầu có thể lâu hơn vì cần tải model tiếng Việt.
           </p>
         </div>
       </Card>
     )
   }
 
-  if (receipt.ocr_status === 'failed') {
+  if (failedReceipts.length > 0 && completedReceipts.length === 0) {
     return (
       <Card className='rounded-2xl border-destructive/25 bg-destructive/5 p-4' role='alert'>
         <div className='flex items-start gap-3'>
@@ -75,7 +105,7 @@ export function OcrReceiptReview({
           <div className='min-w-0 flex-1'>
             <p className='text-sm font-bold'>Chưa đọc được hóa đơn</p>
             <p className='mt-1 text-xs leading-5 text-muted-foreground'>
-              {ocrData?.error?.message ?? 'Hãy thử ảnh rõ hơn, đủ sáng và không bị nghiêng.'}
+              {failedReceipts[0].ocr_data?.error?.message ?? 'Hãy thử ảnh rõ hơn, đủ sáng và không bị nghiêng.'}
             </p>
           </div>
         </div>
@@ -103,12 +133,14 @@ export function OcrReceiptReview({
           </span>
           <div className='min-w-0 flex-1'>
             <div className='flex flex-wrap items-center gap-2'>
-              <p className='text-sm font-bold'>PaddleOCR tìm thấy {suggestions.length} món</p>
+              <p className='text-sm font-bold'>
+                PaddleOCR tìm thấy {suggestions.length} món từ {receipts.length} ảnh
+              </p>
               <span className='rounded-full bg-background/70 px-2 py-0.5 text-[10px] font-bold text-muted-foreground'>
                 Tin cậy {confidence}%
               </span>
             </div>
-            <p className='mt-0.5 truncate text-xs text-muted-foreground'>{ocrData?.merchant || receipt.filename}</p>
+            <p className='mt-0.5 truncate text-xs text-muted-foreground'>{merchant || receipts[0]?.filename}</p>
           </div>
           <Sparkles className='size-4 shrink-0 text-amber-500' aria-hidden='true' />
         </div>
@@ -134,10 +166,19 @@ export function OcrReceiptReview({
         </div>
       ) : null}
 
+      {failedReceipts.length > 0 ? (
+        <div className='flex items-start gap-2 border-b border-tertiary/15 bg-tertiary/5 px-4 py-2.5 text-xs text-tertiary'>
+          <AlertTriangle className='mt-0.5 size-4 shrink-0' />
+          <span>{failedReceipts.length} ảnh chưa đọc được; các món từ ảnh còn lại vẫn có thể dùng.</span>
+        </div>
+      ) : null}
+
       <div className='space-y-3 p-4'>
         <div>
           <p className='text-sm font-bold'>Kiểm tra từng món</p>
-          <p className='mt-0.5 text-xs text-muted-foreground'>Sửa nếu cần, rồi đưa từng món xuống phần chia người.</p>
+          <p className='mt-0.5 text-xs text-muted-foreground'>
+            Các dòng trùng giữa nhiều ảnh đã được gộp. Sửa nếu cần, rồi đưa từng món xuống phần chia người.
+          </p>
         </div>
 
         {suggestions.length ? (
@@ -182,7 +223,7 @@ export function OcrReceiptReview({
                   </div>
                   <div className='mt-2 flex items-center justify-between gap-2'>
                     <span className='truncate text-[11px] text-muted-foreground'>
-                      {suggestion.quantity > 1
+                      {suggestion.quantity !== 1
                         ? `${suggestion.quantity} × ${formatVnd(suggestion.unit_price)}`
                         : `Tin cậy ${Math.round(suggestion.confidence * 100)}%`}
                     </span>
@@ -211,13 +252,13 @@ export function OcrReceiptReview({
           </div>
         )}
 
-        {ocrData?.raw_text ? (
+        {rawText ? (
           <details className='rounded-xl border border-border/70 bg-background px-3 py-2 text-xs'>
             <summary className='min-h-8 cursor-pointer py-1 font-semibold text-muted-foreground'>
               Xem chữ OCR thô
             </summary>
             <pre className='max-h-40 overflow-auto py-2 font-sans leading-5 break-words whitespace-pre-wrap text-foreground'>
-              {ocrData.raw_text}
+              {rawText}
             </pre>
           </details>
         ) : null}
@@ -230,7 +271,7 @@ export function OcrReceiptReview({
           onClick={onRetry}
         >
           {isRetrying ? <Loader2 className='size-4 animate-spin' /> : <RefreshCw className='size-4' />}
-          Quét lại từ ảnh gốc
+          Quét lại tất cả ảnh gốc
         </Button>
       </div>
     </Card>

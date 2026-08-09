@@ -13,12 +13,11 @@ import { PATHS } from '@/constants'
 import {
   ExpenseItemEditor,
   OcrReceiptReview,
+  scanExpenseReceiptApi,
   useDeleteExpenseItemMutation,
   useExpenseQuery,
-  useExpenseReceiptQuery,
   useExpenseReceiptsQuery,
   useSaveExpenseItemMutation,
-  useScanExpenseReceiptMutation,
   type OcrItemSuggestion,
   type SplitMethod
 } from '@/features/expenses'
@@ -40,17 +39,17 @@ function SplitExpenseContent() {
   const requestedReceiptId = searchParams.get('receiptId') ?? ''
   const expenseQuery = useExpenseQuery(expenseId)
   const receiptsQuery = useExpenseReceiptsQuery(expenseId)
-  const receiptId = requestedReceiptId || receiptsQuery.data?.[0]?.id || ''
-  const receiptQuery = useExpenseReceiptQuery(receiptId)
-  const scanReceipt = useScanExpenseReceiptMutation(receiptId)
-  const scanReceiptMutate = scanReceipt.mutate
+  const receipts = React.useMemo(() => receiptsQuery.data ?? [], [receiptsQuery.data])
+  const refetchReceipts = receiptsQuery.refetch
+  const receiptId = requestedReceiptId || receipts[0]?.id || ''
   const roomQuery = useRoomDetailQuery(expenseQuery.data?.room_id ?? '')
   const saveItem = useSaveExpenseItemMutation(expenseId)
   const deleteItem = useDeleteExpenseItemMutation(expenseId)
   const [mode, setMode] = React.useState<'whole' | 'itemized'>('itemized')
   const [ocrSuggestion, setOcrSuggestion] = React.useState<(OcrItemSuggestion & { sourceIndex: number }) | null>(null)
   const [importedOcrIndexes, setImportedOcrIndexes] = React.useState<number[]>([])
-  const autoScanReceiptId = React.useRef('')
+  const [isScanningReceipts, setIsScanningReceipts] = React.useState(false)
+  const scannedReceiptIds = React.useRef(new Set<string>())
   const expense = expenseQuery.data
   const activeMembers = roomQuery.data?.members.filter((member) => member.status === 'active') ?? []
   const itemsTotal = expense?.items.reduce((sum, item) => sum + Number(item.total_amount), 0) ?? 0
@@ -63,12 +62,35 @@ function SplitExpenseContent() {
     itemsTotal === expenseTotal &&
     expense?.items.every((item) => item.splits.length > 0)
 
+  const scanReceipts = React.useCallback(
+    async (receiptIds: string[], force: boolean) => {
+      if (!receiptIds.length || isScanningReceipts) return
+      setIsScanningReceipts(true)
+      try {
+        for (const id of receiptIds) {
+          try {
+            await scanExpenseReceiptApi(id, force)
+          } catch {
+            // Keep the suggestions from successful images available.
+          }
+        }
+        await refetchReceipts()
+      } finally {
+        setIsScanningReceipts(false)
+      }
+    },
+    [isScanningReceipts, refetchReceipts]
+  )
+
   React.useEffect(() => {
-    if (receiptId && receiptQuery.data?.ocr_status === 'not_requested' && autoScanReceiptId.current !== receiptId) {
-      autoScanReceiptId.current = receiptId
-      scanReceiptMutate(false)
+    const pendingReceiptIds = receipts
+      .filter((receipt) => receipt.ocr_status === 'not_requested' && !scannedReceiptIds.current.has(receipt.id))
+      .map((receipt) => receipt.id)
+    if (pendingReceiptIds.length) {
+      pendingReceiptIds.forEach((id) => scannedReceiptIds.current.add(id))
+      void scanReceipts(pendingReceiptIds, false)
     }
-  }, [receiptId, receiptQuery.data?.ocr_status, scanReceiptMutate])
+  }, [receipts, scanReceipts])
 
   if (expenseQuery.isPending || roomQuery.isPending) {
     return (
@@ -144,7 +166,7 @@ function SplitExpenseContent() {
           </div>
         </Card>
 
-        {receiptQuery.isPending && receiptId ? (
+        {receiptsQuery.isPending && receiptId ? (
           <Card className='flex items-center gap-3 rounded-2xl border-primary/20 bg-primary/5 p-4' role='status'>
             <Loader2 className='size-5 animate-spin text-primary' />
             <div>
@@ -154,28 +176,33 @@ function SplitExpenseContent() {
           </Card>
         ) : null}
 
-        {receiptQuery.isError ? (
+        {receiptsQuery.isError ? (
           <Card className='rounded-2xl border-destructive/25 bg-destructive/5 p-4' role='alert'>
             <p className='text-sm font-bold'>Không tải được kết quả OCR</p>
             <button
               type='button'
               className='mt-2 min-h-10 text-xs font-semibold text-primary'
-              onClick={() => receiptQuery.refetch()}
+              onClick={() => receiptsQuery.refetch()}
             >
               Thử tải lại
             </button>
           </Card>
         ) : null}
 
-        {receiptQuery.data ? (
+        {receipts.length ? (
           <OcrReceiptReview
-            key={receiptQuery.data.updated_at}
-            receipt={receiptQuery.data}
+            key={receipts.map((receipt) => `${receipt.id}-${receipt.updated_at}`).join('|')}
+            receipts={receipts}
             expenseTotal={expenseTotal}
             selectedIndex={ocrSuggestion?.sourceIndex ?? null}
             importedIndexes={importedOcrIndexes}
-            isRetrying={scanReceipt.isPending}
-            onRetry={() => scanReceiptMutate(true)}
+            isRetrying={isScanningReceipts}
+            onRetry={() =>
+              void scanReceipts(
+                receipts.map((receipt) => receipt.id),
+                true
+              )
+            }
             onUseSuggestion={(suggestion) => {
               setMode('itemized')
               setOcrSuggestion(suggestion)

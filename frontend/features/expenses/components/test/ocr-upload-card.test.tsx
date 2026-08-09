@@ -1,20 +1,39 @@
 import { render, screen } from '@testing-library/react'
-import { afterEach, expect, test, vi } from 'vitest'
+import userEvent from '@testing-library/user-event'
+import { afterEach, beforeEach, expect, test, vi } from 'vitest'
 
 import { OcrUploadCard } from '../ocr-upload-card'
+
+beforeEach(() => {
+  vi.spyOn(URL, 'createObjectURL').mockImplementation((file) => `blob:${(file as File).name}`)
+  vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => undefined)
+})
 
 afterEach(() => {
   vi.restoreAllMocks()
 })
 
-test('When a receipt image is selected, then its preview and filename are shown', () => {
-  const previewUrl = 'blob:receipt-preview'
-  const receipt = new File(['receipt'], 'bill-sieu-thi.jpg', { type: 'image/jpeg' })
-  vi.spyOn(URL, 'createObjectURL').mockReturnValue(previewUrl)
-  vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => undefined)
+test('When multiple receipt images are selected, then all files are returned for upload', async () => {
+  const firstReceipt = new File(['first'], 'bill-top.jpg', { type: 'image/jpeg' })
+  const secondReceipt = new File(['second'], 'bill-bottom.jpg', { type: 'image/jpeg' })
+  const onFilesChange = vi.fn()
+  const user = userEvent.setup()
+  render(<OcrUploadCard files={[]} onFilesChange={onFilesChange} />)
 
-  render(<OcrUploadCard file={receipt} onFileChange={vi.fn()} />)
+  await user.upload(screen.getByLabelText('Chọn nhiều ảnh hóa đơn để quét'), [firstReceipt, secondReceipt])
 
-  expect(screen.getByRole('img', { name: 'Ảnh hóa đơn đã chọn' })).toHaveAttribute('src', previewUrl)
-  expect(screen.getByText(receipt.name)).toBeVisible()
+  expect(onFilesChange).toHaveBeenCalledWith([firstReceipt, secondReceipt])
+})
+
+test('When one preview is removed, then the other receipt image remains selected', async () => {
+  const firstReceipt = new File(['first'], 'bill-top.jpg', { type: 'image/jpeg' })
+  const secondReceipt = new File(['second'], 'bill-bottom.jpg', { type: 'image/jpeg' })
+  const onFilesChange = vi.fn()
+  const user = userEvent.setup()
+  render(<OcrUploadCard files={[firstReceipt, secondReceipt]} onFilesChange={onFilesChange} />)
+
+  await user.click(screen.getByRole('button', { name: 'Xóa ảnh hóa đơn 1' }))
+
+  expect(screen.getAllByRole('img')).toHaveLength(2)
+  expect(onFilesChange).toHaveBeenCalledWith([secondReceipt])
 })

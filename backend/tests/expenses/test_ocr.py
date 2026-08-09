@@ -92,6 +92,102 @@ def test_when_receipt_starts_with_heading_then_merchant_is_not_the_heading() -> 
     assert result["merchant"] == lines[1]["text"]
 
 
+def test_when_lotte_receipt_uses_column_rows_then_each_price_is_extracted() -> None:
+    lines = [
+        {
+            "text": "001 SCA TH MILK DUA 100G*4",
+            "confidence": 0.99,
+            "box": [38, 274, 692, 315],
+        },
+        {"text": "35500", "confidence": 0.99, "box": [484, 329, 617, 371]},
+        {"text": "1", "confidence": 0.99, "box": [711, 332, 742, 369]},
+        {"text": "35,500", "confidence": 0.99, "box": [884, 328, 1042, 374]},
+        {"text": "003 THIT HEO XAY", "confidence": 0.99, "box": [36, 495, 441, 536]},
+        {"text": "119000", "confidence": 0.99, "box": [464, 551, 639, 589]},
+        {"text": "0.310", "confidence": 0.99, "box": [636, 551, 790, 589]},
+        {"text": "36,890", "confidence": 0.99, "box": [885, 549, 1042, 592]},
+        {
+            "text": "010 TUI NYLON SIZE 35-60",
+            "confidence": 0.99,
+            "box": [36, 1485, 639, 1529],
+        },
+        {"text": "300", "confidence": 0.99, "box": [533, 1542, 617, 1583]},
+        {"text": "1", "confidence": 0.99, "box": [711, 1545, 741, 1581]},
+        {"text": "300", "confidence": 0.99, "box": [959, 1539, 1044, 1584]},
+        {"text": "Tong cong", "confidence": 0.99, "box": [31, 1761, 268, 1814]},
+        {"text": "294,844", "confidence": 0.99, "box": [861, 1764, 1042, 1806]},
+        {
+            "text": "Scode:22043620036890003101",
+            "confidence": 0.99,
+            "box": [61, 603, 714, 646],
+        },
+    ]
+
+    result = parse_receipt_lines(lines)
+
+    assert [(item["name"], item["total_amount"]) for item in result["items"]] == [
+        ("SCA TH MILK DUA 100G*4", 35_500),
+        ("THIT HEO XAY", 36_890),
+        ("TUI NYLON SIZE 35-60", 300),
+    ]
+    assert result["items"][1]["quantity"] == 0.31
+    assert result["items"][1]["unit_price"] == 119_000
+    assert result["total_amount"] == 294_844
+
+
+def test_when_bach_hoa_xanh_receipt_uses_multiline_products_then_weighted_prices_are_extracted() -> (
+    None
+):
+    lines = [
+        {
+            "text": "băng vệ sinh diana super night 29cm (4 miếng)",
+            "confidence": 0.99,
+            "box": [45, 420, 724, 465],
+        },
+        {"text": "2", "confidence": 1.0, "box": [93, 470, 127, 510]},
+        {"text": "23.500 (VAT:8%)", "confidence": 0.99, "box": [358, 468, 603, 510]},
+        {"text": "47.000", "confidence": 1.0, "box": [720, 470, 827, 510]},
+        {"text": "khoai mỡ", "confidence": 0.99, "box": [46, 333, 188, 376]},
+        {"text": "0,406", "confidence": 1.0, "box": [63, 379, 154, 421]},
+        {
+            "text": "33.000 16.500 (VAT:5%)",
+            "confidence": 0.99,
+            "box": [254, 382, 601, 424],
+        },
+        {"text": "6.699", "confidence": 1.0, "box": [740, 383, 827, 425]},
+        {"text": "ớt hiểm túi 50g", "confidence": 0.99, "box": [46, 525, 267, 568]},
+        {"text": "1", "confidence": 1.0, "box": [94, 579, 125, 620]},
+        {"text": "4.400 (VAT:5%)", "confidence": 1.0, "box": [381, 578, 601, 620]},
+        {"text": "4.400", "confidence": 1.0, "box": [739, 579, 827, 621]},
+        {
+            "text": "nước xả vải downy làn gió mát dây 20ml/18ml",
+            "confidence": 0.99,
+            "box": [46, 1348, 712, 1391],
+        },
+        {"text": "2", "confidence": 1.0, "box": [93, 1396, 127, 1436]},
+        {
+            "text": "21.000 18.500 (VAT:8%)",
+            "confidence": 0.99,
+            "box": [251, 1394, 602, 1442],
+        },
+        {"text": "37.000", "confidence": 1.0, "box": [720, 1397, 828, 1436]},
+        {"text": "Phải thanh toán:", "confidence": 0.99, "box": [47, 1551, 289, 1593]},
+        {"text": "724.447", "confidence": 1.0, "box": [699, 1554, 826, 1595]},
+    ]
+
+    result = parse_receipt_lines(lines)
+
+    assert [(item["name"], item["total_amount"]) for item in result["items"]] == [
+        ("băng vệ sinh diana super night 29cm (4 miếng)", 47_000),
+        ("khoai mỡ", 6_699),
+        ("ớt hiểm túi 50g", 4_400),
+        ("nước xả vải downy làn gió mát dây 20ml/18ml", 37_000),
+    ]
+    assert result["items"][1]["quantity"] == 0.406
+    assert result["items"][1]["unit_price"] == 16_500
+    assert result["total_amount"] == 724_447
+
+
 @pytest.mark.asyncio
 async def test_when_ocr_succeeds_then_result_and_status_are_persisted(
     session: AsyncSession,

@@ -16,7 +16,7 @@ import { useRoomDetailQuery, useRoomsQuery } from '@/features/rooms'
 import { getErrorMessage } from '@/lib/error-handler'
 import { showErrorToast } from '@/lib/toast'
 import { MoneyInput } from './money-input'
-import { OcrUploadCard, type ReceiptUploadStage } from './ocr-upload-card'
+import { OcrUploadCard, type ReceiptUploadProgress, type ReceiptUploadStage } from './ocr-upload-card'
 
 function toLocalIsoDate(date: Date): string {
   const year = date.getFullYear()
@@ -32,8 +32,9 @@ function ExpenseCreateFormContent() {
   const roomsQuery = useRoomsQuery()
   const [selectedRoomId, setSelectedRoomId] = React.useState(requestedRoomId)
   const [selectedPayerId, setSelectedPayerId] = React.useState('')
-  const [receiptFile, setReceiptFile] = React.useState<File | null>(null)
+  const [receiptFiles, setReceiptFiles] = React.useState<File[]>([])
   const [receiptStage, setReceiptStage] = React.useState<ReceiptUploadStage>('idle')
+  const [receiptProgress, setReceiptProgress] = React.useState<ReceiptUploadProgress | null>(null)
   const roomId = selectedRoomId || requestedRoomId || roomsQuery.data?.[0]?.id || ''
   const roomQuery = useRoomDetailQuery(roomId)
   const createDraft = useCreateExpenseDraftMutation()
@@ -88,24 +89,32 @@ function ExpenseCreateFormContent() {
                 },
                 {
                   onSuccess: async (expense) => {
-                    let receiptId = ''
-                    if (receiptFile) {
+                    const receiptErrors: string[] = []
+                    if (receiptFiles.length) {
+                      setReceiptProgress({ current: 0, total: receiptFiles.length })
                       try {
-                        setReceiptStage('uploading')
-                        const receipt = await uploadExpenseReceiptApi(expense.id, receiptFile)
-                        receiptId = receipt.id
-                        setReceiptStage('scanning')
-                        await scanExpenseReceiptApi(receipt.id)
-                      } catch (error) {
-                        const action = receiptId ? 'PaddleOCR chưa đọc được ảnh' : 'ảnh tải lên thất bại'
-                        showErrorToast(`Đơn nháp đã lưu nhưng ${action}: ${getErrorMessage(error)}`)
+                        for (const [index, file] of receiptFiles.entries()) {
+                          setReceiptProgress({ current: index + 1, total: receiptFiles.length })
+                          try {
+                            setReceiptStage('uploading')
+                            const receipt = await uploadExpenseReceiptApi(expense.id, file)
+                            setReceiptStage('scanning')
+                            await scanExpenseReceiptApi(receipt.id)
+                          } catch (error) {
+                            receiptErrors.push(`${file.name}: ${getErrorMessage(error)}`)
+                          }
+                        }
                       } finally {
                         setReceiptStage('idle')
+                        setReceiptProgress(null)
                       }
+                    }
+                    if (receiptErrors.length) {
+                      showErrorToast(`Đơn nháp đã lưu nhưng một số ảnh chưa quét được: ${receiptErrors.join(' | ')}`)
                     }
                     router.push(
                       shouldContinue
-                        ? `${PATHS.EXPENSES.SPLIT}?expenseId=${expense.id}${receiptId ? `&receiptId=${receiptId}` : ''}`
+                        ? `${PATHS.EXPENSES.SPLIT}?expenseId=${expense.id}`
                         : `${PATHS.EXPENSES.INDEX}?roomId=${expense.room_id}`
                     )
                   }
@@ -186,17 +195,19 @@ function ExpenseCreateFormContent() {
             />
 
             <OcrUploadCard
-              key={receiptFile ? `${receiptFile.name}-${receiptFile.lastModified}` : 'empty-receipt'}
-              file={receiptFile}
+              files={receiptFiles}
               stage={receiptStage}
+              progress={receiptProgress}
               disabled={createDraft.isPending}
-              onFileChange={(file) => {
-                if (file && file.size > 10 * 1024 * 1024) {
-                  showErrorToast('Ảnh hóa đơn phải nhỏ hơn 10 MB.')
-                  setReceiptFile(null)
-                  return
+              onFilesChange={(files) => {
+                const validFiles = files.filter((file) => file.size <= 10 * 1024 * 1024)
+                if (validFiles.length !== files.length) {
+                  showErrorToast('Mỗi ảnh hóa đơn phải nhỏ hơn 10 MB.')
                 }
-                setReceiptFile(file)
+                if (validFiles.length > 8) {
+                  showErrorToast('Mỗi đơn tối đa 8 ảnh hóa đơn.')
+                }
+                setReceiptFiles(validFiles.slice(0, 8))
               }}
             />
 
