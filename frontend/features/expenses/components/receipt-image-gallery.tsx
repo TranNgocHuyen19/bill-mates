@@ -64,7 +64,7 @@ export function ReceiptImageGallery({ receipts }: ReceiptImageGalleryProps) {
   }
 
   return (
-    <Card className='overflow-hidden rounded-3xl border-border/80 p-0'>
+    <Card className='sticky top-3 z-30 overflow-hidden rounded-3xl border-border/80 bg-card p-0 shadow-lg sm:top-5'>
       <div className='flex items-center gap-3 border-b bg-muted/25 px-4 py-3'>
         <span className='grid size-9 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary'>
           <ImageIcon className='size-4.5' aria-hidden='true' />
@@ -122,13 +122,13 @@ export function ReceiptImageGallery({ receipts }: ReceiptImageGalleryProps) {
         </div>
       </div>
 
-      <div className='relative grid min-h-56 place-items-center bg-muted/60 p-3 sm:min-h-72'>
+      <div className='relative grid min-h-40 place-items-center bg-muted/60 p-3 sm:min-h-72'>
         {activeImage?.url ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
             src={activeImage.url}
             alt={`Ảnh bill gốc ${activeIndex + 1}`}
-            className='max-h-[48vh] w-full rounded-xl object-contain shadow-sm sm:max-h-[60vh]'
+            className='max-h-[30vh] w-full rounded-xl object-contain shadow-sm sm:max-h-[55vh]'
           />
         ) : activeImage?.error ? (
           <div className='max-w-xs px-5 text-center' role='alert'>

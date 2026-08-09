@@ -125,7 +125,7 @@ export function OcrReceiptReview({
   }
 
   return (
-    <Card className='overflow-hidden rounded-3xl border-primary/20 p-0'>
+    <Card className='overflow-visible rounded-3xl border-primary/20 p-0'>
       <div className='relative overflow-hidden bg-[linear-gradient(115deg,hsl(var(--primary)/0.14),hsl(var(--secondary)/0.07),transparent)] p-4'>
         <ScanLine className='absolute -top-4 -right-4 size-24 text-primary/[0.06]' aria-hidden='true' />
         <div className='relative flex items-start gap-3'>
@@ -185,7 +185,7 @@ export function OcrReceiptReview({
         </div>
 
         {suggestions.length ? (
-          <div className='space-y-2.5'>
+          <div className='max-h-[48vh] space-y-2.5 overflow-y-auto overscroll-contain pr-1 sm:max-h-[58vh]'>
             {suggestions.map((suggestion, index) => {
               const isSelected = selectedIndex === suggestion.sourceIndex
               const isImported = importedIndexes.includes(suggestion.sourceIndex)

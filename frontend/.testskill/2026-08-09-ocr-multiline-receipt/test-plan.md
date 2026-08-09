@@ -17,6 +17,7 @@
 - The OCR review displays the protected original receipt image for visual comparison.
 - Multiple receipt images can be switched from the review gallery.
 - An image download failure shows a retry action without hiding OCR suggestions.
+- The original image stays visible while the item list is scrolled.
 
 ## Receipt Fixture
 

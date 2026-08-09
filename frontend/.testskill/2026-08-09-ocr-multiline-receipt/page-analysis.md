@@ -46,3 +46,4 @@
 - Previous/next controls and numbered image buttons switch between receipt images.
 - The image is constrained inside the review card so it does not cover the entire mobile screen.
 - A failed image fetch shows an inline retry action.
+- The image gallery is sticky and the long suggestion list scrolls inside its own region for side-by-side checking.
