@@ -1,6 +1,6 @@
 from datetime import datetime
 from enum import StrEnum
-from typing import Any
+from typing import Any, ClassVar
 from uuid import UUID, uuid4
 
 from sqlalchemy import JSON, DateTime, MetaData, func
@@ -20,7 +20,7 @@ metadata = MetaData(naming_convention=POSTGRES_INDEXES_NAMING_CONVENTION)
 class Base(DeclarativeBase):
     metadata = metadata
 
-    type_annotation_map = {
+    type_annotation_map: ClassVar[dict[Any, Any]] = {
         dict[str, Any]: JSON,
     }
 
